@@ -152,6 +152,26 @@
     font: 600 16px "Noto Sans KR", sans-serif;
   }
   .stepper input:disabled { opacity: .6; }
+  .panel h2 { font-size: 14px; margin: 10px 0 2px; color: var(--muted); font-weight: 600; }
+  .row select, .row .small-btn {
+    height: 34px; border-radius: 10px; border: 1px solid var(--panel-border);
+    background: var(--btn); color: var(--text); font: 500 14px "Noto Sans KR", sans-serif; padding: 0 10px;
+  }
+  .row .small-btn { cursor: pointer; }
+  .row .small-btn:hover { background: var(--btn-hover); }
+  .ctrl { display: flex; align-items: center; gap: 8px; }
+  .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+  .vol input[type=range] { width: 100%; max-width: 170px; accent-color: var(--accent); }
+  .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .swatches { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .swatch {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0;
+    box-shadow: 0 0 0 1px var(--panel-border);
+  }
+  .swatch.on { border-color: var(--text); }
+  .swatches input[type=color] {
+    width: 30px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer;
+  }
   .help { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; padding: 0 4px; }
   .hidden { display: none !important; }
 </style>
@@ -196,7 +216,7 @@
           <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
         </g>
       </svg>
-      <input id="editInput" class="edit hidden" type="text" inputmode="numeric" maxlength="2" autocomplete="off">
+      <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
     </div>
     <div class="brand">focus timer</div>
   </div>
@@ -206,9 +226,42 @@
     <button id="resetBtn">리셋</button>
   </div>
 
+  <div class="panel" id="settingsPanel">
+    <h2>소리</h2>
+    <div class="row">
+      <span class="label">알림음</span>
+      <div class="ctrl">
+        <select id="soundType">
+          <option value="beep">삐삐</option>
+          <option value="digital">디지털 알람</option>
+          <option value="chime">차임</option>
+          <option value="bell">벨</option>
+          <option value="soft">부드러운 음</option>
+        </select>
+        <button class="small-btn" id="soundTest">미리듣기</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">소리 크기</span>
+      <div class="vol">
+        <input type="range" id="volume" min="0" max="100" step="5">
+        <output id="volumeOut">70%</output>
+      </div>
+    </div>
+    <h2>원형 테두리 색</h2>
+    <div class="row">
+      <span class="label">집중</span>
+      <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
+    </div>
+    <div class="row">
+      <span class="label">휴식</span>
+      <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+    </div>
+  </div>
+
   <p class="help" id="pomoHelp">
-    · <b>집중 시간</b>: 노란 원을 시계처럼 돌리듯 드래그해서 정해요 (1–60분).<br>
-    · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 분을 입력해요 (1–60분).<br>
+    · <b>집중 시간</b>: 원을 시계처럼 돌리듯 드래그해서 정해요 (1–60분).<br>
+    · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요 (예: 4:30, 0:50). 초는 10초 단위이고, 입력칸에서 ↑/↓ 키로 10초씩 바꿀 수 있어요 (0:10–60:00).<br>
     · <b>반복 횟수</b>: 맨 위 숫자를 눌러 목표 횟수를 입력해요 (1–99). 비워 두면 <b>--</b>로 표시되고 목표 없이 완료 횟수만 계속 세요.
   </p>
   <p class="help hidden" id="trackHelp">
@@ -238,7 +291,7 @@
     pomo: {
       target: saved.target ? clamp(saved.target, 1, 99) : null,   // null = 목표 없이 카운트만
       focusMin: clamp(saved.focusMin || 25, 1, 60),
-      breakMin: clamp(saved.breakMin || 5, 1, 60),
+      breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 10, 3600),   // 휴식 시간(초, 10초 단위)
       done: 0,
       phase: "focus",      // focus | break
       remaining: 0,        // 현재 단계 남은 ms
@@ -300,21 +353,42 @@
   }
 
   // ---------- 소리 ----------
+  const SND = store.get("soundPrefs", {});
+  S.soundType = SND.type || "beep";
+  S.volume = SND.volume ?? 70;
   let actx;
-  function beep(times = 3) {
-    if (!S.sound) return;
+  function audio() {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  // 한 음: 시작 시각, 주파수, 파형, 길이, 세기, 어택
+  function tone(out, t, freq, type, dur, peak, attack = 0.01) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(out);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  // 알림음 종류별 한 묶음의 소리와 간격(초)
+  const SOUNDS = {
+    beep:    { gap: 0.35, play: (o, t) => tone(o, t, 880, "sine", 0.25, 0.6) },
+    digital: { gap: 0.6,  play: (o, t) => { for (let i = 0; i < 4; i++) tone(o, t + i * 0.08, 2000, "square", 0.05, 0.12, 0.003); } },
+    chime:   { gap: 0.7,  play: (o, t) => { tone(o, t, 659, "sine", 0.9, 0.5); tone(o, t + 0.18, 988, "sine", 1.0, 0.45); } },
+    bell:    { gap: 1.1,  play: (o, t) => { tone(o, t, 523, "sine", 1.6, 0.55, 0.005); tone(o, t, 1318, "sine", 0.9, 0.2, 0.005); tone(o, t, 2093, "sine", 0.4, 0.08, 0.005); } },
+    soft:    { gap: 0.8,  play: (o, t) => tone(o, t, 440, "triangle", 0.7, 0.55, 0.12) }
+  };
+  function beep(times = 3, force = false) {
+    if ((!S.sound && !force) || S.volume <= 0) return;
     try {
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      for (let i = 0; i < times; i++) {
-        const o = actx.createOscillator(), g = actx.createGain();
-        const t = actx.currentTime + i * 0.35;
-        o.frequency.value = 880; o.type = "sine";
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-        o.connect(g).connect(actx.destination);
-        o.start(t); o.stop(t + 0.3);
-      }
+      audio();
+      const master = actx.createGain();
+      master.gain.value = (S.volume / 100) ** 2;   // 귀로 듣기에 자연스러운 볼륨 곡선
+      master.connect(actx.destination);
+      const snd = SOUNDS[S.soundType] || SOUNDS.beep;
+      for (let i = 0; i < times; i++) snd.play(master, actx.currentTime + 0.02 + i * snd.gap);
     } catch {}
   }
   function renderSound() {
@@ -324,6 +398,46 @@
   $("soundBtn").addEventListener("click", () => {
     S.sound = !S.sound; store.set("sound", S.sound); renderSound();
     if (S.sound) beep(1);
+  });
+
+  const saveSound = () => store.set("soundPrefs", { type: S.soundType, volume: S.volume });
+  $("soundType").value = S.soundType;
+  $("volume").value = S.volume;
+  $("volumeOut").textContent = S.volume + "%";
+  $("soundType").addEventListener("change", e => { S.soundType = e.target.value; saveSound(); beep(1, true); });
+  $("volume").addEventListener("input", e => { S.volume = +e.target.value; $("volumeOut").textContent = S.volume + "%"; saveSound(); });
+  $("volume").addEventListener("change", () => beep(1, true));
+  $("soundTest").addEventListener("click", () => beep(3, true));
+
+  // ---------- 테두리 색 ----------
+  const PALETTE = ["#c9961c", "#e8604c", "#e84c8b", "#9b6bff", "#3f8cff", "#3fb8a8", "#5cc05a", "#e8e8e8"];
+  const COLORS = store.get("ringColors", {});
+  document.querySelectorAll(".swatches").forEach(box => {
+    const cssVar = box.dataset.var, key = box.dataset.key;
+    const def = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+    const picker = document.createElement("input");
+    picker.type = "color"; picker.title = "직접 고르기";
+    const chips = PALETTE.map(c => {
+      const b = document.createElement("button");
+      b.className = "swatch"; b.style.background = c; b.title = c; b.dataset.c = c;
+      b.addEventListener("click", () => apply(c));
+      box.appendChild(b);
+      return b;
+    });
+    box.appendChild(picker);
+    picker.addEventListener("input", () => apply(picker.value));
+    function apply(c) {
+      document.documentElement.style.setProperty(cssVar, c);
+      chips.forEach(b => b.classList.toggle("on", b.dataset.c === c.toLowerCase()));
+      picker.value = c;
+      COLORS[key] = c; store.set("ringColors", COLORS);
+      lastArc = "";   // 원호 다시 칠하기
+      render && render();
+    }
+    const init = COLORS[key] || def;
+    document.documentElement.style.setProperty(cssVar, init);
+    chips.forEach(b => b.classList.toggle("on", b.dataset.c === init.toLowerCase()));
+    picker.value = init;
   });
 
   // ---------- 뽀모도로 ----------
@@ -349,7 +463,7 @@
           break;
         }
         P.phase = "break";
-        P.remaining = P.breakMin * 60000 - over;
+        P.remaining = P.breakSec * 1000 - over;
       } else {
         P.phase = "focus";
         P.remaining = P.focusMin * 60000 - over;
@@ -361,7 +475,7 @@
 
   function renderPomo() {
     const focusMs = P.phase === "focus" ? P.remaining : P.focusMin * 60000;
-    const breakMs = P.phase === "break" ? P.remaining : P.breakMin * 60000;
+    const breakMs = P.phase === "break" ? P.remaining : P.breakSec * 1000;
     $("doneText").textContent = pad(P.done);
     $("targetText").textContent = P.target ? pad(P.target) : "--";
     $("focusText").textContent = fmtMS(focusMs);
@@ -480,18 +594,19 @@
   });
 
   // ---------- 설정 ----------
-  const LIMITS = { target: [1, 99], focusMin: [1, 60], breakMin: [1, 60] };
+  const LIMITS = { target: [1, 99], focusMin: [1, 60], breakSec: [10, 3600] };
   function setSetting(key, val) {
     if (key === "target") {
       P.target = val ? clamp(Math.round(val), ...LIMITS.target) : null;
       P.finished = false;
     } else {
       if (P.running) return;
+      if (key === "breakSec") val = Math.round(val / 10) * 10;   // 10초 단위
       P[key] = clamp(Math.round(val), ...LIMITS[key]);
       if (key === "focusMin" && P.phase === "focus") P.remaining = P[key] * 60000;
-      if (key === "breakMin" && P.phase === "break") P.remaining = P[key] * 60000;
+      if (key === "breakSec" && P.phase === "break") P.remaining = P[key] * 1000;
     }
-    store.set("pomoSettings", { target: P.target, focusMin: P.focusMin, breakMin: P.breakMin });
+    store.set("pomoSettings", { target: P.target, focusMin: P.focusMin, breakSec: P.breakSec });
     render();
   }
 
@@ -500,7 +615,7 @@
   let editKey = null;
   function openEdit(key, anchorEl, fontPx) {
     if (S.mode !== "pomo") return;
-    if (key === "breakMin" && P.running) return;
+    if (key === "breakSec" && P.running) return;
     const sr = screen.getBoundingClientRect(), ar = anchorEl.getBoundingClientRect();
     const k = sr.width / 400;
     editKey = key;
@@ -509,8 +624,9 @@
     editInput.style.fontSize = fontPx * k + "px";
     editInput.style.width = fontPx * k * (key === "target" ? 2.2 : 3.2) + "px";
     editInput.style.height = fontPx * k * 1.35 + "px";
-    editInput.placeholder = key === "target" ? "--" : pad(P.breakMin);
-    editInput.value = key === "target" ? (P.target || "") : P.breakMin;
+    editInput.placeholder = key === "target" ? "--" : "분:초";
+    editInput.maxLength = key === "target" ? 2 : 5;
+    editInput.value = key === "target" ? (P.target || "") : fmtSec(P.breakSec);
     editInput.classList.remove("hidden");
     editInput.focus();
     editInput.select();
@@ -521,18 +637,48 @@
     editKey = null;
     editInput.classList.add("hidden");
     if (!commit) return;
-    const n = parseInt(raw, 10);
-    if (key === "target") setSetting("target", n > 0 ? n : null);   // 비우면 목표 해제
-    else if (n > 0) setSetting("breakMin", n);
+    if (key === "target") {
+      const n = parseInt(raw, 10);
+      setSetting("target", n > 0 ? n : null);   // 비우면 목표 해제
+    } else {
+      const sec = parseMS(raw);
+      if (sec > 0) setSetting("breakSec", sec);
+    }
   }
-  editInput.addEventListener("input", () => { editInput.value = editInput.value.replace(/\D/g, ""); });
+  const fmtSec = sec => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
+  // "4:30" / "430" / "0430" → 270초, "5" → 5분
+  function parseMS(raw) {
+    if (!raw) return 0;
+    let m, sec;
+    if (raw.includes(":")) {
+      const [a, b] = raw.split(":");
+      m = parseInt(a || "0", 10); sec = parseInt(b || "0", 10);
+    } else if (raw.length >= 3) {
+      m = parseInt(raw.slice(0, -2), 10); sec = parseInt(raw.slice(-2), 10);
+    } else {
+      m = parseInt(raw, 10); sec = 0;
+    }
+    if (isNaN(m)) m = 0;
+    if (isNaN(sec)) sec = 0;
+    return m * 60 + Math.min(sec, 59);
+  }
+  editInput.addEventListener("input", () => {
+    const re = editKey === "target" ? /\D/g : /[^\d:]/g;
+    editInput.value = editInput.value.replace(re, "");
+  });
   editInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") { e.preventDefault(); closeEdit(true); }
+    if (editKey === "breakSec" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      const cur = Math.round((parseMS(editInput.value.trim()) || P.breakSec) / 10) * 10;
+      editInput.value = fmtSec(clamp(cur + (e.key === "ArrowUp" ? 10 : -10), 10, 3600));
+      editInput.select();
+    }
+    else if (e.key === "Enter") { e.preventDefault(); closeEdit(true); }
     else if (e.key === "Escape") { e.preventDefault(); closeEdit(false); }
   });
   editInput.addEventListener("blur", () => closeEdit(true));
   $("cycleText").addEventListener("click", () => openEdit("target", $("targetText"), 22));
-  $("breakText").addEventListener("click", () => openEdit("breakMin", $("breakText"), 40));
+  $("breakText").addEventListener("click", () => openEdit("breakSec", $("breakText"), 40));
 
   // 다이얼 드래그 → 집중 시간 설정 (물리 타이머처럼)
   const svg = $("svg");
