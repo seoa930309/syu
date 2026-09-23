@@ -162,12 +162,27 @@
   .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
   .vol input[type=range] { width: 100%; max-width: 150px; accent-color: var(--ink); }
   .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
-  .swatches { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .swatches { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .color-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .color-head { display: flex; align-items: center; justify-content: space-between; }
+  .hexwrap { display: flex; align-items: center; gap: 8px; }
+  .preview { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--soft-line); display: block; }
+  .hex {
+    width: 86px; height: 30px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 12px "Share Tech Mono", ui-monospace, monospace; text-transform: uppercase; padding: 0 8px;
+  }
+  .hex.bad { border-color: #d33; }
+  .custom {
+    position: relative; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; overflow: hidden;
+    background: conic-gradient(#f44, #fd4, #4d4, #4dd, #44f, #d4d, #f44);
+    border: 1px solid var(--soft-line);
+  }
+  .custom.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .custom input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; border: 0; padding: 0; }
   .swatch {
     width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--soft-line); cursor: pointer; padding: 0;
   }
   .swatch.on { outline: 1px solid var(--ink); outline-offset: 2px; }
-  .swatches input[type=color] { width: 26px; height: 26px; border: 0; padding: 0; background: none; cursor: pointer; }
   #settingsPanel.track #soundSection { display: none; }
   #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
 
@@ -273,16 +288,25 @@
         </details>
         <details id="colorSection" class="fold">
           <summary><span>Ring<span class="ko">원형 테두리 색</span></span></summary>
-          <div class="row" data-mode="pomo">
-            <span class="label">집중</span>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">집중</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="집중 색 코드"></span>
+            </div>
             <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
           </div>
-          <div class="row" data-mode="pomo">
-            <span class="label">휴식</span>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">휴식</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="휴식 색 코드"></span>
+            </div>
             <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
           </div>
-          <div class="row" data-mode="track">
-            <span class="label">트래킹</span>
+          <div class="row color-row" data-mode="track">
+            <div class="color-head">
+              <span class="label">트래킹</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="트래킹 색 코드"></span>
+            </div>
             <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
           </div>
         </details>
@@ -437,13 +461,17 @@
   $("soundTest").addEventListener("click", () => beep(ALARM_REPEAT, true));
 
   // ---------- 테두리 색 ----------
-  const PALETTE = ["#f5f5f5", "#d4d4d4", "#b0b0b0", "#8c8c8c", "#686868", "#4a4a4a"];   // 흑백 톤
+  // 흑백 톤 + 컬러, 그리고 직접 고르기(색상표 / 색 코드)
+  const PALETTE = [
+    "#f5f5f5", "#d4d4d4", "#b0b0b0", "#8c8c8c", "#4a4a4a",
+    "#ff5a5a", "#ff9f43", "#ffd43b", "#51cf66", "#20c997", "#4dabf7", "#5c7cfa", "#9775fa", "#f06595"
+  ];
   const COLORS = store.get("ringColorsBW", {});
+  const HEX = /^#[0-9a-f]{6}$/i;
   document.querySelectorAll(".swatches").forEach(box => {
     const cssVar = box.dataset.var, key = box.dataset.key;
+    const row = box.closest(".row"), hex = row.querySelector(".hex"), preview = row.querySelector(".preview");
     const def = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
-    const picker = document.createElement("input");
-    picker.type = "color"; picker.title = "직접 고르기";
     const chips = PALETTE.map(c => {
       const b = document.createElement("button");
       b.className = "swatch"; b.style.background = c; b.title = c; b.dataset.c = c;
@@ -451,20 +479,42 @@
       box.appendChild(b);
       return b;
     });
-    box.appendChild(picker);
+    const custom = document.createElement("label");
+    custom.className = "custom"; custom.title = "직접 고르기";
+    const picker = document.createElement("input");
+    picker.type = "color";
+    custom.appendChild(picker);
+    box.appendChild(custom);
     picker.addEventListener("input", () => apply(picker.value));
-    function apply(c) {
-      document.documentElement.style.setProperty(cssVar, c);
-      chips.forEach(b => b.classList.toggle("on", b.dataset.c === c.toLowerCase()));
-      picker.value = c;
-      COLORS[key] = c; store.set("ringColorsBW", COLORS);
-      lastArc = "";   // 원호 다시 칠하기
-      render && render();
+    hex.addEventListener("input", () => {
+      let v = hex.value.trim();
+      if (v && v[0] !== "#") v = "#" + v;
+      const ok = HEX.test(v);
+      hex.classList.toggle("bad", !ok && v.length >= 7);
+      if (ok) apply(v, true);
+    });
+    hex.addEventListener("blur", () => { hex.value = current.toUpperCase(); hex.classList.remove("bad"); });
+    hex.addEventListener("keydown", e => { if (e.key === "Enter") hex.blur(); });
+
+    let current = def;
+    function show(c) {
+      current = c.toLowerCase();
+      document.documentElement.style.setProperty(cssVar, current);
+      const inPalette = PALETTE.includes(current);
+      chips.forEach(b => b.classList.toggle("on", b.dataset.c === current));
+      custom.classList.toggle("on", !inPalette);
+      picker.value = current;
+      preview.style.background = current;
+      if (document.activeElement !== hex) hex.value = current.toUpperCase();
     }
-    const init = COLORS[key] || def;
-    document.documentElement.style.setProperty(cssVar, init);
-    chips.forEach(b => b.classList.toggle("on", b.dataset.c === init.toLowerCase()));
-    picker.value = init;
+    function apply(c, fromHex) {
+      show(c);
+      if (!fromHex) hex.value = current.toUpperCase();
+      COLORS[key] = current; store.set("ringColorsBW", COLORS);
+      lastArc = "";   // 원호 다시 칠하기
+      render();
+    }
+    show(COLORS[key] || def);
   });
 
   // 접기/펼치기 상태 기억
