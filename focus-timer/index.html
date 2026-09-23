@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+      <circle cx="12" cy="13" r="9"/><path d="M12 13V8M12 13l3.5 2M10 2h4"/>
+    </svg>
+    <nav role="tablist">
+      <button id="modePomo" class="active" role="tab">뽀모도로</button>
+      <button id="modeTrack" role="tab">타임트래킹</button>
+    </nav>
+  </header>
+
+  <h1>Focus Timer</h1>
+
+  <section class="grid">
+    <div class="cell">
+      <div class="device">
+        <div class="screen" id="screen">
+          <svg id="svg" viewBox="0 0 400 400" aria-label="원형 타이머">
+            <g id="dial"></g>
+            <g id="arc"></g>
+
+            <!-- 소리 아이콘 -->
+            <g id="soundBtn" class="clickable" transform="translate(356 26)">
+              <rect x="-8" y="-8" width="32" height="32" fill="transparent"/>
+              <path d="M0 5h4l5-5v16l-5-5H0z" fill="var(--digit)"/>
+              <path id="soundWave" d="M12 3.5a6 6 0 0 1 0 9" stroke="var(--digit)" stroke-width="1.6" fill="none"/>
+              <path id="soundMute" d="M11 4l6 8M17 4l-6 8" stroke="var(--digit)" stroke-width="1.6" class="hidden"/>
+            </g>
+
+            <!-- 뽀모도로 화면 -->
+            <g id="pomoView" class="glow">
+              <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
+              <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
+              <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
+              <text class="unit" x="185" y="238" text-anchor="middle">M</text>
+              <text class="unit" x="215" y="238" text-anchor="middle">S</text>
+              <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
+            </g>
+
+            <!-- 타임트래킹 화면 -->
+            <g id="trackView" class="glow hidden">
+              <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
+              <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
+              <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
+              <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
+              <text id="trackSec" class="digits digits-sub" x="200" y="262" text-anchor="middle" font-size="20">00s</text>
+              <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
+            </g>
+          </svg>
+          <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="device-cap"><span class="tag">(Timer)</span><span class="tag" id="modeCap">Pomodoro</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="controls">
+        <button id="startBtn" class="btn-black">시작</button>
+        <button id="resetBtn" class="btn-line">리셋</button>
+      </div>
+
+      <div id="settingsPanel">
+        <details id="soundSection" class="fold">
+          <summary><span>Sound<span class="ko">소리</span></span></summary>
+          <div class="row">
+            <span class="label">알림음</span>
+            <div class="ctrl">
+              <select id="soundType">
+                <option value="beep">삐삐</option>
+                <option value="digital">디지털 알람</option>
+                <option value="chime">차임</option>
+                <option value="bell">벨</option>
+                <option value="soft">부드러운 음</option>
+              </select>
+              <button class="btn-line" id="soundTest">미리듣기</button>
+            </div>
+          </div>
+          <div class="row">
+            <span class="label">소리 크기</span>
+            <div class="vol">
+              <input type="range" id="volume" min="0" max="100" step="5">
+              <output id="volumeOut">70%</output>
+            </div>
+          </div>
+        </details>
+        <details id="colorSection" class="fold">
+          <summary><span>Ring<span class="ko">원형 테두리 색</span></span></summary>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">집중</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="집중 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
+          </div>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">휴식</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="휴식 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+          </div>
+          <div class="row color-row" data-mode="track">
+            <div class="color-head">
+              <span class="label">트래킹</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="트래킹 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <footer><span class="tag">Focus Timer</span><span class="tag">Black &amp; White</span></footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
