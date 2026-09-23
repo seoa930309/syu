@@ -65,6 +65,18 @@ main{flex:1;min-height:0;position:relative}
 .side-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 14px;margin-bottom:14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
 .side-head b{color:var(--text);font-size:13px;letter-spacing:.05em}
 .drop-list{display:flex;flex-direction:column;gap:10px;min-height:60px;overflow-y:auto;overscroll-behavior:contain;padding:2px;transition:background .15s}
+/* 항상 보이는 스크롤바 (맥·폰에서도) */
+.side,.quad,#view-flow{position:relative}
+.hasbar{scrollbar-width:none;padding-right:16px}
+.hasbar::-webkit-scrollbar{display:none}
+.sbtrack{position:absolute;z-index:3;width:6px;background:rgba(128,128,128,.2);touch-action:none;cursor:pointer}
+.sbtrack[hidden]{display:none}
+.sbtrack::before{content:"";position:absolute;inset:0 -7px}
+.sbthumb{position:relative;width:100%;min-height:28px;background:currentColor;opacity:.55;cursor:grab;touch-action:none;transition:opacity .15s}
+.sbtrack:hover .sbthumb,.sbthumb.drag{opacity:.9}
+.sbthumb.drag{cursor:grabbing}
+.side > .sbtrack .sbthumb,#view-flow > .sbtrack .sbthumb{background:var(--blue);opacity:.75}
+.q-schedule .sbthumb{background:var(--blue)}
 .side .drop-list{flex:1}
 .drop-list.over{background:var(--blue-soft)}
 .hint{color:inherit;opacity:.6;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:6px 2px}
@@ -78,7 +90,7 @@ main{flex:1;min-height:0;position:relative}
 .card.done .title{text-decoration:line-through;color:var(--muted);font-weight:500}
 .card .grip{display:flex;color:var(--muted)}
 .card .grip svg{width:13px;height:13px}
-.card .num{font-size:12px;font-weight:800;color:var(--blue);min-width:14px;margin-left:-4px;letter-spacing:.04em}
+.card .num{position:static;padding:0;line-height:inherit;font-size:12px;font-weight:800;color:var(--blue);min-width:14px;margin-left:-4px;letter-spacing:.04em}
 .acts{display:flex;align-items:center}
 .ic{width:36px;height:36px;display:grid;place-items:center;color:var(--muted)}
 .ic:hover{color:var(--blue)}
@@ -306,7 +318,8 @@ body.fwin-moving .fwin-body{pointer-events:none}
   .tab{height:42px;font-size:10px}
   .view{padding:18px 14px 14px;overflow-y:auto}
   #view-matrix,#view-flow{grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
-  .side .drop-list{max-height:38vh}
+  .side .drop-list{max-height:55vh}
+  .quad .drop-list{flex:none;max-height:50vh}
   .quads{grid-template-columns:1fr;grid-template-rows:none}
   .quad{min-height:180px}
   .slots{overflow:visible}
@@ -1505,6 +1518,7 @@ function renderMatrix() {
   const ml = $('#mList');
   ml.replaceChildren(...inbox.map(t => card(t)));
   if (!inbox.length) ml.append(hint(list.length ? '모두 분류했어요' : '아래에 할 일을 추가하세요'));
+  attachScrollbar(ml);
 
   const q = $('#quads');
   if (!q.children.length) {
@@ -1522,6 +1536,7 @@ function renderMatrix() {
     const items = list.filter(t => t.quad === x.key).sort(byOrder);
     body.replaceChildren(...items.map(t => card(t, { compact: true, unassign: 'quad' })));
     if (!items.length) body.append(hint('여기로 드롭'));
+    attachScrollbar(body);
   });
 }
 
@@ -1533,6 +1548,7 @@ function renderFlow() {
   const fl = $('#fList');
   fl.replaceChildren(...inbox.map((t, i) => card(t, { num: i + 1, showQuad: true })));
   if (!inbox.length) fl.append(hint(list.length ? '모두 배치했어요' : '아래에 할 일을 추가하세요'));
+  attachScrollbar(fl);
 
   const s = $('#slots');
   if (!s.children.length) {
@@ -1548,6 +1564,54 @@ function renderFlow() {
     box.querySelector('.cnt').textContent = items.length;
     box.querySelector('.drop-list').replaceChildren(...items.map(t => card(t, { compact: true, unassign: 'slot', showQuad: true })));
   });
+  attachScrollbar(s);
+}
+
+/* ---------- 스크롤바: 목록 옆에 항상 보이는 막대 (끌거나 눌러서 이동) ---------- */
+function attachScrollbar(list) {
+  if (list._sb) { list._sb(); return; }
+  const track = document.createElement('div');
+  track.className = 'sbtrack';
+  track.innerHTML = '<div class="sbthumb"></div>';
+  const thumb = track.firstChild;
+  list.parentElement.append(track);
+  list.classList.add('hasbar');
+  const update = () => {
+    const ch = list.clientHeight, sh = list.scrollHeight;
+    const show = sh > ch + 2 && list.offsetParent !== null;
+    track.hidden = !show;
+    if (!show) return;
+    Object.assign(track.style, { top: list.offsetTop + 4 + 'px', height: ch - 8 + 'px', left: list.offsetLeft + list.offsetWidth - 9 + 'px' });
+    const th = Math.max(28, (ch - 8) * ch / sh), max = ch - 8 - th;
+    thumb.style.height = th + 'px';
+    thumb.style.transform = `translateY(${max * list.scrollTop / (sh - ch)}px)`;
+  };
+  list.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(list);
+  new MutationObserver(update).observe(list, { childList: true, subtree: true });
+  thumb.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    thumb.setPointerCapture(e.pointerId);
+    thumb.classList.add('drag');
+    const sy = e.clientY, st = list.scrollTop;
+    const ratio = (list.scrollHeight - list.clientHeight) / Math.max(1, track.clientHeight - thumb.offsetHeight);
+    const mv = ev => { list.scrollTop = st + (ev.clientY - sy) * ratio; };
+    const up = () => {
+      thumb.classList.remove('drag');
+      ['pointermove', 'pointerup', 'pointercancel'].forEach((n, i) => thumb.removeEventListener(n, i ? up : mv));
+    };
+    thumb.addEventListener('pointermove', mv);
+    thumb.addEventListener('pointerup', up);
+    thumb.addEventListener('pointercancel', up);
+  });
+  // 막대 빈 곳을 누르면 한 화면씩 이동
+  track.addEventListener('pointerdown', e => {
+    if (e.target !== track) return;
+    const r = thumb.getBoundingClientRect();
+    list.scrollBy({ top: (e.clientY < r.top ? -1 : 1) * list.clientHeight * 0.85, behavior: 'smooth' });
+  });
+  list._sb = update;
+  update();
 }
 
 function renderCalendar() {
@@ -1785,6 +1849,11 @@ function moveDrag(x, y) {
   if (!target) return;
   target.classList.add('over');
   const list = target.classList.contains('drop-list') ? target : target.querySelector('.drop-list');
+  // 목록 위·아래 끝으로 끌면 그쪽으로 스크롤
+  const lr = list.getBoundingClientRect();
+  if (list.scrollHeight > list.clientHeight) {
+    if (y < lr.top + 40) list.scrollTop -= 14; else if (y > lr.bottom - 40) list.scrollTop += 14;
+  }
   const cards = [...list.querySelectorAll(':scope > .card')].filter(c => c !== drag.el);
   const before = cards.find(c => { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2; });
   if (before) { if (drag.ph.nextSibling !== before) list.insertBefore(drag.ph, before); }
