@@ -225,6 +225,12 @@ main{flex:1;min-height:0;position:relative}
 .cprev{display:inline-flex;align-items:center;height:28px;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
 .cprev.event{border-radius:999px}
 .btns{flex-wrap:wrap}
+.sheet.tall{max-height:calc(100vh - 40px);overflow-y:auto}
+.csec{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--blue)}
+.swatches.sm{gap:6px}
+.swatches.sm .sw{width:26px;height:26px}
+.sw.auto.q-schedule,.cprev.q-schedule{box-shadow:inset 0 0 0 1px var(--blue)}
+.q-custom .tag{border-color:currentColor}
 
 /* ---------- paste import ---------- */
 .sheet.wide{width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto}
@@ -392,7 +398,7 @@ main{flex:1;min-height:0;position:relative}
 </div>
 
 <div class="modal" id="cmodal" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="cTitle">
     <h3 id="cTitle">색상 설정</h3>
     <p class="psub">일정과 할 일의 기본 색이에요. 색을 따로 고르지 않은 항목은 모두 이 색으로 보여요. 무지개 칸을 누르면 원하는 색을 직접 고를 수 있어요.</p>
     <div class="crow" data-kind="event">
@@ -403,10 +409,12 @@ main{flex:1;min-height:0;position:relative}
       <div class="chead"><b>할 일</b><span class="cprev">☐ Cortex p.2–8 정리</span></div>
       <div class="swatches"></div>
     </div>
+    <div class="csec">매트릭스 사분면</div>
+    <div id="cQuads"></div>
     <div class="btns">
       <button class="danger" id="cClear"></button>
       <div class="grow"></div>
-      <button class="pill-btn" id="cReset">기본값</button>
+      <button class="pill-btn" id="cReset">모두 기본값</button>
       <button class="pill-btn primary" id="cDone">완료</button>
     </div>
   </div>
@@ -483,8 +491,8 @@ function load() {
 }
 let savedTimer;
 function save() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   const el = $('#saved'); el.classList.add('show');
@@ -526,6 +534,10 @@ if (!state.kindColors) {
   state.tasks.forEach(t => { if (!t.color || t.color === 'gray' || (t.kind === 'event' && t.color === 'pink')) t.color = 'auto'; });
 }
 ['event', 'todo'].forEach(k => { if (!isHex(state.kindColors[k])) state.kindColors[k] = DEFAULT_KC[k]; });
+// 사분면 색: 값이 없으면 기본 디자인
+state.quadColors = state.quadColors || {};
+Object.keys(state.quadColors).forEach(k => { if (!isHex(state.quadColors[k])) delete state.quadColors[k]; });
+const quadColor = k => state.quadColors[k] || null;
 const kindColor = k => state.kindColors[k === 'event' ? 'event' : 'todo'];
 function textOn(hex) {
   const n = parseInt(hex.slice(1), 16);
@@ -557,7 +569,7 @@ function card(t, o = {}) {
   let h = '';
   if (!o.compact) h += `<button class="ic heart ${t.fav ? 'on' : ''}" data-act="fav" aria-label="즐겨찾기">${I.heart}</button>`;
   if (o.num != null) h += `<span class="grip">${I.grip}</span><span class="num">${o.num}</span>`;
-  if (o.showQuad && t.quad) h += `<i class="qdot ${t.quad}"></i>`;
+  if (o.showQuad && t.quad) h += `<i class="qdot ${t.quad}"${quadColor(t.quad) ? ` style="background:${quadColor(t.quad)};box-shadow:none"` : ''}></i>`;
   h += `<div class="tt"><span class="title">${esc(t.title)}</span>${!o.compact && t.note ? `<span class="note">${esc(t.note)}</span>` : ''}</div><div class="acts">`;
   h += `<button class="ic" data-act="done" aria-label="완료">${I.check}</button>`;
   if (o.compact) {
@@ -613,7 +625,10 @@ function renderMatrix() {
       </div>`).join('');
   }
   QUADS.forEach(x => {
-    const body = q.querySelector(`[data-drop="q:${x.key}"] .drop-list`);
+    const box = q.querySelector(`[data-drop="q:${x.key}"]`), c = quadColor(x.key);
+    box.className = 'quad ' + (c ? 'q-custom' : 'q-' + x.key);
+    box.style.cssText = c ? `background:${c};color:${textOn(c)}` : '';
+    const body = box.querySelector('.drop-list');
     const items = list.filter(t => t.quad === x.key).sort(byOrder);
     body.replaceChildren(...items.map(t => card(t, { compact: true, unassign: 'quad' })));
     if (!items.length) body.append(hint('여기로 드롭'));
@@ -690,7 +705,7 @@ function renderCalendar() {
       h += `<div class="${cls.join(' ')}" data-ev="${p.t.id}" title="${esc(tip)}" style="grid-row:${p.lane + 2};grid-column:${p.cs + 1}/${p.ce + 2};background:${bg};color:${fg}">`
         + (p.l ? '' : ev ? (p.t.time ? `<span class="evtm">${p.t.time}</span>` : '<i class="evdot"></i>')
           : `<button class="evchk" data-evdone="${p.t.id}" aria-label="${p.t.done ? '완료 취소' : '완료'}">${p.t.done ? I.check : ''}</button>`)
-        + (!ev && p.t.quad ? `<i class="evq ${p.t.quad}"></i>` : '')
+        + (!ev && p.t.quad ? `<i class="evq ${p.t.quad}"${quadColor(p.t.quad) ? ` style="background:${quadColor(p.t.quad)};box-shadow:0 0 0 1.5px rgba(255,255,255,.9)"` : ''}></i>` : '')
         + `<span>${esc(p.t.title)}</span></div>`;
     });
     week.innerHTML = h;
@@ -1341,6 +1356,16 @@ function buildColorRows() {
       + `<span class="sw custom" title="직접 고르기"><input type="color" value="${c}" aria-label="직접 고르기"></span>`;
     markColorRow(k);
   });
+  $('#cQuads').innerHTML = QUADS.map(x => `
+    <div class="crow" data-quad="${x.key}">
+      <div class="chead"><span class="cprev">${x.title}</span></div>
+      <div class="swatches sm">
+        <button type="button" class="sw auto q-${x.key}" data-qhex="" style="--fg:currentColor" title="기본 디자인" aria-label="기본 디자인"></button>
+        ${PALETTE.map(p => `<button type="button" class="sw" data-qhex="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}
+        <span class="sw custom" title="직접 고르기"><input type="color" value="${quadColor(x.key) || '#3b57e0'}" aria-label="직접 고르기"></span>
+      </div>
+    </div>`).join('');
+  QUADS.forEach(x => markQuadRow(x.key));
   const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
   $('#cClear').hidden = !n;
   $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
@@ -1353,6 +1378,20 @@ function markColorRow(k) {
   cu.classList.toggle('on', !inPal);
   cu.style.background = inPal ? '' : c;
 }
+function markQuadRow(k) {
+  const row = $(`#cQuads [data-quad="${k}"]`), c = quadColor(k), inPal = !c || PALETTE.includes(c);
+  const pv = row.querySelector('.cprev');
+  pv.className = 'cprev' + (c ? '' : ' q-' + k);
+  pv.style.cssText = c ? `background:${c};color:${textOn(c)}` : '';
+  row.querySelectorAll('[data-qhex]').forEach(b => b.classList.toggle('on', b.dataset.qhex === (c || '')));
+  const cu = row.querySelector('.custom');
+  cu.classList.toggle('on', !inPal);
+  cu.style.background = inPal ? '' : c;
+}
+function setQuadColor(k, hex) {
+  if (hex) state.quadColors[k] = hex.toLowerCase(); else delete state.quadColors[k];
+  markQuadRow(k); save(); render();
+}
 function setKindColor(k, hex) {
   state.kindColors[k] = hex.toLowerCase();
   markColorRow(k); save(); render();
@@ -1361,15 +1400,20 @@ $('#cmodal').addEventListener('click', e => {
   if (e.target.id === 'cmodal') { closeColors(); return; }
   const b = e.target.closest('[data-hex]');
   if (b) setKindColor(b.closest('[data-kind]').dataset.kind, b.dataset.hex);
+  const qb = e.target.closest('[data-qhex]');
+  if (qb) setQuadColor(qb.closest('[data-quad]').dataset.quad, qb.dataset.qhex);
 });
 $('#cmodal').addEventListener('input', e => {
-  if (e.target.type === 'color') setKindColor(e.target.closest('[data-kind]').dataset.kind, e.target.value);
+  if (e.target.type !== 'color') return;
+  const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]');
+  if (kr) setKindColor(kr.dataset.kind, e.target.value);
+  else if (qr) setQuadColor(qr.dataset.quad, e.target.value);
 });
 function openColors() { buildColorRows(); $('#cmodal').hidden = false; }
 function closeColors() { $('#cmodal').hidden = true; }
 $('#colorOpen').onclick = openColors;
 $('#cDone').onclick = closeColors;
-$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; buildColorRows(); commit(); };
+$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; state.quadColors = {}; buildColorRows(); commit(); };
 $('#cClear').onclick = () => {
   const list = state.tasks.filter(t => t.color && t.color !== 'auto');
   if (!confirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`)) return;
