@@ -267,7 +267,7 @@
 
   <p class="help" id="pomoHelp">
     · <b>집중 시간</b>: 원을 시계처럼 돌리듯 드래그해서 분 단위로 정하거나, 큰 숫자를 눌러 <b>분:초</b>로 초 단위까지 입력해요 (0:01–60:00, ↑/↓ 키로 1초씩).<br>
-    · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요 (예: 4:30, 0:50). 초는 10초 단위이고, 입력칸에서 ↑/↓ 키로 10초씩 바꿀 수 있어요 (0:10–60:00).<br>
+    · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요 (예: 4:30, 0:50). 초는 1초 단위로 정할 수 있고, 입력칸에서 ↑/↓ 키로 1초씩 바꿀 수 있어요 (0:01–60:00).<br>
     · <b>반복 횟수</b>: 맨 위 숫자를 눌러 목표 횟수를 입력해요 (1–99). 비워 두면 <b>--</b>로 표시되고 목표 없이 완료 횟수만 계속 세요.
   </p>
   <p class="help hidden" id="trackHelp">
@@ -299,7 +299,7 @@
     pomo: {
       target: saved.target ? clamp(saved.target, 1, 99) : null,   // null = 목표 없이 카운트만
       focusSec: clamp(saved.focusSec || (saved.focusMin || 25) * 60, 1, 3600),   // 집중 시간(초)
-      breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 10, 3600),   // 휴식 시간(초, 10초 단위)
+      breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 1, 3600),   // 휴식 시간(초)
       done: 0,
       phase: "focus",      // focus | break
       remaining: 0,        // 현재 단계 남은 ms
@@ -616,14 +616,13 @@
   });
 
   // ---------- 설정 ----------
-  const LIMITS = { target: [1, 99], focusSec: [1, 3600], breakSec: [10, 3600] };
+  const LIMITS = { target: [1, 99], focusSec: [1, 3600], breakSec: [1, 3600] };
   function setSetting(key, val) {
     if (key === "target") {
       P.target = val ? clamp(Math.round(val), ...LIMITS.target) : null;
       P.finished = false;
     } else {
       if (P.running) return;
-      if (key === "breakSec") val = Math.round(val / 10) * 10;   // 10초 단위
       P[key] = clamp(Math.round(val), ...LIMITS[key]);
       if (key === "focusSec") {
         P.finished = false;
@@ -709,9 +708,8 @@
       const dir = e.key === "ArrowUp" ? 1 : -1;
       const cur = parseMS(editInput.value.trim());
       let next;
-      if (editKey === "breakSec") next = clamp(Math.round((cur || P.breakSec) / 10) * 10 + dir * 10, 10, 3600);   // 10초씩
-      else if (editKey === "focusSec") next = clamp((cur || P.focusSec) + dir, 1, 3600);                           // 1초씩
-      else next = clamp((cur || T.goalMin || 0) + dir * 10, 10, 720);                                              // 10분씩
+      if (editKey === "trackGoal") next = clamp((cur || T.goalMin || 0) + dir, 1, 720);   // 1분씩
+      else next = clamp((cur || P[editKey]) + dir, 1, 3600);                                // 1초씩
       editInput.value = fmtSec(next);
       editInput.select();
     }
