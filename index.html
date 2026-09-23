@@ -6,7 +6,7 @@
 <title>dayflow · 오늘의 흐름</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Manrope:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;800&family=Share+Tech+Mono&display=swap">
 <style>
 :root{
   --bg:#e6e6e8; --surface:#ffffff; --panel:#f3f3f4; --card:#ffffff; --chrome:#ffffff;
@@ -275,6 +275,27 @@ main{flex:1;min-height:0;position:relative}
 .pv-note em{font-style:normal;color:var(--blue);font-weight:700;margin-right:6px}
 .pv-empty{padding:14px 0;font-size:13px;color:var(--muted)}
 
+/* ---------- timer: floating window + tab ---------- */
+.icbtn{position:relative}
+.icbtn.running::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 2px var(--chrome)}
+#view-timer.on{display:block;overflow-y:auto;padding:0}
+#timerSlot{min-height:100%}
+.tnote[hidden]{display:none}
+.tnote{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:30px 32px;padding:18px 20px;border:1px dashed var(--blue);background:var(--blue-soft);font-size:14px;font-weight:600}
+.fwin{position:fixed;z-index:1800;display:flex;padding-bottom:18px;flex-direction:column;min-width:0;background:var(--surface);border:1px solid var(--text);box-shadow:10px 10px 0 rgba(59,87,224,.28)}
+.fwin[hidden]{display:none}
+.fwin-bar{flex:none;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 14px;background:var(--text);color:var(--surface);cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}
+.fwin-bar .ttl{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.22em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fwin-bar button{width:32px;height:30px;display:grid;place-items:center;color:inherit;opacity:.8}
+.fwin-bar button:hover{opacity:1}
+.fwin-bar svg{width:16px;height:16px}
+.fwin-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.fwin-grip{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 0 45%,var(--text) 45% 52%,transparent 52% 64%,var(--text) 64% 71%,transparent 71%)}
+.fwin-grip.l{left:0;right:auto;cursor:nesw-resize;transform:scaleX(-1)}
+body.fwin-moving{user-select:none;-webkit-user-select:none}
+body.fwin-moving .fwin-body{pointer-events:none}
+#qmodal{z-index:2100}
+
 /* ---------- responsive ---------- */
 @media (max-width:900px){
   body{padding:10px}
@@ -307,6 +328,10 @@ main{flex:1;min-height:0;position:relative}
   .cal-top{flex-wrap:wrap}
   .cal-top .seg button{padding:0 10px}
   .pastebtn{padding:0 8px;letter-spacing:.04em}
+  .m-hide{display:none}
+  .address{gap:6px}
+  .address .url{display:none}
+  #dateLabel{min-width:0}
   .pv-row{grid-template-columns:20px 54px 1fr}
   .pv-row .pv-title{grid-column:2/-1}
   .pv-note{grid-column:2/-1}
@@ -327,13 +352,15 @@ main{flex:1;min-height:0;position:relative}
         <button id="dateLabel" title="오늘로 이동"></button>
         <button id="next" aria-label="다음">&gt;</button>
       </div>
+      <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg></button>
       <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></button>
-      <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기">계획 붙여넣기</button>
+      <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기"><span class="m-hide">계획 </span>붙여넣기</button>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab" data-view="calendar" role="tab">CALENDAR</button>
       <button class="tab" data-view="matrix" role="tab">MATRIX</button>
       <button class="tab" data-view="flow" role="tab">FLOW</button>
+      <button class="tab" data-view="timer" role="tab">TIMER</button>
     </nav>
   </div>
 
@@ -375,6 +402,12 @@ main{flex:1;min-height:0;position:relative}
       <div class="quads" id="quads"></div>
     </section>
 
+    <!-- TIMER -->
+    <section class="view" id="view-timer">
+      <div class="tnote" id="timerNote" hidden>타이머가 팝업으로 떠 있어요.<button class="pill-btn primary" id="twDockHere">여기로 가져오기</button></div>
+      <div id="timerSlot"></div>
+    </section>
+
     <!-- FLOW -->
     <section class="view" id="view-flow">
       <aside class="side">
@@ -389,6 +422,25 @@ main{flex:1;min-height:0;position:relative}
       <div class="slots" id="slots"></div>
     </section>
   </main>
+</div>
+
+<div class="fwin" id="timerWin" role="dialog" aria-label="Focus Timer" hidden>
+  <div class="fwin-bar" id="twBar">
+    <span class="ttl">FOCUS TIMER</span>
+    <button id="twToTab" aria-label="TIMER 탭에서 크게 보기" title="TIMER 탭에서 크게 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+    <button id="twClose" aria-label="팝업 닫기" title="팝업 닫기 (타이머는 계속 돌아가요)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="fwin-body" id="twBody"></div>
+  <div class="fwin-grip l" data-grip="l" title="크기 조절"></div>
+  <div class="fwin-grip" data-grip="r" title="크기 조절"></div>
+</div>
+<div id="timerPark" hidden></div>
+
+<div class="modal" id="qmodal" hidden>
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qText">
+    <h3 id="qText"></h3>
+    <div class="btns"><div class="grow"></div><button class="pill-btn" id="qNo">취소</button><button class="pill-btn primary" id="qYes">확인</button></div>
+  </div>
 </div>
 
 <div class="saved" id="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved!</div>
@@ -485,6 +537,762 @@ main{flex:1;min-height:0;position:relative}
 </div>
 
 <script>
+/* ---------- Focus Timer (뽀모도로 · 타임트래킹) ----------
+   dayflow 스타일과 섞이지 않도록 shadow DOM 안에 그려요.
+   팝업과 TIMER 탭은 이 하나의 타이머를 옮겨 다니며 같이 써요. */
+const FOCUS_TIMER_CSS = `
+  :host {
+    display: block;
+    --page: #d9d9d9; --bg: #f2f2f2; --ink: #111111; --muted: #6b6b6b; --line: #111111; --soft-line: #cfcfcf;
+    --screen: #0a0a0a; --digit: #f5f5f5; --digit-dim: #9a9a9a;
+    --arc-on: #f5f5f5; --arc-break: #8c8c8c; --arc-track: #f5f5f5; --arc-off: #1e1e1e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :host(:not([data-theme="light"])) {
+      --page: #000000; --bg: #111111; --ink: #f2f2f2; --muted: #9a9a9a; --line: #f2f2f2; --soft-line: #3a3a3a;
+    }
+  }
+  :host([data-theme="dark"]) {
+    --page: #000000; --bg: #111111; --ink: #f2f2f2; --muted: #9a9a9a; --line: #f2f2f2; --soft-line: #3a3a3a;
+  }
+  * { box-sizing: border-box; }
+  .tcq { container-type: inline-size; container-name: tm; }
+  .tbody {
+    background: var(--page); color: var(--ink);
+    font-family: "Manrope", "Noto Sans KR", system-ui, sans-serif; font-size: 14px;
+    padding: 32px 16px;
+  }
+  :host(.popup) .tbody { padding: 0; }
+  button, select, input { font-family: inherit; }
+  .page { max-width: 1040px; margin: 0 auto; background: var(--bg); box-shadow: 0 30px 60px rgba(0,0,0,.25); }
+  :host(.popup) .page { box-shadow: none; }
+  .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 32px; }
+  .logo { width: 22px; height: 22px; flex: none; }
+  nav { display: flex; gap: 22px; margin-right: auto; margin-left: 28px; }
+  nav button {
+    background: none; border: 0; padding: 4px 0; cursor: pointer; color: var(--muted);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid transparent;
+  }
+  nav button.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .btn-black {
+    background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; text-decoration: none; border-radius: 2px;
+  }
+  .btn-line {
+    background: transparent; color: var(--ink); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; border-radius: 2px;
+  }
+  .btn-black:hover { opacity: .85; }
+  .btn-line:hover { background: var(--ink); color: var(--bg); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  h1 {
+    margin: 0; padding: 4px 24px 14px; text-align: center;
+    font-family: "Manrope", sans-serif; font-weight: 500; letter-spacing: -.02em; line-height: .95;
+    font-size: clamp(34px, 12.5cqi, 132px); text-transform: uppercase; border-bottom: 1px solid var(--line);
+  }
+  .grid { display: grid; grid-template-columns: 1.35fr 1fr; border-bottom: 1px solid var(--line); }
+  .cell { padding: 36px 32px; min-width: 0; }
+  .grid .cell:last-child { display: flex; flex-direction: column; justify-content: center; }
+  .cell + .cell { border-left: 1px solid var(--line); }
+  .device { max-width: 480px; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+  .screen { background: var(--screen); aspect-ratio: 1 / 1; position: relative; overflow: hidden; touch-action: none; border-radius: 5%; }
+  .screen svg { width: 100%; height: 100%; display: block; }
+  .device-cap { display: flex; justify-content: space-between; margin-top: 10px; }
+  .dial-num { font: 300 18px "Manrope", sans-serif; fill: var(--digit); }
+  .dial-dot { fill: var(--digit); }
+  .digits { font-family: "Share Tech Mono", ui-monospace, monospace; fill: var(--digit); }
+  .digits-sub { fill: var(--digit-dim); }
+  .unit { font: 10px "Noto Sans KR", sans-serif; fill: var(--digit-dim); letter-spacing: .06em; }
+  .clickable { cursor: pointer; }
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .15; } }
+  @media (prefers-reduced-motion: reduce) { .blink { animation: none; opacity: .5; } }
+  .glow { filter: drop-shadow(0 0 3px rgba(255,255,255,.3)); }
+  #arc { cursor: grab; }
+  .dragging #arc { cursor: grabbing; }
+  .edit {
+    position: absolute; transform: translate(-50%, -50%);
+    background: #000; color: var(--digit); caret-color: #fff; border: 1px solid #fff; border-radius: 2px; outline: none;
+    font-family: "Share Tech Mono", ui-monospace, monospace; text-align: center; padding: 0 4px;
+  }
+  .edit::placeholder { color: #555; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
+  .controls button { padding: 15px 0; font-size: 12px; }
+  .fold { border-top: 1px solid var(--line); }
+  .fold:last-child { border-bottom: 1px solid var(--line); }
+  .fold summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold summary::after { content: "+"; font-size: 18px; font-weight: 300; line-height: 1; }
+  .fold[open] summary::after { content: "−"; }
+  .fold .ko { font-family: "Noto Sans KR", sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); margin-left: 8px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--soft-line); font-family: "Noto Sans KR", sans-serif;
+  }
+  .row .label { font-size: 13px; font-weight: 500; }
+  .ctrl { display: flex; align-items: center; gap: 8px; }
+  .row select {
+    height: 34px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 13px "Noto Sans KR", sans-serif; padding: 0 8px;
+  }
+  .row .btn-line { padding: 8px 12px; font-family: "Noto Sans KR", sans-serif; letter-spacing: 0; }
+  .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+  .vol input[type=range] { width: 100%; max-width: 150px; accent-color: var(--ink); }
+  .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .swatches { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .color-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .color-head { display: flex; align-items: center; justify-content: space-between; }
+  .hexwrap { display: flex; align-items: center; gap: 8px; }
+  .preview { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--soft-line); display: block; }
+  .hex {
+    width: 86px; height: 30px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 12px "Share Tech Mono", ui-monospace, monospace; text-transform: uppercase; padding: 0 8px;
+  }
+  .hex.bad { border-color: #d33; }
+  .custom {
+    position: relative; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; overflow: hidden;
+    background: conic-gradient(#f44, #fd4, #4d4, #4dd, #44f, #d4d, #f44); border: 1px solid var(--soft-line);
+  }
+  .custom.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .custom input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+  .swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--soft-line); cursor: pointer; padding: 0; }
+  .swatch.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  #settingsPanel.track #soundSection { display: none; }
+  #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
+  footer { display: flex; justify-content: space-between; padding: 14px 32px; }
+  :host(.popup) footer { display: none; }
+  .hidden { display: none !important; }
+  @container tm (max-width: 760px) {
+    .tbody { padding: 0; }
+    header { padding: 12px 16px; }
+    nav { margin-left: 12px; gap: 14px; }
+    .grid { grid-template-columns: 1fr; }
+    .cell { padding: 28px 16px; }
+    .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
+    footer { padding: 14px 16px; }
+  }
+  @container tm (max-width: 420px) {
+    .cell { padding: 18px 14px; }
+    .controls { margin-bottom: 16px; }
+  }
+`;
+const FOCUS_TIMER_HTML = `
+<div class="tcq"><div class="tbody"><div class="page">
+  <header>
+    <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+      <circle cx="12" cy="13" r="9"/><path d="M12 13V8M12 13l3.5 2M10 2h4"/>
+    </svg>
+    <nav role="tablist">
+      <button id="modePomo" class="active" role="tab">뽀모도로</button>
+      <button id="modeTrack" role="tab">타임트래킹</button>
+    </nav>
+  </header>
+  <h1>Focus Timer</h1>
+  <section class="grid">
+    <div class="cell">
+      <div class="device">
+        <div class="screen" id="screen">
+          <svg id="svg" viewBox="0 0 400 400" aria-label="원형 타이머">
+            <g id="dial"></g>
+            <g id="arc"></g>
+            <g id="soundBtn" class="clickable" transform="translate(356 26)">
+              <rect x="-8" y="-8" width="32" height="32" fill="transparent"/>
+              <path d="M0 5h4l5-5v16l-5-5H0z" fill="var(--digit)"/>
+              <path id="soundWave" d="M12 3.5a6 6 0 0 1 0 9" stroke="var(--digit)" stroke-width="1.6" fill="none"/>
+              <path id="soundMute" d="M11 4l6 8M17 4l-6 8" stroke="var(--digit)" stroke-width="1.6" class="hidden"/>
+            </g>
+            <g id="pomoView" class="glow">
+              <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
+              <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
+              <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
+              <text class="unit" x="185" y="238" text-anchor="middle">M</text>
+              <text class="unit" x="215" y="238" text-anchor="middle">S</text>
+              <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
+            </g>
+            <g id="trackView" class="glow hidden">
+              <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
+              <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
+              <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
+              <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
+              <text id="trackSec" class="digits digits-sub" x="200" y="262" text-anchor="middle" font-size="20">00s</text>
+              <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
+            </g>
+          </svg>
+          <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="device-cap"><span class="tag">(Timer)</span><span class="tag" id="modeCap">Pomodoro</span></div>
+      </div>
+    </div>
+    <div class="cell">
+      <div class="controls">
+        <button id="startBtn" class="btn-black">시작</button>
+        <button id="resetBtn" class="btn-line">리셋</button>
+      </div>
+      <div id="settingsPanel">
+        <details id="soundSection" class="fold">
+          <summary><span>Sound<span class="ko">소리</span></span></summary>
+          <div class="row">
+            <span class="label">알림음</span>
+            <div class="ctrl">
+              <select id="soundType">
+                <option value="beep">삐삐</option>
+                <option value="digital">디지털 알람</option>
+                <option value="chime">차임</option>
+                <option value="bell">벨</option>
+                <option value="soft">부드러운 음</option>
+              </select>
+              <button class="btn-line" id="soundTest">미리듣기</button>
+            </div>
+          </div>
+          <div class="row">
+            <span class="label">소리 크기</span>
+            <div class="vol">
+              <input type="range" id="volume" min="0" max="100" step="5">
+              <output id="volumeOut">70%</output>
+            </div>
+          </div>
+        </details>
+        <details id="colorSection" class="fold">
+          <summary><span>Ring<span class="ko">원형 테두리 색</span></span></summary>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">집중</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="집중 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
+          </div>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">휴식</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="휴식 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+          </div>
+          <div class="row color-row" data-mode="track">
+            <div class="color-head">
+              <span class="label">트래킹</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="트래킹 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+  <footer><span class="tag">Focus Timer</span><span class="tag">Black &amp; White</span></footer>
+</div></div></div>`;
+
+// host: 타이머를 담을 요소, opts.confirm: 확인 창 (Promise<boolean>), opts.isShown: 지금 화면에 보이는지
+function createFocusTimer(host, opts) {
+  const root = host.attachShadow({ mode: "open" });
+  root.innerHTML = `<style>${FOCUS_TIMER_CSS}</style>${FOCUS_TIMER_HTML}`;
+
+  // dayflow의 라이트/다크 설정을 따라가게
+  const syncTheme = () => {
+    const t = document.documentElement.getAttribute("data-theme");
+    if (t) host.setAttribute("data-theme", t); else host.removeAttribute("data-theme");
+  };
+  syncTheme();
+  new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  const NS = "http://www.w3.org/2000/svg";
+  const C = 200;                       // 중심
+  const MAX_TRACK = 12 * 3600 * 1000;  // 12시간
+  const $ = id => root.getElementById(id);
+  const pad = n => String(n).padStart(2, "0");
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  // ---------- 상태 ----------
+  const saved = store.get("pomoSettings", {});
+  const S = {
+    mode: "pomo",
+    sound: store.get("sound", true),
+    pomo: {
+      target: saved.target ? clamp(saved.target, 1, 99) : null,
+      focusSec: clamp(saved.focusSec || (saved.focusMin || 25) * 60, 1, 3600),
+      breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 1, 3600),
+      done: 0, phase: "focus", remaining: 0, running: false, endAt: 0, finished: false
+    },
+    track: {
+      total: clamp(store.get("trackTotal", 0), 0, MAX_TRACK),
+      running: false, startedAt: 0,
+      goalMin: store.get("trackGoal", null),
+      goalHit: false
+    }
+  };
+  S.pomo.remaining = S.pomo.focusSec * 1000;
+
+  // ---------- 다이얼 그리기 ----------
+  const polar = (r, deg) => {
+    const a = (deg - 90) * Math.PI / 180;
+    return [C + r * Math.cos(a), C + r * Math.sin(a)];
+  };
+  const dial = $("dial");
+  for (let m = 0; m < 60; m += 5) {
+    const deg = m * 6;
+    const [tx, ty] = polar(172, deg);
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", tx); t.setAttribute("y", ty + 7);
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("class", "dial-num");
+    t.textContent = m;
+    dial.appendChild(t);
+    const [dx, dy] = polar(154, deg);
+    const d = document.createElementNS(NS, "circle");
+    d.setAttribute("cx", dx); d.setAttribute("cy", dy); d.setAttribute("r", 1.8);
+    d.setAttribute("class", "dial-dot");
+    dial.appendChild(d);
+  }
+  const R_IN = 116, R_OUT = 142;
+  const arc = $("arc");
+  const segs = [];
+  for (let i = 0; i < 60; i++) {
+    const a0 = i * 6 + 0.7, a1 = (i + 1) * 6 - 0.7;
+    const [x0, y0] = polar(R_OUT, a0), [x1, y1] = polar(R_OUT, a1);
+    const [x2, y2] = polar(R_IN, a1),  [x3, y3] = polar(R_IN, a0);
+    const p = document.createElementNS(NS, "path");
+    p.setAttribute("d", `M${x0} ${y0}A${R_OUT} ${R_OUT} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${R_IN} ${R_IN} 0 0 0 ${x3} ${y3}Z`);
+    p.setAttribute("fill", "var(--arc-off)");
+    arc.appendChild(p);
+    segs.push(p);
+  }
+  let lastArc = "";
+  function drawArc(count, color) {
+    const key = count + color;
+    if (key === lastArc) return;
+    lastArc = key;
+    segs.forEach((p, i) => p.setAttribute("fill", i < count ? color : "var(--arc-off)"));
+  }
+
+  // ---------- 소리 ----------
+  const SND = store.get("soundPrefs", {});
+  S.soundType = SND.type || "beep";
+  S.volume = SND.volume ?? 70;
+  let actx;
+  function audio() {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function tone(out, t, freq, type, dur, peak, attack = 0.01) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(out);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  const SOUNDS = {
+    beep:    { gap: 0.35, play: (o, t) => tone(o, t, 880, "sine", 0.25, 0.6) },
+    digital: { gap: 0.6,  play: (o, t) => { for (let i = 0; i < 4; i++) tone(o, t + i * 0.08, 2000, "square", 0.05, 0.12, 0.003); } },
+    chime:   { gap: 0.7,  play: (o, t) => { tone(o, t, 659, "sine", 0.9, 0.5); tone(o, t + 0.18, 988, "sine", 1.0, 0.45); } },
+    bell:    { gap: 1.1,  play: (o, t) => { tone(o, t, 523, "sine", 1.6, 0.55, 0.005); tone(o, t, 1318, "sine", 0.9, 0.2, 0.005); tone(o, t, 2093, "sine", 0.4, 0.08, 0.005); } },
+    soft:    { gap: 0.8,  play: (o, t) => tone(o, t, 440, "triangle", 0.7, 0.55, 0.12) }
+  };
+  const ALARM_REPEAT = 3;
+  function beep(times = ALARM_REPEAT, force = false) {
+    if ((!S.sound && !force) || S.volume <= 0) return;
+    try {
+      audio();
+      const master = actx.createGain();
+      master.gain.value = (S.volume / 100) ** 2;
+      master.connect(actx.destination);
+      const snd = SOUNDS[S.soundType] || SOUNDS.beep;
+      for (let i = 0; i < times; i++) snd.play(master, actx.currentTime + 0.02 + i * snd.gap);
+    } catch {}
+  }
+  function renderSound() {
+    $("soundWave").classList.toggle("hidden", !S.sound);
+    $("soundMute").classList.toggle("hidden", S.sound);
+  }
+  $("soundBtn").addEventListener("click", () => {
+    S.sound = !S.sound; store.set("sound", S.sound); renderSound();
+    if (S.sound) beep(1);
+  });
+  const saveSound = () => store.set("soundPrefs", { type: S.soundType, volume: S.volume });
+  $("soundType").value = S.soundType;
+  $("volume").value = S.volume;
+  $("volumeOut").textContent = S.volume + "%";
+  $("soundType").addEventListener("change", e => { S.soundType = e.target.value; saveSound(); beep(1, true); });
+  $("volume").addEventListener("input", e => { S.volume = +e.target.value; $("volumeOut").textContent = S.volume + "%"; saveSound(); });
+  $("volume").addEventListener("change", () => beep(1, true));
+  $("soundTest").addEventListener("click", () => beep(ALARM_REPEAT, true));
+
+  // ---------- 테두리 색 ----------
+  const PALETTE = [
+    "#f5f5f5", "#d4d4d4", "#b0b0b0", "#8c8c8c", "#4a4a4a",
+    "#ff5a5a", "#ff9f43", "#ffd43b", "#51cf66", "#20c997", "#4dabf7", "#5c7cfa", "#9775fa", "#f06595"
+  ];
+  const COLORS = store.get("ringColorsBW", {});
+  const HEX = /^#[0-9a-f]{6}$/i;
+  const DEFAULT_RING = { "--arc-on": "#f5f5f5", "--arc-break": "#8c8c8c", "--arc-track": "#f5f5f5" };
+  root.querySelectorAll(".swatches").forEach(box => {
+    const cssVar = box.dataset.var, key = box.dataset.key;
+    const row = box.closest(".row"), hex = row.querySelector(".hex"), preview = row.querySelector(".preview");
+    const def = DEFAULT_RING[cssVar];
+    const chips = PALETTE.map(c => {
+      const b = document.createElement("button");
+      b.className = "swatch"; b.style.background = c; b.title = c; b.dataset.c = c;
+      b.setAttribute("aria-label", c);
+      b.addEventListener("click", () => apply(c));
+      box.appendChild(b);
+      return b;
+    });
+    const custom = document.createElement("label");
+    custom.className = "custom"; custom.title = "직접 고르기";
+    const picker = document.createElement("input");
+    picker.type = "color";
+    picker.setAttribute("aria-label", "직접 고르기");
+    custom.appendChild(picker);
+    box.appendChild(custom);
+    picker.addEventListener("input", () => apply(picker.value));
+    hex.addEventListener("input", () => {
+      let v = hex.value.trim();
+      if (v && v[0] !== "#") v = "#" + v;
+      const ok = HEX.test(v);
+      hex.classList.toggle("bad", !ok && v.length >= 7);
+      if (ok) apply(v, true);
+    });
+    hex.addEventListener("blur", () => { hex.value = current.toUpperCase(); hex.classList.remove("bad"); });
+    hex.addEventListener("keydown", e => { if (e.key === "Enter") hex.blur(); });
+
+    let current = def;
+    function show(c) {
+      current = c.toLowerCase();
+      host.style.setProperty(cssVar, current);
+      const inPalette = PALETTE.includes(current);
+      chips.forEach(b => b.classList.toggle("on", b.dataset.c === current));
+      custom.classList.toggle("on", !inPalette);
+      picker.value = current;
+      preview.style.background = current;
+      if (root.activeElement !== hex) hex.value = current.toUpperCase();
+    }
+    function apply(c, fromHex) {
+      show(c);
+      if (!fromHex) hex.value = current.toUpperCase();
+      COLORS[key] = current; store.set("ringColorsBW", COLORS);
+      lastArc = "";
+      render();
+    }
+    show(COLORS[key] || def);
+  });
+
+  [["soundSection", "soundOpen"], ["colorSection", "colorOpen"]].forEach(([id, key]) => {
+    const el = $(id);
+    el.open = store.get(key, false);
+    el.addEventListener("toggle", () => store.set(key, el.open));
+  });
+
+  // ---------- 뽀모도로 ----------
+  const P = S.pomo;
+  const fmtMS = ms => {
+    const s = Math.ceil(ms / 1000);
+    return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+  };
+  function pomoStep(now) {
+    if (!P.running) return;
+    P.remaining = P.endAt - now;
+    while (P.running && P.remaining <= 0) {
+      const over = -P.remaining;
+      if (P.phase === "focus") {
+        P.done = Math.min(99, P.done + 1);
+        if (P.target && P.done >= P.target) {
+          P.running = false; P.finished = true; P.phase = "focus"; P.remaining = 0;
+          beep(ALARM_REPEAT);
+          break;
+        }
+        P.phase = "break";
+        P.remaining = P.breakSec * 1000 - over;
+      } else {
+        P.phase = "focus";
+        P.remaining = P.focusSec * 1000 - over;
+      }
+      P.endAt = now + P.remaining;
+      beep(ALARM_REPEAT);
+    }
+  }
+  function renderPomo() {
+    const focusMs = P.phase === "focus" ? P.remaining : 0;
+    const breakMs = P.finished ? 0 : P.phase === "break" ? P.remaining : P.breakSec * 1000;
+    $("doneText").textContent = pad(P.done);
+    $("targetText").textContent = P.target ? pad(P.target) : "--";
+    $("focusText").textContent = fmtMS(focusMs);
+    $("breakText").textContent = fmtMS(breakMs);
+    const paused = !P.running && !P.finished && (P.phase === "break" || P.remaining !== P.focusSec * 1000);
+    const phase = P.phase === "focus" ? "집중" : "휴식";
+    $("phaseText").textContent = P.finished ? "완료!" : P.running ? phase : paused ? phase + " · 일시정지" : "대기";
+    $("focusText").style.opacity = P.phase === "focus" && !P.finished ? 1 : 0.45;
+    $("breakText").style.opacity = P.phase === "break" ? 1 : 0.55;
+    $("breakText").setAttribute("font-size", P.phase === "break" ? 44 : 40);
+    $(P.phase === "focus" ? "focusText" : "breakText").classList.toggle("blink", paused);
+    $(P.phase === "focus" ? "breakText" : "focusText").classList.remove("blink");
+    const mins = Math.ceil(Math.max(0, P.remaining) / 60000);
+    drawArc(mins, P.phase === "focus" ? "var(--arc-on)" : "var(--arc-break)");
+  }
+
+  // ---------- 타임트래킹 ----------
+  const T = S.track;
+  const trackElapsed = now => Math.min(MAX_TRACK, T.total + (T.running ? now - T.startedAt : 0));
+  function trackStep(now) {
+    if (T.running && T.goalMin && !T.goalHit && trackElapsed(now) >= T.goalMin * 60000) {
+      T.goalHit = true;
+      beep(ALARM_REPEAT);
+    }
+    if (T.running && trackElapsed(now) >= MAX_TRACK) {
+      T.total = MAX_TRACK; T.running = false;
+      store.set("trackTotal", T.total);
+      beep(ALARM_REPEAT);
+    }
+  }
+  function renderTrack(now) {
+    const ms = trackElapsed(now);
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600), m = Math.floor(totalSec / 60) % 60;
+    $("trackText").textContent = `${pad(h)}:${pad(m)}`;
+    $("trackSec").textContent = `${pad(totalSec % 60)}s`;
+    const hit = T.goalMin && ms >= T.goalMin * 60000;
+    $("trackState").textContent = ms >= MAX_TRACK ? "최대 12시간 도달"
+      : (hit ? "목표 달성! · " : "") + (T.running ? "집중 중" : ms > 0 ? "휴식 중 (기록 제외)" : "대기");
+    $("goalText").textContent = "목표 " + (T.goalMin ? `${pad(Math.floor(T.goalMin / 60))}:${pad(T.goalMin % 60)}` : "--:--");
+    $("goalText").style.fill = hit ? "var(--arc-track)" : "";
+    $("trackText").classList.toggle("blink", !T.running && ms > 0 && ms < MAX_TRACK);
+    const n = T.goalMin ? Math.min(60, Math.floor(ms / (T.goalMin * 60000) * 60)) : (ms >= MAX_TRACK ? 60 : m);
+    drawArc(n, "var(--arc-track)");
+  }
+
+  // ---------- 공통 렌더 ----------
+  function render() {
+    const now = Date.now();
+    const pomo = S.mode === "pomo";
+    $("pomoView").classList.toggle("hidden", !pomo);
+    $("trackView").classList.toggle("hidden", pomo);
+    $("settingsPanel").classList.toggle("track", !pomo);
+    $("modePomo").classList.toggle("active", pomo);
+    $("modeTrack").classList.toggle("active", !pomo);
+    $("modeCap").textContent = pomo ? "Pomodoro" : "Time Tracking";
+    const running = pomo ? P.running : T.running;
+    $("startBtn").textContent = running ? (pomo ? "일시정지" : "휴식 (일시정지)") : "시작";
+    if (pomo) renderPomo(); else renderTrack(now);
+    opts.onTick && opts.onTick(P.running || T.running);
+  }
+  function loop() {
+    const now = Date.now();
+    pomoStep(now);
+    trackStep(now);
+    render();
+  }
+  setInterval(loop, 200);
+  document.addEventListener("visibilitychange", loop);
+
+  // ---------- 버튼 ----------
+  function toggleStart() {
+    const now = Date.now();
+    if (S.mode === "pomo") {
+      if (P.running) {
+        pomoStep(now);
+        P.running = false;
+      } else {
+        if (P.finished || (P.target && P.done >= P.target)) {
+          P.finished = false; P.done = 0; P.phase = "focus"; P.remaining = P.focusSec * 1000;
+        }
+        P.running = true;
+        P.endAt = now + P.remaining;
+      }
+    } else {
+      if (T.running) {
+        T.total = trackElapsed(now); T.running = false;
+        store.set("trackTotal", T.total);
+      } else if (T.total < MAX_TRACK) {
+        T.running = true; T.startedAt = now;
+      }
+    }
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
+    render();
+  }
+  async function reset() {
+    if (S.mode === "pomo") {
+      Object.assign(P, { running: false, finished: false, done: 0, phase: "focus", remaining: P.focusSec * 1000 });
+    } else {
+      if ((T.total > 0 || T.running) && !(await opts.confirm("누적된 집중 시간을 초기화할까요?", "초기화"))) return;
+      Object.assign(T, { running: false, total: 0, goalHit: false });
+      store.set("trackTotal", 0);
+    }
+    render();
+  }
+  $("startBtn").addEventListener("click", toggleStart);
+  $("resetBtn").addEventListener("click", reset);
+  $("modePomo").addEventListener("click", () => { closeEdit(false); S.mode = "pomo"; render(); });
+  $("modeTrack").addEventListener("click", () => { closeEdit(false); S.mode = "track"; render(); });
+  // 스페이스바: 타이머가 보일 때만, 글자를 입력 중이 아닐 때만
+  document.addEventListener("keydown", e => {
+    if (e.code !== "Space" || !opts.isShown()) return;
+    const t = e.composedPath()[0];
+    if (!t || /^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY)$/.test(t.tagName) || t.isContentEditable) return;
+    if (document.querySelector(".modal:not([hidden])")) return;
+    e.preventDefault(); toggleStart();
+  });
+  window.addEventListener("beforeunload", () => {
+    if (T.running) { T.total = trackElapsed(Date.now()); store.set("trackTotal", T.total); }
+  });
+
+  // ---------- 설정 ----------
+  const LIMITS = { target: [1, 99], focusSec: [1, 3600], breakSec: [1, 3600] };
+  function setSetting(key, val) {
+    if (key === "target") {
+      P.target = val ? clamp(Math.round(val), ...LIMITS.target) : null;
+      P.finished = false;
+    } else {
+      if (P.running) return;
+      P[key] = clamp(Math.round(val), ...LIMITS[key]);
+      if (key === "focusSec") {
+        P.finished = false;
+        if (P.phase === "focus") P.remaining = P[key] * 1000;
+      }
+      if (key === "breakSec" && P.phase === "break") P.remaining = P[key] * 1000;
+    }
+    store.set("pomoSettings", { target: P.target, focusSec: P.focusSec, breakSec: P.breakSec });
+    render();
+  }
+  function setGoal(min) {
+    const ms = trackElapsed(Date.now());
+    T.goalMin = min ? clamp(Math.round(min), 1, 720) : null;
+    T.goalHit = !!T.goalMin && ms >= T.goalMin * 60000;
+    store.set("trackGoal", T.goalMin);
+    render();
+  }
+
+  const screen = $("screen"), editInput = $("editInput");
+  let editKey = null;
+  function openEdit(key, anchorEl, fontPx) {
+    if ((key === "trackGoal") !== (S.mode === "track")) return;
+    if ((key === "breakSec" || key === "focusSec") && P.running) return;
+    const sr = screen.getBoundingClientRect(), ar = anchorEl.getBoundingClientRect();
+    const k = sr.width / 400;
+    editKey = key;
+    editInput.style.left = (ar.left + ar.width / 2 - sr.left) + "px";
+    editInput.style.top = (ar.top + ar.height / 2 - sr.top) + "px";
+    editInput.style.fontSize = fontPx * k + "px";
+    editInput.style.width = fontPx * k * (key === "target" ? 2.2 : key === "trackGoal" ? 4 : 3.2) + "px";
+    editInput.style.height = fontPx * k * 1.35 + "px";
+    editInput.placeholder = key === "target" ? "--" : key === "trackGoal" ? "시:분" : "분:초";
+    editInput.maxLength = key === "target" ? 2 : 5;
+    editInput.value = key === "target" ? (P.target || "")
+      : key === "trackGoal" ? (T.goalMin ? fmtSec(T.goalMin) : "")
+      : fmtSec(P[key]);
+    editInput.classList.remove("hidden");
+    editInput.focus();
+    editInput.select();
+  }
+  function closeEdit(commit) {
+    if (!editKey) return;
+    const key = editKey, raw = editInput.value.trim();
+    editKey = null;
+    editInput.classList.add("hidden");
+    if (!commit) return;
+    if (key === "target") {
+      const n = parseInt(raw, 10);
+      setSetting("target", n > 0 ? n : null);
+    } else if (key === "trackGoal") {
+      setGoal(parseMS(raw));
+    } else {
+      const sec = parseMS(raw);
+      if (sec > 0) setSetting(key, sec);
+    }
+  }
+  const fmtSec = sec => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
+  function parseMS(raw) {
+    if (!raw) return 0;
+    let m, sec;
+    if (raw.includes(":")) {
+      const [a, b] = raw.split(":");
+      m = parseInt(a || "0", 10); sec = parseInt(b || "0", 10);
+    } else if (raw.length >= 3) {
+      m = parseInt(raw.slice(0, -2), 10); sec = parseInt(raw.slice(-2), 10);
+    } else {
+      m = parseInt(raw, 10); sec = 0;
+    }
+    if (isNaN(m)) m = 0;
+    if (isNaN(sec)) sec = 0;
+    return m * 60 + Math.min(sec, 59);
+  }
+  editInput.addEventListener("input", () => {
+    const re = editKey === "target" ? /\D/g : /[^\d:]/g;
+    editInput.value = editInput.value.replace(re, "");
+  });
+  editInput.addEventListener("keydown", e => {
+    e.stopPropagation();
+    if (editKey && editKey !== "target" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      const dir = e.key === "ArrowUp" ? 1 : -1;
+      const cur = parseMS(editInput.value.trim());
+      let next;
+      if (editKey === "trackGoal") next = clamp((cur || T.goalMin || 0) + dir, 1, 720);
+      else next = clamp((cur || P[editKey]) + dir, 1, 3600);
+      editInput.value = fmtSec(next);
+      editInput.select();
+    }
+    else if (e.key === "Enter") { e.preventDefault(); closeEdit(true); }
+    else if (e.key === "Escape") { e.preventDefault(); closeEdit(false); }
+  });
+  editInput.addEventListener("blur", () => closeEdit(true));
+  $("cycleText").addEventListener("click", () => openEdit("target", $("targetText"), 22));
+  $("breakText").addEventListener("click", () => openEdit("breakSec", $("breakText"), 40));
+  $("focusText").addEventListener("click", () => openEdit("focusSec", $("focusText"), 68));
+  $("goalText").addEventListener("click", () => openEdit("trackGoal", $("goalText"), 22));
+
+  // 다이얼 드래그 → 집중 시간 설정
+  const svg = $("svg");
+  let dragging = false, lastDial = null;
+  function dialMinutes(e) {
+    const r = svg.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * 400 - C;
+    const y = (e.clientY - r.top) / r.height * 400 - C;
+    const dist = Math.hypot(x, y);
+    let deg = Math.atan2(y, x) * 180 / Math.PI + 90;
+    if (deg < 0) deg += 360;
+    return { dist, min: Math.round(deg / 6) || 60 };
+  }
+  svg.addEventListener("pointerdown", e => {
+    if (S.mode === "pomo" && (P.running || P.phase !== "focus")) return;
+    const { dist, min } = dialMinutes(e);
+    if (dist < R_IN - 8 || dist > 190) return;
+    closeEdit(true);
+    dragging = true;
+    lastDial = null;
+    screen.classList.add("dragging");
+    svg.setPointerCapture(e.pointerId);
+    applyDial(min);
+  });
+  svg.addEventListener("pointermove", e => { if (dragging) applyDial(dialMinutes(e).min); });
+  function applyDial(min) {
+    if (lastDial !== null && lastDial >= 50 && min <= 10) min = 60;
+    else if (lastDial !== null && lastDial <= 10 && min >= 50) min = 1;
+    lastDial = min;
+    if (S.mode === "pomo") setSetting("focusSec", min * 60);
+    else setGoal(Math.max(1, Math.round(min / 5)) * 60);
+  }
+  const endDrag = () => { dragging = false; screen.classList.remove("dragging"); };
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  renderSound();
+  render();
+}
+</script>
+
+<script>
 /* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 const pad = n => String(n).padStart(2, '0');
@@ -536,8 +1344,8 @@ function load() {
 }
 let savedTimer;
 function persist() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
 }
@@ -568,7 +1376,7 @@ function seed() {
 let state = load() || seed();
 state.date = todayStr();
 state.month = state.date.slice(0, 7);
-if (!['calendar', 'matrix', 'flow'].includes(state.view)) state.view = 'matrix';
+if (!['calendar', 'matrix', 'flow', 'timer'].includes(state.view)) state.view = 'matrix';
 if (!['all', 'event', 'todo'].includes(state.calFilter)) state.calFilter = 'all';
 // 일정/할 일 구분이 생기기 전에 저장된 항목 분류
 const EVENT_IDS = new Set(['p3-phase1', 'p3-phase2', 'p3-1002-3']);
@@ -677,8 +1485,9 @@ function render() {
   } else {
     const d = parse(state.date);
     $('#dateLabel').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
-    state.view === 'matrix' ? renderMatrix() : renderFlow();
+    if (state.view === 'matrix') renderMatrix(); else if (state.view === 'flow') renderFlow();
   }
+  placeTimer();
 }
 
 function renderDayEvents(box) {
@@ -1072,7 +1881,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (menuEl) closeMenu(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
+  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
 });
 
 
@@ -1494,9 +2303,12 @@ $('#pSave').onclick = () => {
 };
 $('#pUndo').onclick = () => {
   const n = state.tasks.filter(t => t.batch === state.lastBatch).length;
-  if (!n || !confirm(`최근 붙여넣기로 등록한 ${n}개를 삭제할까요?`)) return;
-  state.tasks = state.tasks.filter(t => t.batch !== state.lastBatch);
-  state.lastBatch = null; updUndo(); commit();
+  if (!n) return;
+  askConfirm(`최근 붙여넣기로 등록한 ${n}개를 삭제할까요?`, '삭제').then(ok => {
+    if (!ok) return;
+    state.tasks = state.tasks.filter(t => t.batch !== state.lastBatch);
+    state.lastBatch = null; updUndo(); commit();
+  });
 };
 
 /* ---------- 색상 설정 (일정 / 할 일 기본색) ---------- */
@@ -1588,10 +2400,111 @@ $('#cDone').onclick = closeColors;
 $('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; state.quadColors = {}; buildColorRows(); commit(); };
 $('#cClear').onclick = () => {
   const list = state.tasks.filter(t => t.color && t.color !== 'auto');
-  if (!confirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`)) return;
-  list.forEach(t => { t.color = 'auto'; });
-  buildColorRows(); commit();
+  askConfirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`, '바꾸기').then(ok => {
+    if (!ok) return;
+    list.forEach(t => { t.color = 'auto'; });
+    buildColorRows(); commit();
+  });
 };
+
+/* ---------- 확인 창 (브라우저 confirm 대신) ---------- */
+function askConfirm(msg, yes = '확인') {
+  return new Promise(res => {
+    $('#qText').textContent = msg;
+    $('#qYes').textContent = yes;
+    $('#qmodal').hidden = false;
+    const done = v => { $('#qmodal').hidden = true; $('#qYes').onclick = $('#qNo').onclick = null; res(v); };
+    $('#qYes').onclick = () => done(true);
+    $('#qNo').onclick = () => done(false);
+    setTimeout(() => $('#qYes').focus(), 30);
+  });
+}
+$('#qmodal').addEventListener('click', e => { if (e.target.id === 'qmodal') $('#qNo').click(); });
+
+/* ---------- 타이머: 팝업 창 + TIMER 탭 ---------- */
+const timerHost = document.createElement('div');
+timerHost.id = 'focusTimer';
+$('#timerPark').append(timerHost);
+const twOpen = () => !$('#timerWin').hidden;
+function placeTimer() {
+  const target = twOpen() ? $('#twBody') : state.view === 'timer' ? $('#timerSlot') : $('#timerPark');
+  if (timerHost.parentElement !== target) target.append(timerHost);
+  timerHost.classList.toggle('popup', twOpen());
+  $('#timerNote').hidden = !(twOpen() && state.view === 'timer');
+  $('#timerOpen').setAttribute('aria-pressed', twOpen());
+}
+createFocusTimer(timerHost, {
+  confirm: askConfirm,
+  isShown: () => twOpen() || state.view === 'timer',
+  onTick: running => $('#timerOpen').classList.toggle('running', running)
+});
+
+const TW_MIN_W = 260, TW_MIN_H = 220;
+function twFit() {
+  const vw = innerWidth, vh = innerHeight;
+  let r = state.timerWin;
+  if (!r || !(r.w > 0)) {
+    const w = Math.min(400, vw - 16), h = Math.min(620, vh - 16);
+    r = state.timerWin = { w, h, x: vw - w - 16, y: vh - h - 16 };
+  }
+  r.w = Math.max(Math.min(TW_MIN_W, vw - 16), Math.min(r.w, vw - 16));
+  r.h = Math.max(Math.min(TW_MIN_H, vh - 16), Math.min(r.h, vh - 16));
+  r.x = Math.min(Math.max(8, r.x), vw - r.w - 8);
+  r.y = Math.min(Math.max(8, r.y), vh - r.h - 8);
+  Object.assign($('#timerWin').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+}
+function setTimerWin(open) {
+  $('#timerWin').hidden = !open;
+  if (open) twFit();
+  placeTimer();
+}
+$('#timerOpen').onclick = () => setTimerWin(!twOpen());
+$('#twClose').onclick = () => setTimerWin(false);
+$('#twToTab').onclick = () => { $('#timerWin').hidden = true; state.view = 'timer'; save(); render(); };
+$('#twDockHere').onclick = () => setTimerWin(false);
+window.addEventListener('resize', () => { if (twOpen()) twFit(); });
+
+// 제목줄을 끌어서 옮기고, 아래 모서리를 끌어서 크기 조절
+let twDrag = null;
+$('#timerWin').addEventListener('pointerdown', e => {
+  const grip = e.target.closest('[data-grip]');
+  const bar = !grip && e.target.closest('#twBar');
+  if (!grip && !bar) return;
+  if (bar && e.target.closest('button')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault();
+  const r = state.timerWin;
+  twDrag = { mode: grip ? grip.dataset.grip : 'move', sx: e.clientX, sy: e.clientY, x: r.x, y: r.y, w: r.w, h: r.h, pid: e.pointerId };
+  e.target.setPointerCapture(e.pointerId);
+  document.body.classList.add('fwin-moving');
+});
+$('#timerWin').addEventListener('pointermove', e => {
+  if (!twDrag || e.pointerId !== twDrag.pid) return;
+  const d = twDrag, dx = e.clientX - d.sx, dy = e.clientY - d.sy, r = state.timerWin;
+  if (d.mode === 'move') { r.x = d.x + dx; r.y = d.y + dy; }
+  else {
+    r.h = Math.max(TW_MIN_H, d.h + dy);
+    if (d.mode === 'r') r.w = Math.max(TW_MIN_W, d.w + dx);
+    else { r.w = Math.max(TW_MIN_W, d.w - dx); r.x = d.x + d.w - r.w; }
+  }
+  twFit();
+});
+const twEnd = e => {
+  if (!twDrag || e.pointerId !== twDrag.pid) return;
+  twDrag = null;
+  document.body.classList.remove('fwin-moving');
+  persist();
+};
+$('#timerWin').addEventListener('pointerup', twEnd);
+$('#timerWin').addEventListener('pointercancel', twEnd);
+// 제목줄 더블클릭: 크게 ↔ 원래 크기
+$('#twBar').addEventListener('dblclick', e => {
+  if (e.target.closest('button')) return;
+  const r = state.timerWin;
+  if (r.prev) { Object.assign(r, r.prev); delete r.prev; }
+  else { r.prev = { x: r.x, y: r.y, w: r.w, h: r.h }; Object.assign(r, { x: 8, y: 8, w: innerWidth - 16, h: innerHeight - 16 }); }
+  twFit(); persist();
+});
 
 migrateSubjects();
 render();
