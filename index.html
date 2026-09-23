@@ -12,7 +12,7 @@
   --bg:#e6e6e8; --surface:#ffffff; --panel:#f3f3f4; --card:#ffffff; --chrome:#ffffff;
   --text:#141414; --muted:#8a8a8f; --border:#dcdcdf; --line:#1a1a1a; --rule:#f0f0f1;
   --blue:#3b57e0; --blue-soft:#e4e9fc; --ink:#161616; --ink-card:#242426;
-  --row:34px;
+  --row:34px; --head:var(--row);
   --sans:"Montserrat","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --script:"Kaushan Script","Brush Script MT",cursive;
   font-family:var(--sans);
@@ -74,7 +74,7 @@ main{flex:1;min-height:0;position:relative}
 .card:hover{border-color:var(--text)}
 .card .tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;padding:8px 0}
 .card .note{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .title{min-width:0;font-size:15px;font-weight:600;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .title{min-width:0;font-size:15px;font-weight:600;letter-spacing:-.005em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .card.done .title{text-decoration:line-through;color:var(--muted);font-weight:500}
 .card .grip{display:flex;color:var(--muted)}
 .card .grip svg{width:13px;height:13px}
@@ -92,6 +92,23 @@ main{flex:1;min-height:0;position:relative}
 .card.compact{min-height:48px;padding-left:12px}
 .card.compact .title{font-size:14px}
 .card.compact .ic{width:32px;height:32px}
+.card{gap:12px;padding:0 2px 0 12px}
+.card .chk{flex:none;width:22px;height:22px;border:1.5px solid var(--muted);display:grid;place-items:center;color:transparent;transition:background .15s,border-color .15s}
+.card .chk svg{width:14px;height:14px}
+.card .chk:hover{border-color:var(--blue)}
+.card.done .chk{background:var(--blue);border-color:var(--blue);color:#fff}
+.card .meta{display:flex;align-items:center;gap:8px;min-width:0}
+.card.done .meta{opacity:.6}
+.subj{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--sc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subj::before{content:"";width:7px;height:7px;background:currentColor;flex:none}
+.favmark{display:flex;flex:none}
+.favmark svg{width:11px;height:11px;fill:var(--blue)}
+.card .more{flex:none}
+.cmenu{position:fixed;z-index:1500;min-width:170px;padding:4px 0;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue);display:flex;flex-direction:column}
+.cmenu button{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;font-size:13px;font-weight:600;text-align:left;white-space:nowrap}
+.cmenu button:hover,.cmenu button:focus-visible{background:var(--blue-soft);outline:none}
+.cmenu .del{color:#d23a3a}
+.cmenu svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
 .ph{flex:none;border:1.5px dashed var(--blue);background:var(--blue-soft)}
 .ghost{position:fixed;z-index:1000;pointer-events:none;margin:0;border-color:var(--blue)!important;box-shadow:8px 8px 0 var(--blue);transform:rotate(-1.5deg)}
 
@@ -103,7 +120,7 @@ main{flex:1;min-height:0;position:relative}
 .quick button svg{width:20px;height:20px}
 
 /* ---------- matrix ---------- */
-#view-matrix{grid-template-columns:minmax(280px,31%) 1fr;gap:44px}
+#view-matrix{grid-template-columns:minmax(280px,31%) minmax(0,1fr);gap:44px}
 .quads{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;min-height:0}
 .quad{display:flex;flex-direction:column;min-height:0;padding:22px 20px 18px;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:-8px}
 .quad.over{outline-color:currentColor}
@@ -119,6 +136,7 @@ main{flex:1;min-height:0;position:relative}
 .q-do .card{border-color:transparent}
 .q-delegate .card{background:var(--ink-card);color:#f1f1f2;border-color:#333}
 .q-delegate .card .ic{color:#9a9aa0}
+.q-delegate .card .chk,.slot:nth-child(3) .card .chk{border-color:#77777d}
 .tag{font-size:9.5px;font-weight:700;letter-spacing:.14em;padding:5px 8px;border:1px solid currentColor;white-space:nowrap;opacity:.9}
 .t-nimp,.t-nurg{opacity:.5}
 
@@ -171,6 +189,14 @@ main{flex:1;min-height:0;position:relative}
 .ev span{overflow:hidden;text-overflow:ellipsis}
 .ev.l{margin-left:0} .ev.r{margin-right:0}
 .ev.done span{text-decoration:line-through;opacity:.55}
+.ev.sub{box-shadow:inset 3px 0 0 var(--sc)}
+.evab{flex:none;margin-right:6px;font-size:11px;font-weight:800;letter-spacing:.02em}
+.cal-day{display:none;flex-direction:column;margin-top:20px}
+.cal-day .drop-list{overflow:visible}
+.cal-day .pill-btn{margin-top:14px;align-self:flex-start}
+.srow{display:flex;align-items:center;gap:12px;padding:6px 0}
+.srow .sname{flex:1;min-width:0;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .sab{width:70px;height:34px;padding:0 8px;font-size:13px;flex:none}
 .ev:hover{filter:brightness(.95)}
 
 /* ---------- modal ---------- */
@@ -258,13 +284,20 @@ main{flex:1;min-height:0;position:relative}
   .tabs{margin-left:0;width:100%;justify-content:space-around;gap:0}
   .tab{height:42px;font-size:10px}
   .view{padding:18px 14px 14px;overflow-y:auto}
-  #view-matrix,#view-flow{grid-template-columns:1fr;gap:22px;align-content:start}
+  #view-matrix,#view-flow{grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
   .side .drop-list{max-height:38vh}
   .quads{grid-template-columns:1fr;grid-template-rows:none}
   .quad{min-height:180px}
   .slots{overflow:visible}
-  :root{--row:28px}
-  .ev{font-size:10.5px;padding:0 5px;margin:0 2px}
+  :root{--row:12px;--head:28px}
+  #view-calendar.on{display:block}
+  .cal-weeks{overflow:visible}
+  .cell{background-image:none}
+  .ev{height:6px;margin:0 1px;padding:0;font-size:0}
+  .ev > *{display:none}
+  .ev.sub{background:var(--sc)!important;box-shadow:none}
+  .ev.event{height:8px}
+  .cal-day{display:flex}
   .evchk{width:11px;height:11px;margin-right:4px}
   .evchk svg{width:9px;height:9px}
   .evq{width:5px;height:5px;margin-right:4px}
@@ -320,6 +353,12 @@ main{flex:1;min-height:0;position:relative}
       </div>
       <div class="cal-dow"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
       <div class="cal-weeks" id="calWeeks"></div>
+      <div class="cal-day" id="calDay">
+        <div class="side-head"><span id="cdHead"></span><b id="cdCount">0</b></div>
+        <div class="dayev" id="cdEv"></div>
+        <div class="drop-list" id="cdList"></div>
+        <button class="pill-btn primary" id="cdAdd">+ 이 날에 추가</button>
+      </div>
     </section>
 
     <!-- MATRIX -->
@@ -362,6 +401,8 @@ main{flex:1;min-height:0;position:relative}
       <button type="button" data-kind="event">일정</button>
     </div>
     <label>제목<input id="fTitle" autocomplete="off" enterkeyhint="done"></label>
+    <label>과목 (선택)<input id="fSubj" list="subjList" autocomplete="off" placeholder="예: 임상신경학"></label>
+    <datalist id="subjList"></datalist>
     <div class="row">
       <label>시작일<input type="date" id="fStart"></label>
       <label>종료일<input type="date" id="fEnd"></label>
@@ -409,6 +450,9 @@ main{flex:1;min-height:0;position:relative}
       <div class="chead"><b>할 일</b><span class="cprev">☐ Cortex p.2–8 정리</span></div>
       <div class="swatches"></div>
     </div>
+    <div class="csec">과목 색 · 줄임말</div>
+    <p class="psub">줄임말은 캘린더 막대 앞에 보여요. 색 칸을 누르면 과목 색을 바꿀 수 있어요.</p>
+    <div id="cSubjs"></div>
     <div class="csec">매트릭스 사분면</div>
     <div id="cQuads"></div>
     <div class="btns">
@@ -464,6 +508,7 @@ const I = {
   alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>',
   calq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10h16M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg>',
   clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>',
   arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>'
 };
 
@@ -490,11 +535,14 @@ function load() {
   return memCopy;
 }
 let savedTimer;
-function save() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors });
+function persist() {
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
+}
+function save() {
+  persist();
   const el = $('#saved'); el.classList.add('show');
   clearTimeout(savedTimer); savedTimer = setTimeout(() => el.classList.remove('show'), 1200);
 }
@@ -538,6 +586,39 @@ if (!state.kindColors) {
 state.quadColors = state.quadColors || {};
 Object.keys(state.quadColors).forEach(k => { if (!isHex(state.quadColors[k])) delete state.quadColors[k]; });
 const quadColor = k => state.quadColors[k] || null;
+// 과목: 제목 앞의 [과목]을 따로 저장
+const SUBJ_RE = /^\s*[\[【]\s*([^\]】]{1,20}?)\s*[\]】]\s*/;
+function splitSubject(title) {
+  const m = title.match(SUBJ_RE), rest = m ? title.slice(m[0].length).trim() : '';
+  return m && rest ? { subject: m[1], title: rest } : { subject: '', title: title.trim() };
+}
+const SUBJ_DEF = { '임상신경학': ['#3b57e0', '신경'], '신경물치1': ['#12a594', '물치'], '운동치료학': ['#f76b15', '운치'], '임상운동학': ['#8e4ec6', '운동'], '전기광선': ['#d6409f', '전기'], '전체': ['#9a9aa0', '전체'], '기타과목': ['#9a9aa0', '기타'] };
+const SUBJ_PALETTE = ['#0090ff', '#30a46c', '#e5484d', '#f5b400', '#1b1b1b', '#3b57e0', '#12a594', '#f76b15', '#8e4ec6', '#d6409f'];
+state.subjects = state.subjects || {};
+function ensureSubject(name) {
+  if (!name) return null;
+  if (!state.subjects[name]) {
+    const def = SUBJ_DEF[name];
+    const n = Object.keys(state.subjects).filter(k => !SUBJ_DEF[k]).length;
+    state.subjects[name] = { color: def ? def[0] : SUBJ_PALETTE[n % SUBJ_PALETTE.length], ab: def ? def[1] : name.replace(/[\s\d]/g, '').slice(0, 2) || name.slice(0, 2) };
+  }
+  return state.subjects[name];
+}
+const subjOf = t => t.subject ? ensureSubject(t.subject) : null;
+const fullTitle = t => t.subject ? `[${t.subject}] ${t.title}` : t.title;
+function migrateSubjects() {
+  let changed = false;
+  state.tasks.forEach(t => {
+    if (t.subject !== undefined) return;
+    const x = splitSubject(t.title);
+    t.subject = x.subject; t.title = x.title;
+    // 과목 색이 생겼으니, 과목 표시용으로 칠했던 파란 할 일은 기본색으로
+    if (t.subject && t.kind !== 'event' && t.color === 'pink') t.color = 'auto';
+    ensureSubject(t.subject);
+    changed = true;
+  });
+  if (changed) persist();
+}
 const kindColor = k => state.kindColors[k === 'event' ? 'event' : 'todo'];
 function textOn(hex) {
   const n = parseInt(hex.slice(1), 16);
@@ -566,21 +647,21 @@ function card(t, o = {}) {
   const el = document.createElement('div');
   el.className = 'card' + (o.compact ? ' compact' : '') + (t.done ? ' done' : '');
   el.dataset.id = t.id;
+  const sj = subjOf(t), qd = o.showQuad && t.quad;
   let h = '';
-  if (!o.compact) h += `<button class="ic heart ${t.fav ? 'on' : ''}" data-act="fav" aria-label="즐겨찾기">${I.heart}</button>`;
   if (o.num != null) h += `<span class="grip">${I.grip}</span><span class="num">${o.num}</span>`;
-  if (o.showQuad && t.quad) h += `<i class="qdot ${t.quad}"${quadColor(t.quad) ? ` style="background:${quadColor(t.quad)};box-shadow:none"` : ''}></i>`;
-  h += `<div class="tt"><span class="title">${esc(t.title)}</span>${!o.compact && t.note ? `<span class="note">${esc(t.note)}</span>` : ''}</div><div class="acts">`;
-  h += `<button class="ic" data-act="done" aria-label="완료">${I.check}</button>`;
-  if (o.compact) {
-    h += `<button class="ic" data-act="edit" aria-label="편집">${I.cal}</button>`;
-    h += `<button class="ic" data-act="unassign" data-field="${o.unassign}" aria-label="목록으로 되돌리기">${I.back}</button>`;
-  } else {
-    h += `<button class="ic" data-act="edit" aria-label="날짜·편집">${I.cal}</button>`;
-    h += `<button class="ic" data-act="up" aria-label="위로">${I.up}</button>`;
-    h += `<button class="ic" data-act="del" aria-label="삭제">${I.x}</button>`;
+  h += `<button class="chk" data-act="done" aria-label="${t.done ? '완료 취소' : '완료'}">${I.check}</button><div class="tt">`;
+  if (sj || t.fav || qd) {
+    h += '<span class="meta">';
+    if (qd) h += `<i class="qdot ${t.quad}"${quadColor(t.quad) ? ` style="background:${quadColor(t.quad)};box-shadow:none"` : ''}></i>`;
+    if (sj) h += `<span class="subj" style="--sc:${sj.color}">${esc(t.subject)}</span>`;
+    if (t.fav) h += `<span class="favmark" title="즐겨찾기">${I.heart}</span>`;
+    h += '</span>';
   }
-  el.innerHTML = h + '</div>';
+  h += `<span class="title">${esc(t.title)}</span>`;
+  if (!o.compact && t.note) h += `<span class="note">${esc(t.note)}</span>`;
+  h += `</div><button class="ic more" data-act="more" data-field="${o.unassign || ''}" aria-label="더보기" aria-haspopup="menu">${I.more}</button>`;
+  el.innerHTML = h;
   return el;
 }
 function hint(text) { const d = document.createElement('div'); d.className = 'hint'; d.textContent = text; return d; }
@@ -687,7 +768,7 @@ function renderCalendar() {
     const week = document.createElement('div');
     week.className = 'week';
     const filler = Math.max(1, 3 - lanes.length);
-    week.style.gridTemplateRows = `repeat(${1 + lanes.length + filler}, var(--row))`;
+    week.style.gridTemplateRows = `var(--head) repeat(${lanes.length + filler}, var(--row))`;
     let h = '';
     for (let i = 0; i < 7; i++) {
       const d = addDays(ws, i);
@@ -700,19 +781,34 @@ function renderCalendar() {
     placed.forEach(p => {
       const ev = isEvent(p.t);
       const cls = ['ev']; if (p.l) cls.push('l'); if (p.r) cls.push('r'); if (ev) cls.push('event'); else if (p.t.done) cls.push('done');
-      const [bg, fg] = colorOf(p.t);
-      const tip = [ev ? '일정' + (p.t.time ? ' ' + p.t.time : '') : '할 일', p.t.note, p.t.quad && QUADS.find(q => q.key === p.t.quad).title, p.t.slot && SLOTS.find(x => x.key === p.t.slot).title].filter(Boolean).join(' / ');
-      h += `<div class="${cls.join(' ')}" data-ev="${p.t.id}" title="${esc(tip)}" style="grid-row:${p.lane + 2};grid-column:${p.cs + 1}/${p.ce + 2};background:${bg};color:${fg}">`
+      const [bg, fg] = colorOf(p.t), sj = subjOf(p.t);
+      if (sj) cls.push('sub');
+      const tip = [fullTitle(p.t), ev ? '일정' + (p.t.time ? ' ' + p.t.time : '') : '할 일', p.t.note, p.t.quad && QUADS.find(q => q.key === p.t.quad).title, p.t.slot && SLOTS.find(x => x.key === p.t.slot).title].filter(Boolean).join(' / ');
+      h += `<div class="${cls.join(' ')}" data-ev="${p.t.id}" title="${esc(tip)}" style="grid-row:${p.lane + 2};grid-column:${p.cs + 1}/${p.ce + 2};background:${bg};color:${fg}${sj ? `;--sc:${sj.color}` : ''}">`
         + (p.l ? '' : ev ? (p.t.time ? `<span class="evtm">${p.t.time}</span>` : '<i class="evdot"></i>')
           : `<button class="evchk" data-evdone="${p.t.id}" aria-label="${p.t.done ? '완료 취소' : '완료'}">${p.t.done ? I.check : ''}</button>`)
         + (!ev && p.t.quad ? `<i class="evq ${p.t.quad}"${quadColor(p.t.quad) ? ` style="background:${quadColor(p.t.quad)};box-shadow:0 0 0 1.5px rgba(255,255,255,.9)"` : ''}></i>` : '')
+        + (sj ? `<b class="evab" style="color:${textOn(bg) === '#1a1a1a' ? sj.color : fg}">${esc(sj.ab)}</b>` : '')
         + `<span>${esc(p.t.title)}</span></div>`;
     });
     week.innerHTML = h;
     wrap.append(week);
     ws = addDays(ws, 7);
   }
+  renderCalDay();
 }
+// 폰: 캘린더 아래에 고른 날짜의 목록
+function renderCalDay() {
+  const d = parse(state.date);
+  $('#cdHead').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+  renderDayEvents($('#cdEv'));
+  const list = todosOn(state.date).sort(byOrder);
+  $('#cdCount').textContent = list.length;
+  $('#cdList').replaceChildren(...list.map(t => card(t, { showQuad: true })));
+  if (!list.length) $('#cdList').append(hint('할 일이 없어요'));
+}
+const isPhone = () => matchMedia('(max-width:900px)').matches;
+$('#cdAdd').onclick = () => openModal({ date: state.date, kind: 'todo' });
 
 /* ---------- navigation ---------- */
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
@@ -746,6 +842,12 @@ document.addEventListener('click', e => {
 $('#calWeeks').addEventListener('click', e => {
   const chk = e.target.closest('[data-evdone]');
   if (chk) { const t = find(chk.dataset.evdone); if (t) { t.done = !t.done; commit(); } return; }
+  if (isPhone()) {
+    // 폰에서는 날짜를 누르면 아래 목록만 바꿔요
+    const c = e.target.closest('.cell') || cellAt(e.clientX, e.clientY);
+    if (c) { state.date = c.dataset.date; renderCalendar(); }
+    return;
+  }
   const ev = e.target.closest('[data-ev]');
   if (ev) { const t = find(ev.dataset.ev); if (t) openModal({ task: t }); return; }
   const cell = e.target.closest('.cell');
@@ -756,30 +858,72 @@ document.querySelectorAll('[data-quick]').forEach(f => f.addEventListener('submi
   e.preventDefault();
   const inp = f.querySelector('input'); const v = inp.value.trim();
   if (!v) return;
-  state.tasks.push(makeTask(v, state.date, { order: maxOrder() + 1 }));
+  const x = splitSubject(v); ensureSubject(x.subject);
+  state.tasks.push(makeTask(x.title, state.date, { subject: x.subject, order: maxOrder() + 1 }));
   inp.value = ''; commit();
 }));
 
 /* ---------- card actions ---------- */
-let justDragged = false;
-document.addEventListener('click', e => {
-  if (justDragged) { e.stopPropagation(); e.preventDefault(); return; }
-  const b = e.target.closest('[data-act]'); if (!b) return;
-  const cardEl = b.closest('.card'); const t = cardEl && find(cardEl.dataset.id); if (!t) return;
-  switch (b.dataset.act) {
+let justDragged = false, menuEl = null, menuCard = null;
+function closeMenu() { if (menuEl) { menuEl.remove(); menuEl = null; menuCard = null; } }
+function openMenu(btn, t) {
+  closeMenu();
+  const field = btn.dataset.field;
+  const items = [['edit', I.cal, '편집'], field ? ['unassign', I.back, '목록으로 되돌리기'] : ['up', I.up, '위로 올리기'],
+    ['fav', I.heart, t.fav ? '즐겨찾기 해제' : '즐겨찾기'], ['del', I.x, '삭제']];
+  menuEl = document.createElement('div');
+  menuEl.className = 'cmenu';
+  menuEl.setAttribute('role', 'menu');
+  menuEl.innerHTML = items.map(([a, ic, l]) => `<button role="menuitem" data-mact="${a}"${a === 'del' ? ' class="del"' : ''}>${ic}${l}</button>`).join('');
+  menuEl.dataset.id = t.id; menuEl.dataset.field = field;
+  menuCard = btn.closest('.card');
+  document.body.append(menuEl);
+  const r = btn.getBoundingClientRect(), mw = menuEl.offsetWidth, mh = menuEl.offsetHeight;
+  let top = r.bottom + 4;
+  if (top + mh > innerHeight - 8) top = r.top - mh - 4;
+  menuEl.style.left = Math.max(8, Math.min(r.right - mw, innerWidth - mw - 8)) + 'px';
+  menuEl.style.top = Math.max(8, top) + 'px';
+  menuEl.querySelector('button').focus();
+}
+function cardAct(a, t, cardEl, field) {
+  switch (a) {
     case 'fav': t.fav = !t.fav; commit(); break;
     case 'done': t.done = !t.done; commit(); break;
     case 'edit': openModal({ task: t }); break;
-    case 'unassign': t[b.dataset.field] = null; commit(); break;
+    case 'unassign': t[field] = null; commit(); break;
     case 'del': state.tasks = state.tasks.filter(x => x !== t); commit(); break;
     case 'up': {
+      if (!cardEl) break;
       const ids = [...cardEl.parentElement.querySelectorAll(':scope > .card')].map(c => c.dataset.id);
       const i = ids.indexOf(t.id);
       if (i > 0) { [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]]; applyOrder(ids); }
       break;
     }
   }
+}
+document.addEventListener('click', e => {
+  if (justDragged) { e.stopPropagation(); e.preventDefault(); return; }
+  const mb = e.target.closest('.cmenu [data-mact]');
+  if (mb) {
+    const t = find(menuEl.dataset.id), field = menuEl.dataset.field, cardEl = menuCard;
+    closeMenu();
+    if (t) cardAct(mb.dataset.mact, t, cardEl, field);
+    return;
+  }
+  if (menuEl && !e.target.closest('.cmenu')) {
+    // 메뉴 밖을 누르면 닫기만
+    closeMenu(); e.stopPropagation(); e.preventDefault(); return;
+  }
+  const cardEl = e.target.closest('.card');
+  if (!cardEl || cardEl.classList.contains('ghost')) return;
+  const t = find(cardEl.dataset.id); if (!t) return;
+  const b = e.target.closest('[data-act]');
+  if (!b) { openModal({ task: t }); return; }
+  if (b.dataset.act === 'more') openMenu(b, t);
+  else cardAct(b.dataset.act, t, cardEl, b.dataset.field);
 }, true);
+window.addEventListener('scroll', closeMenu, true);
+window.addEventListener('resize', closeMenu);
 
 function applyOrder(ids) {
   const f = state.view === 'flow' ? 'forder' : 'order';
@@ -889,6 +1033,8 @@ $('#fColors').addEventListener('input', e => { if (e.target.id === 'fCustom') { 
 function openModal({ task, date, kind }) {
   editing = task || null;
   $('#fTitle').value = task ? task.title : '';
+  $('#fSubj').value = task?.subject || '';
+  $('#subjList').innerHTML = Object.keys(state.subjects).map(n => `<option value="${esc(n)}">`).join('');
   $('#fNote').value = task ? (task.note || '') : '';
   $('#fStart').value = task ? task.date : date;
   $('#fEnd').value = task ? endOf(task) : date;
@@ -904,13 +1050,16 @@ function openModal({ task, date, kind }) {
 }
 function closeModal() { $('#modal').hidden = true; editing = null; }
 function saveModal() {
-  const title = $('#fTitle').value.trim();
+  let title = $('#fTitle').value.trim(), subject = $('#fSubj').value.trim().replace(/^[\[【]|[\]】]$/g, '');
   if (!title) { $('#fTitle').focus(); return; }
+  const x = splitSubject(title);
+  if (!subject && x.subject) { subject = x.subject; title = x.title; }
+  ensureSubject(subject);
   const start = $('#fStart').value || state.date;
   let end = $('#fEnd').value || start;
   if (end < start) end = start;
   const ev = selKind === 'event';
-  const data = { kind: selKind, note: $('#fNote').value.trim(), title, date: start, end: end === start ? null : end, color: selColor,
+  const data = { kind: selKind, subject, note: $('#fNote').value.trim(), title, date: start, end: end === start ? null : end, color: selColor,
     time: ev ? $('#fTime').value || null : null, quad: ev ? null : $('#fQuad').value || null, slot: ev ? null : $('#fSlot').value || null };
   if (editing) Object.assign(editing, data);
   else state.tasks.push(makeTask(title, start, { ...data, order: maxOrder() + 1 }));
@@ -923,7 +1072,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
+  if (menuEl) closeMenu(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
 });
 
 
@@ -1235,7 +1384,7 @@ function parsePlan(text, base) {
     if (!bullet && ((hasDate && !seenDate) || (FLUFF_RE.test(s) && !/[\[\]→:：]/.test(s)))) continue;
     add(s, { date: cur || base, end: null, slot, kind: hint }, indent);
   }
-  items.forEach(it => { if (state.tasks.some(t => t.title === it.title && t.date === it.date)) { it.dup = true; it.inc = false; } });
+  items.forEach(it => { if (state.tasks.some(t => fullTitle(t) === it.title && t.date === it.date)) { it.dup = true; it.inc = false; } });
   return items;
 }
 
@@ -1329,10 +1478,14 @@ $('#pSave').onclick = () => {
   if (!list.length) return;
   const batch = 'b' + uid();
   let o = maxOrder();
-  list.forEach(it => state.tasks.push(makeTask(it.title, it.date, {
-    kind: it.kind, end: it.end, note: it.note, color: it.color, order: ++o, batch,
-    time: it.kind === 'event' ? it.time : null, slot: it.kind === 'todo' ? it.slot : null
-  })));
+  list.forEach(it => {
+    const x = splitSubject(it.title);
+    ensureSubject(x.subject);
+    state.tasks.push(makeTask(x.title, it.date, {
+      subject: x.subject, kind: it.kind, end: it.end, note: it.note, color: it.color, order: ++o, batch,
+      time: it.kind === 'event' ? it.time : null, slot: it.kind === 'todo' ? it.slot : null
+    }));
+  });
   state.lastBatch = batch;
   state.date = list.map(x => x.date).sort()[0];
   state.month = state.date.slice(0, 7);
@@ -1366,6 +1519,15 @@ function buildColorRows() {
       </div>
     </div>`).join('');
   QUADS.forEach(x => markQuadRow(x.key));
+  const names = Object.keys(state.subjects).filter(n => state.tasks.some(t => t.subject === n));
+  $('#cSubjs').innerHTML = names.length ? names.map(n => {
+    const sj = state.subjects[n];
+    return `<div class="srow" data-subj="${esc(n)}">
+      <span class="sw custom" style="background:${sj.color}"><input type="color" value="${sj.color}" aria-label="${esc(n)} 색"></span>
+      <span class="sname" style="color:${sj.color}">${esc(n)}</span>
+      <input class="sab" value="${esc(sj.ab)}" maxlength="3" aria-label="${esc(n)} 줄임말">
+    </div>`;
+  }).join('') : '<p class="psub">과목이 붙은 할 일이 아직 없어요.</p>';
   const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
   $('#cClear').hidden = !n;
   $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
@@ -1404,6 +1566,16 @@ $('#cmodal').addEventListener('click', e => {
   if (qb) setQuadColor(qb.closest('[data-quad]').dataset.quad, qb.dataset.qhex);
 });
 $('#cmodal').addEventListener('input', e => {
+  const sr = e.target.closest('[data-subj]');
+  if (sr) {
+    const sj = state.subjects[sr.dataset.subj]; if (!sj) return;
+    if (e.target.type === 'color') {
+      sj.color = e.target.value;
+      sr.querySelector('.custom').style.background = sj.color;
+      sr.querySelector('.sname').style.color = sj.color;
+    } else sj.ab = e.target.value.trim() || sr.dataset.subj.slice(0, 2);
+    save(); render(); return;
+  }
   if (e.target.type !== 'color') return;
   const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]');
   if (kr) setKindColor(kr.dataset.kind, e.target.value);
@@ -1421,6 +1593,7 @@ $('#cClear').onclick = () => {
   buildColorRows(); commit();
 };
 
+migrateSubjects();
 render();
 </script>
 </body>
