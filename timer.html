@@ -173,6 +173,17 @@
   .swatches input[type=color] {
     width: 30px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer;
   }
+  #soundSection { border-bottom: 1px solid var(--panel-border); }
+  #settingsPanel.track #soundSection { display: none; }
+  #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
+  #colorSection summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px; font-weight: 600; color: var(--muted); padding: 12px 0;
+  }
+  #colorSection summary::-webkit-details-marker { display: none; }
+  #colorSection summary::after { content: "▾"; transition: transform .2s; }
+  #colorSection:not([open]) summary::after { transform: rotate(-90deg); }
+  #colorSection .row { border-top: 1px solid var(--panel-border); }
   .help { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; padding: 0 4px; }
   .hidden { display: none !important; }
 </style>
@@ -229,40 +240,44 @@
   </div>
 
   <div class="panel" id="settingsPanel">
-    <h2>소리</h2>
-    <div class="row">
-      <span class="label">알림음</span>
-      <div class="ctrl">
-        <select id="soundType">
-          <option value="beep">삐삐</option>
-          <option value="digital">디지털 알람</option>
-          <option value="chime">차임</option>
-          <option value="bell">벨</option>
-          <option value="soft">부드러운 음</option>
-        </select>
-        <button class="small-btn" id="soundTest">미리듣기</button>
+    <div id="soundSection">
+      <h2>소리</h2>
+      <div class="row">
+        <span class="label">알림음</span>
+        <div class="ctrl">
+          <select id="soundType">
+            <option value="beep">삐삐</option>
+            <option value="digital">디지털 알람</option>
+            <option value="chime">차임</option>
+            <option value="bell">벨</option>
+            <option value="soft">부드러운 음</option>
+          </select>
+          <button class="small-btn" id="soundTest">미리듣기</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">소리 크기</span>
+        <div class="vol">
+          <input type="range" id="volume" min="0" max="100" step="5">
+          <output id="volumeOut">70%</output>
+        </div>
       </div>
     </div>
-    <div class="row">
-      <span class="label">소리 크기</span>
-      <div class="vol">
-        <input type="range" id="volume" min="0" max="100" step="5">
-        <output id="volumeOut">70%</output>
+    <details id="colorSection">
+      <summary>원형 테두리 색</summary>
+      <div class="row" data-mode="pomo">
+        <span class="label">집중</span>
+        <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
       </div>
-    </div>
-    <h2>원형 테두리 색</h2>
-    <div class="row">
-      <span class="label">집중</span>
-      <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
-    </div>
-    <div class="row">
-      <span class="label">휴식</span>
-      <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
-    </div>
-    <div class="row">
-      <span class="label">트래킹</span>
-      <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
-    </div>
+      <div class="row" data-mode="pomo">
+        <span class="label">휴식</span>
+        <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+      </div>
+      <div class="row" data-mode="track">
+        <span class="label">트래킹</span>
+        <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+      </div>
+    </details>
   </div>
 
   <p class="help" id="pomoHelp">
@@ -390,7 +405,8 @@
     bell:    { gap: 1.1,  play: (o, t) => { tone(o, t, 523, "sine", 1.6, 0.55, 0.005); tone(o, t, 1318, "sine", 0.9, 0.2, 0.005); tone(o, t, 2093, "sine", 0.4, 0.08, 0.005); } },
     soft:    { gap: 0.8,  play: (o, t) => tone(o, t, 440, "triangle", 0.7, 0.55, 0.12) }
   };
-  function beep(times = 3, force = false) {
+  const ALARM_REPEAT = 3;   // 알람은 3번 울리고 자동으로 꺼짐
+  function beep(times = ALARM_REPEAT, force = false) {
     if ((!S.sound && !force) || S.volume <= 0) return;
     try {
       audio();
@@ -417,7 +433,7 @@
   $("soundType").addEventListener("change", e => { S.soundType = e.target.value; saveSound(); beep(1, true); });
   $("volume").addEventListener("input", e => { S.volume = +e.target.value; $("volumeOut").textContent = S.volume + "%"; saveSound(); });
   $("volume").addEventListener("change", () => beep(1, true));
-  $("soundTest").addEventListener("click", () => beep(3, true));
+  $("soundTest").addEventListener("click", () => beep(ALARM_REPEAT, true));
 
   // ---------- 테두리 색 ----------
   const PALETTE = ["#c9961c", "#e8604c", "#e84c8b", "#9b6bff", "#3f8cff", "#3fb8a8", "#5cc05a", "#e8e8e8"];
@@ -450,6 +466,10 @@
     picker.value = init;
   });
 
+  const colorSection = $("colorSection");
+  colorSection.open = store.get("colorOpen", false);
+  colorSection.addEventListener("toggle", () => store.set("colorOpen", colorSection.open));
+
   // ---------- 뽀모도로 ----------
   const P = S.pomo;
   const fmtMS = ms => {
@@ -469,7 +489,7 @@
           P.finished = true;
           P.phase = "focus";
           P.remaining = 0;               // 다 끝나면 00:00으로
-          beep(5);
+          beep(ALARM_REPEAT);
           break;
         }
         P.phase = "break";
@@ -479,7 +499,7 @@
         P.remaining = P.focusSec * 1000 - over;
       }
       P.endAt = now + P.remaining;
-      beep(3);
+      beep(ALARM_REPEAT);
     }
   }
 
@@ -514,12 +534,12 @@
   function trackStep(now) {
     if (T.running && T.goalMin && !T.goalHit && trackElapsed(now) >= T.goalMin * 60000) {
       T.goalHit = true;
-      beep(5);
+      beep(ALARM_REPEAT);
     }
     if (T.running && trackElapsed(now) >= MAX_TRACK) {
       T.total = MAX_TRACK; T.running = false;
       store.set("trackTotal", T.total);
-      beep(5);
+      beep(ALARM_REPEAT);
     }
   }
   function renderTrack(now) {
@@ -545,6 +565,7 @@
     const pomo = S.mode === "pomo";
     $("pomoView").classList.toggle("hidden", !pomo);
     $("trackView").classList.toggle("hidden", pomo);
+    $("settingsPanel").classList.toggle("track", !pomo);
     $("pomoHelp").classList.toggle("hidden", !pomo);
     $("trackHelp").classList.toggle("hidden", pomo);
     $("modePomo").classList.toggle("active", pomo);
