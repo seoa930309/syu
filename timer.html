@@ -3,293 +3,348 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>원형 집중 타이머</title>
+<title>Focus Timer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #eeece9;
-    --text: #2b2b2b;
-    --muted: #7a7672;
-    --panel: #ffffff;
-    --panel-border: #e2ddd8;
-    --btn: #f4f1ee;
-    --btn-hover: #ebe6e1;
-    --accent: #c9961c;
-    --accent-text: #ffffff;
-    --shell: #f6ebe6;
-    --shell-edge: #e7d6ce;
-    --screen: #0b0b0d;
-    --digit: #d7e6ff;
-    --digit-dim: #8fa6c8;
-    --arc-on: #c9961c;
-    --arc-break: #3fb8a8;
-    --arc-track: #c9961c;
-    --arc-off: #1b1b1f;
+    --page: #d9d9d9;
+    --bg: #f2f2f2;
+    --ink: #111111;
+    --muted: #6b6b6b;
+    --line: #111111;
+    --soft-line: #cfcfcf;
+    --inv-bg: #141414;
+    --inv-ink: #f2f2f2;
+    --inv-line: #5a5a5a;
+    --screen: #0a0a0a;
+    --digit: #f5f5f5;
+    --digit-dim: #9a9a9a;
+    --arc-on: #f5f5f5;
+    --arc-break: #8c8c8c;
+    --arc-track: #f5f5f5;
+    --arc-off: #1e1e1e;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #17171a;
-      --text: #ececec;
-      --muted: #9a9aa2;
-      --panel: #212125;
-      --panel-border: #313137;
-      --btn: #2a2a2f;
-      --btn-hover: #34343a;
+      --page: #000000;
+      --bg: #111111;
+      --ink: #f2f2f2;
+      --muted: #9a9a9a;
+      --line: #f2f2f2;
+      --soft-line: #3a3a3a;
+      --inv-bg: #f2f2f2;
+      --inv-ink: #111111;
+      --inv-line: #9a9a9a;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #17171a;
-    --text: #ececec;
-    --muted: #9a9aa2;
-    --panel: #212125;
-    --panel-border: #313137;
-    --btn: #2a2a2f;
-    --btn-hover: #34343a;
+    --page: #000000;
+    --bg: #111111;
+    --ink: #f2f2f2;
+    --muted: #9a9a9a;
+    --line: #f2f2f2;
+    --soft-line: #3a3a3a;
+    --inv-bg: #f2f2f2;
+    --inv-ink: #111111;
+    --inv-line: #9a9a9a;
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Noto Sans KR", system-ui, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 24px 16px 40px;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Manrope", "Noto Sans KR", system-ui, sans-serif;
+    padding: 32px 16px;
   }
-  .wrap { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; }
+  button, select, input { font-family: inherit; }
+  .page {
+    max-width: 1040px; margin: 0 auto; background: var(--bg);
+    box-shadow: 0 30px 60px rgba(0,0,0,.25);
+  }
+  .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
-  /* 모드 전환 */
-  .modes {
-    display: grid; grid-template-columns: 1fr 1fr;
-    background: var(--panel); border: 1px solid var(--panel-border);
-    border-radius: 14px; padding: 4px; gap: 4px;
+  /* 상단 바 */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 32px;
   }
-  .modes button {
-    border: 0; border-radius: 10px; padding: 10px 0;
-    font: 600 15px "Noto Sans KR", sans-serif;
-    background: transparent; color: var(--muted); cursor: pointer;
+  .logo { width: 22px; height: 22px; flex: none; }
+  nav { display: flex; gap: 22px; margin-right: auto; margin-left: 28px; }
+  nav button {
+    background: none; border: 0; padding: 4px 0; cursor: pointer; color: var(--muted);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    border-bottom: 1px solid transparent;
   }
-  .modes button.active { background: var(--accent); color: var(--accent-text); }
+  nav button.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .btn-black {
+    background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; text-decoration: none; border-radius: 2px;
+  }
+  .btn-line {
+    background: transparent; color: var(--ink); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; border-radius: 2px;
+  }
+  .btn-black:hover { opacity: .85; }
+  .btn-line:hover { background: var(--ink); color: var(--bg); }
 
-  /* 기기 외형 */
-  .device {
-    background: var(--shell);
-    border-radius: 18%;
-    padding: 7%;
-    padding-bottom: 4%;
-    box-shadow: inset 0 -6px 0 var(--shell-edge), 0 14px 30px rgba(0,0,0,.18);
-    user-select: none;
+  h1 {
+    margin: 0; padding: 4px 24px 14px; text-align: center;
+    font-family: "Manrope", sans-serif; font-weight: 500; letter-spacing: -.02em; line-height: .95;
+    font-size: clamp(48px, 12.5vw, 132px); text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
   }
+
+  /* 본문 그리드 */
+  .grid { display: grid; grid-template-columns: 1.35fr 1fr; border-bottom: 1px solid var(--line); }
+  .cell { padding: 36px 32px; min-width: 0; }
+  .cell + .cell { border-left: 1px solid var(--line); }
+  .cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .cell-title { font-size: 26px; font-weight: 400; text-transform: uppercase; letter-spacing: .01em; margin: 0; line-height: 1.1; }
+  .cell-title small { display: block; font-family: "Noto Sans KR", sans-serif; font-size: 13px; color: var(--muted); text-transform: none; margin-top: 8px; font-weight: 400; }
+
+  /* 타이머 화면 */
+  .device { max-width: 480px; margin: 0 auto; user-select: none; }
   .screen {
-    background: var(--screen);
-    border-radius: 7%;
-    aspect-ratio: 1 / 1;
-    position: relative;
-    overflow: hidden;
-    touch-action: none;
+    background: var(--screen); aspect-ratio: 1 / 1; position: relative; overflow: hidden;
+    touch-action: none; border-radius: 4px;
   }
   .screen svg { width: 100%; height: 100%; display: block; }
-  .brand {
-    text-align: center; font-family: Georgia, serif; font-size: 13px;
-    color: #6b5d57; margin-top: 3%; letter-spacing: .02em;
-  }
+  .device-cap { display: flex; justify-content: space-between; margin-top: 10px; }
 
-  .dial-num { font: 19px "Noto Sans KR", sans-serif; fill: var(--digit); }
+  .dial-num { font: 300 18px "Manrope", sans-serif; fill: var(--digit); }
   .dial-dot { fill: var(--digit); }
   .digits { font-family: "Share Tech Mono", ui-monospace, monospace; fill: var(--digit); }
   .digits-sub { fill: var(--digit-dim); }
-  .unit { font: 10px "Noto Sans KR", sans-serif; fill: var(--digit-dim); }
+  .unit { font: 10px "Noto Sans KR", sans-serif; fill: var(--digit-dim); letter-spacing: .06em; }
   .clickable { cursor: pointer; }
   .blink { animation: blink 1s steps(1) infinite; }
   @keyframes blink { 50% { opacity: .15; } }
-  .glow { filter: drop-shadow(0 0 3px rgba(160,200,255,.45)); }
-
-  /* 조작부 */
-  .controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
-  .controls button {
-    border: 1px solid var(--panel-border); border-radius: 12px; padding: 14px 0;
-    font: 700 16px "Noto Sans KR", sans-serif; cursor: pointer;
-    background: var(--btn); color: var(--text);
-  }
-  .controls button:hover { background: var(--btn-hover); }
-  .controls .primary { background: var(--accent); color: var(--accent-text); border-color: transparent; }
-  .controls .primary:hover { filter: brightness(1.06); background: var(--accent); }
-
-  .edit {
-    position: absolute; transform: translate(-50%, -50%);
-    background: #15161a; color: var(--digit); caret-color: var(--arc-on);
-    border: 2px solid var(--edit-accent, var(--arc-on)); border-radius: 8px; outline: none;
-    font-family: "Share Tech Mono", ui-monospace, monospace; text-align: center;
-    padding: 0 4px;
-  }
-  .edit::placeholder { color: #55607a; }
+  .glow { filter: drop-shadow(0 0 3px rgba(255,255,255,.3)); }
   #arc { cursor: grab; }
   .dragging #arc { cursor: grabbing; }
-  .panel {
-    background: var(--panel); border: 1px solid var(--panel-border);
-    border-radius: 14px; padding: 6px 16px;
+  .edit {
+    position: absolute; transform: translate(-50%, -50%);
+    background: #000; color: var(--digit); caret-color: #fff;
+    border: 1px solid #fff; border-radius: 2px; outline: none;
+    font-family: "Share Tech Mono", ui-monospace, monospace; text-align: center; padding: 0 4px;
   }
-  .row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 0; gap: 12px;
-  }
-  .row + .row { border-top: 1px solid var(--panel-border); }
-  .row .label { font-weight: 600; font-size: 15px; }
-  .row .hint { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
-  .stepper { display: flex; align-items: center; gap: 6px; }
-  .stepper button {
-    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--panel-border);
-    background: var(--btn); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer;
-  }
-  .stepper button:hover { background: var(--btn-hover); }
-  .stepper button:disabled { opacity: .35; cursor: not-allowed; }
-  .stepper input {
-    width: 54px; height: 36px; text-align: center; border-radius: 10px;
-    border: 1px solid var(--panel-border); background: var(--bg); color: var(--text);
-    font: 600 16px "Noto Sans KR", sans-serif;
-  }
-  .stepper input:disabled { opacity: .6; }
-  .panel h2 { font-size: 14px; margin: 10px 0 2px; color: var(--muted); font-weight: 600; }
-  .row select, .row .small-btn {
-    height: 34px; border-radius: 10px; border: 1px solid var(--panel-border);
-    background: var(--btn); color: var(--text); font: 500 14px "Noto Sans KR", sans-serif; padding: 0 10px;
-  }
-  .row .small-btn { cursor: pointer; }
-  .row .small-btn:hover { background: var(--btn-hover); }
-  .ctrl { display: flex; align-items: center; gap: 8px; }
-  .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
-  .vol input[type=range] { width: 100%; max-width: 170px; accent-color: var(--accent); }
-  .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
-  .swatches { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .swatch {
-    width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0;
-    box-shadow: 0 0 0 1px var(--panel-border);
-  }
-  .swatch.on { border-color: var(--text); }
-  .swatches input[type=color] {
-    width: 30px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer;
-  }
-  #soundSection { border-bottom: 1px solid var(--panel-border); }
-  #settingsPanel.track #soundSection { display: none; }
-  #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
+  .edit::placeholder { color: #555; }
+
+  /* 조작 */
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
+  .controls button { padding: 15px 0; font-size: 12px; }
+
+  .fold { border-top: 1px solid var(--line); }
+  .fold:last-child { border-bottom: 1px solid var(--line); }
   .fold summary {
     list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-    font-size: 14px; font-weight: 600; color: var(--muted); padding: 12px 0;
+    padding: 14px 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
   }
   .fold summary::-webkit-details-marker { display: none; }
-  .fold summary::after { content: "▾"; transition: transform .2s; }
-  .fold:not([open]) summary::after { transform: rotate(-90deg); }
-  .fold .row { border-top: 1px solid var(--panel-border); }
-  .help { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; padding: 0 4px; }
+  .fold summary::after { content: "+"; font-size: 18px; font-weight: 300; line-height: 1; }
+  .fold[open] summary::after { content: "−"; }
+  .fold .ko { font-family: "Noto Sans KR", sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); margin-left: 8px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--soft-line);
+    font-family: "Noto Sans KR", sans-serif;
+  }
+  .row .label { font-size: 13px; font-weight: 500; }
+  .ctrl { display: flex; align-items: center; gap: 8px; }
+  .row select {
+    height: 34px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 13px "Noto Sans KR", sans-serif; padding: 0 8px;
+  }
+  .row .btn-line { padding: 8px 12px; font-family: "Noto Sans KR", sans-serif; letter-spacing: 0; }
+  .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+  .vol input[type=range] { width: 100%; max-width: 150px; accent-color: var(--ink); }
+  .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .swatches { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .swatch {
+    width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--soft-line); cursor: pointer; padding: 0;
+  }
+  .swatch.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .swatches input[type=color] { width: 26px; height: 26px; border: 0; padding: 0; background: none; cursor: pointer; }
+  #settingsPanel.track #soundSection { display: none; }
+  #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
+
+  /* 사용법 (반전 섹션) */
+  .guide { background: var(--inv-bg); color: var(--inv-ink); display: grid; grid-template-columns: 1fr 1.35fr; }
+  .guide .cell + .cell { border-left: 1px solid var(--inv-line); }
+  .guide .tag { color: var(--inv-line); }
+  .guide h2 { font-size: 34px; font-weight: 400; text-transform: uppercase; margin: 18px 0 20px; line-height: 1.05; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips span {
+    border: 1px solid var(--inv-ink); padding: 6px 10px; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; font-weight: 500;
+  }
+  .chips span.on { background: var(--inv-ink); color: var(--inv-bg); }
+  .rules { width: 100%; border-collapse: collapse; font-family: "Noto Sans KR", sans-serif; }
+  .rules th {
+    text-align: left; font: 600 11px "Manrope", sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    padding: 0 0 10px; border-bottom: 1px solid var(--inv-line);
+  }
+  .rules td { padding: 12px 0; border-bottom: 1px solid var(--inv-line); font-size: 13px; vertical-align: top; line-height: 1.6; }
+  .rules td:first-child { width: 34%; padding-right: 16px; font-weight: 500; }
+  .rules td:last-child { color: color-mix(in srgb, var(--inv-ink) 72%, transparent); }
+  .rules b { color: var(--inv-ink); font-weight: 500; }
+
+  footer { display: flex; justify-content: space-between; padding: 14px 32px; }
   .hidden { display: none !important; }
+
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    header { padding: 12px 16px; }
+    nav { margin-left: 12px; gap: 14px; }
+    .grid, .guide { grid-template-columns: 1fr; }
+    .cell { padding: 28px 16px; }
+    .cell + .cell, .guide .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
+    .guide .cell + .cell { border-top-color: var(--inv-line); }
+    footer { padding: 14px 16px; }
+    #guideLink { display: none; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="modes" role="tablist">
-    <button id="modePomo" class="active" role="tab">뽀모도로</button>
-    <button id="modeTrack" role="tab">타임트래킹</button>
-  </div>
+<div class="page">
+  <header>
+    <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+      <circle cx="12" cy="13" r="9"/><path d="M12 13V8M12 13l3.5 2M10 2h4"/>
+    </svg>
+    <nav role="tablist">
+      <button id="modePomo" class="active" role="tab">뽀모도로</button>
+      <button id="modeTrack" role="tab">타임트래킹</button>
+    </nav>
+    <a class="btn-black" id="guideLink" href="#guide">사용법</a>
+  </header>
 
-  <div class="device">
-    <div class="screen" id="screen">
-      <svg id="svg" viewBox="0 0 400 400" aria-label="원형 타이머">
-        <g id="dial"></g>
-        <g id="arc"></g>
+  <h1>Focus Timer</h1>
 
-        <!-- 소리 아이콘 -->
-        <g id="soundBtn" class="clickable" transform="translate(356 26)">
-          <rect x="-8" y="-8" width="32" height="32" fill="transparent"/>
-          <path d="M0 5h4l5-5v16l-5-5H0z" fill="var(--digit)"/>
-          <path id="soundWave" d="M12 3.5a6 6 0 0 1 0 9" stroke="var(--digit)" stroke-width="1.6" fill="none"/>
-          <path id="soundMute" d="M11 4l6 8M17 4l-6 8" stroke="var(--digit)" stroke-width="1.6" class="hidden"/>
-        </g>
+  <section class="grid">
+    <div class="cell">
+      <div class="device">
+        <div class="screen" id="screen">
+          <svg id="svg" viewBox="0 0 400 400" aria-label="원형 타이머">
+            <g id="dial"></g>
+            <g id="arc"></g>
 
-        <!-- 뽀모도로 화면 -->
-        <g id="pomoView" class="glow">
-          <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
-          <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
-          <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
-          <text class="unit" x="185" y="238" text-anchor="middle">M</text>
-          <text class="unit" x="215" y="238" text-anchor="middle">S</text>
-          <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
-        </g>
+            <!-- 소리 아이콘 -->
+            <g id="soundBtn" class="clickable" transform="translate(356 26)">
+              <rect x="-8" y="-8" width="32" height="32" fill="transparent"/>
+              <path d="M0 5h4l5-5v16l-5-5H0z" fill="var(--digit)"/>
+              <path id="soundWave" d="M12 3.5a6 6 0 0 1 0 9" stroke="var(--digit)" stroke-width="1.6" fill="none"/>
+              <path id="soundMute" d="M11 4l6 8M17 4l-6 8" stroke="var(--digit)" stroke-width="1.6" class="hidden"/>
+            </g>
 
-        <!-- 타임트래킹 화면 -->
-        <g id="trackView" class="glow hidden">
-          <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
-          <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
-          <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
-          <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
-          <text id="trackSec" class="digits digits-sub" x="200" y="262" text-anchor="middle" font-size="20">00s</text>
-          <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
-        </g>
-      </svg>
-      <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
+            <!-- 뽀모도로 화면 -->
+            <g id="pomoView" class="glow">
+              <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
+              <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
+              <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
+              <text class="unit" x="185" y="238" text-anchor="middle">M</text>
+              <text class="unit" x="215" y="238" text-anchor="middle">S</text>
+              <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
+            </g>
+
+            <!-- 타임트래킹 화면 -->
+            <g id="trackView" class="glow hidden">
+              <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
+              <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
+              <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
+              <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
+              <text id="trackSec" class="digits digits-sub" x="200" y="262" text-anchor="middle" font-size="20">00s</text>
+              <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
+            </g>
+          </svg>
+          <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="device-cap"><span class="tag">(Timer)</span><span class="tag" id="modeCap">Pomodoro</span></div>
+      </div>
     </div>
-    <div class="brand">focus timer</div>
-  </div>
 
-  <div class="controls">
-    <button id="startBtn" class="primary">시작</button>
-    <button id="resetBtn">리셋</button>
-  </div>
+    <div class="cell">
+      <div class="cell-head"><span class="tag">(Control)</span></div>
+      <h2 class="cell-title" id="panelTitle">Pomodoro<small>집중과 휴식을 반복해요</small></h2>
+      <div style="height:22px"></div>
+      <div class="controls">
+        <button id="startBtn" class="btn-black">시작</button>
+        <button id="resetBtn" class="btn-line">리셋</button>
+      </div>
 
-  <div class="panel" id="settingsPanel">
-    <details id="soundSection" class="fold">
-      <summary>소리</summary>
-      <div class="row">
-        <span class="label">알림음</span>
-        <div class="ctrl">
-          <select id="soundType">
-            <option value="beep">삐삐</option>
-            <option value="digital">디지털 알람</option>
-            <option value="chime">차임</option>
-            <option value="bell">벨</option>
-            <option value="soft">부드러운 음</option>
-          </select>
-          <button class="small-btn" id="soundTest">미리듣기</button>
-        </div>
+      <div id="settingsPanel">
+        <details id="soundSection" class="fold">
+          <summary><span>Sound<span class="ko">소리</span></span></summary>
+          <div class="row">
+            <span class="label">알림음</span>
+            <div class="ctrl">
+              <select id="soundType">
+                <option value="beep">삐삐</option>
+                <option value="digital">디지털 알람</option>
+                <option value="chime">차임</option>
+                <option value="bell">벨</option>
+                <option value="soft">부드러운 음</option>
+              </select>
+              <button class="btn-line" id="soundTest">미리듣기</button>
+            </div>
+          </div>
+          <div class="row">
+            <span class="label">소리 크기</span>
+            <div class="vol">
+              <input type="range" id="volume" min="0" max="100" step="5">
+              <output id="volumeOut">70%</output>
+            </div>
+          </div>
+        </details>
+        <details id="colorSection" class="fold">
+          <summary><span>Ring<span class="ko">원형 테두리 색</span></span></summary>
+          <div class="row" data-mode="pomo">
+            <span class="label">집중</span>
+            <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
+          </div>
+          <div class="row" data-mode="pomo">
+            <span class="label">휴식</span>
+            <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+          </div>
+          <div class="row" data-mode="track">
+            <span class="label">트래킹</span>
+            <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+          </div>
+        </details>
       </div>
-      <div class="row">
-        <span class="label">소리 크기</span>
-        <div class="vol">
-          <input type="range" id="volume" min="0" max="100" step="5">
-          <output id="volumeOut">70%</output>
-        </div>
-      </div>
-    </details>
-    <details id="colorSection" class="fold">
-      <summary>원형 테두리 색</summary>
-      <div class="row" data-mode="pomo">
-        <span class="label">집중</span>
-        <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
-      </div>
-      <div class="row" data-mode="pomo">
-        <span class="label">휴식</span>
-        <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
-      </div>
-      <div class="row" data-mode="track">
-        <span class="label">트래킹</span>
-        <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
-      </div>
-    </details>
-  </div>
+    </div>
+  </section>
 
-  <p class="help" id="pomoHelp">
-    · <b>집중 시간</b>: 원을 시계처럼 돌리듯 드래그해서 분 단위로 정하거나, 큰 숫자를 눌러 <b>분:초</b>로 초 단위까지 입력해요 (0:01–60:00, ↑/↓ 키로 1초씩).<br>
-    · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요 (예: 4:30, 0:50). 초는 1초 단위로 정할 수 있고, 입력칸에서 ↑/↓ 키로 1초씩 바꿀 수 있어요 (0:01–60:00).<br>
-    · <b>반복 횟수</b>: 맨 위 숫자를 눌러 목표 횟수를 입력해요 (1–99). 비워 두면 <b>--</b>로 표시되고 목표 없이 완료 횟수만 계속 세요.
-  </p>
-  <p class="help hidden" id="trackHelp">
-    · 시작을 누르면 순수 집중 시간이 누적되고, 일시정지(휴식) 중인 시간은 기록되지 않아요. 최대 12시간까지 쌓이며 브라우저를 닫아도 기록이 유지돼요.<br>
-    · <b>목표 시간</b>: 원을 돌리듯 드래그하면 1시간 단위(눈금 5 = 1시간, 0 = 12시간)로, 맨 위 <b>목표</b>를 누르면 <b>시:분</b>으로 입력해요 (예: 2:30). 비워 두면 목표 없이 기록만 해요.<br>
-    · 목표가 있으면 원이 목표까지의 진행률을 보여주고, 목표에 도달하면 알림음이 울려요 (기록은 계속 쌓여요).
-  </p>
+  <section class="guide" id="guide">
+    <div class="cell">
+      <span class="tag">(How to use)</span>
+      <h2 id="guideTitle">사용법</h2>
+      <div class="chips" id="guideChips">
+        <span class="on">원 드래그</span><span>숫자 탭 입력</span><span>↑ / ↓ 1초</span><span>알람 3회</span>
+      </div>
+    </div>
+    <div class="cell">
+      <table class="rules" id="pomoHelp">
+        <tr><th>항목</th><th>설정 방법</th></tr>
+        <tr><td>집중 시간</td><td>원을 시계처럼 <b>드래그</b>하면 분 단위로, 큰 숫자를 <b>눌러</b> 분:초로 입력하면 초 단위까지 정해요. (0:01–60:00)</td></tr>
+        <tr><td>휴식 시간</td><td>아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요. 예: 4:30, 0:50 (0:01–60:00)</td></tr>
+        <tr><td>반복 횟수</td><td>맨 위 숫자를 눌러 목표를 입력해요 (1–99). 비워 두면 <b>--</b> 로 표시되고 완료 횟수만 계속 세요.</td></tr>
+        <tr><td>알람</td><td>단계가 바뀔 때마다 <b>3번</b> 울리고 꺼져요.</td></tr>
+      </table>
+      <table class="rules hidden" id="trackHelp">
+        <tr><th>항목</th><th>설명</th></tr>
+        <tr><td>기록</td><td>시작하면 순수 집중 시간이 쌓이고, 일시정지(휴식) 시간은 제외돼요. 최대 <b>12시간</b>, 브라우저를 닫아도 유지돼요.</td></tr>
+        <tr><td>목표 시간</td><td>원을 <b>드래그</b>하면 1시간 단위(눈금 5 = 1시간), 맨 위 <b>목표</b>를 누르면 시:분으로 입력해요. 비워 두면 기록만 해요.</td></tr>
+        <tr><td>진행 표시</td><td>목표가 있으면 원이 진행률을 보여주고, 도달하면 알림이 <b>3번</b> 울려요.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer><span class="tag">Focus Timer</span><span class="tag">Black &amp; White</span></footer>
 </div>
 
 <script>
@@ -436,8 +491,8 @@
   $("soundTest").addEventListener("click", () => beep(ALARM_REPEAT, true));
 
   // ---------- 테두리 색 ----------
-  const PALETTE = ["#c9961c", "#e8604c", "#e84c8b", "#9b6bff", "#3f8cff", "#3fb8a8", "#5cc05a", "#e8e8e8"];
-  const COLORS = store.get("ringColors", {});
+  const PALETTE = ["#f5f5f5", "#d4d4d4", "#b0b0b0", "#8c8c8c", "#686868", "#4a4a4a"];   // 흑백 톤
+  const COLORS = store.get("ringColorsBW", {});
   document.querySelectorAll(".swatches").forEach(box => {
     const cssVar = box.dataset.var, key = box.dataset.key;
     const def = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
@@ -456,7 +511,7 @@
       document.documentElement.style.setProperty(cssVar, c);
       chips.forEach(b => b.classList.toggle("on", b.dataset.c === c.toLowerCase()));
       picker.value = c;
-      COLORS[key] = c; store.set("ringColors", COLORS);
+      COLORS[key] = c; store.set("ringColorsBW", COLORS);
       lastArc = "";   // 원호 다시 칠하기
       render && render();
     }
@@ -573,6 +628,8 @@
     $("trackHelp").classList.toggle("hidden", pomo);
     $("modePomo").classList.toggle("active", pomo);
     $("modeTrack").classList.toggle("active", !pomo);
+    $("modeCap").textContent = pomo ? "Pomodoro" : "Time Tracking";
+    $("panelTitle").innerHTML = pomo ? "Pomodoro<small>집중과 휴식을 반복해요</small>" : "Time Tracking<small>순수 집중 시간만 쌓여요</small>";
 
     const running = pomo ? P.running : T.running;
     $("startBtn").textContent = running ? (pomo ? "일시정지" : "휴식 (일시정지)") : "시작";
