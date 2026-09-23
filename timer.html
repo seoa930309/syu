@@ -25,6 +25,7 @@
     --digit-dim: #8fa6c8;
     --arc-on: #c9961c;
     --arc-break: #3fb8a8;
+    --arc-track: #c9961c;
     --arc-off: #1b1b1f;
   }
   @media (prefers-color-scheme: dark) {
@@ -121,7 +122,7 @@
   .edit {
     position: absolute; transform: translate(-50%, -50%);
     background: #15161a; color: var(--digit); caret-color: var(--arc-on);
-    border: 2px solid var(--arc-on); border-radius: 8px; outline: none;
+    border: 2px solid var(--edit-accent, var(--arc-on)); border-radius: 8px; outline: none;
     font-family: "Share Tech Mono", ui-monospace, monospace; text-align: center;
     padding: 0 4px;
   }
@@ -201,7 +202,7 @@
         <g id="pomoView" class="glow">
           <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
           <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
-          <text id="focusText" class="digits" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
+          <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
           <text class="unit" x="185" y="238" text-anchor="middle">M</text>
           <text class="unit" x="215" y="238" text-anchor="middle">S</text>
           <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
@@ -209,6 +210,7 @@
 
         <!-- 타임트래킹 화면 -->
         <g id="trackView" class="glow hidden">
+          <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
           <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
           <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
           <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
@@ -257,15 +259,21 @@
       <span class="label">휴식</span>
       <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
     </div>
+    <div class="row">
+      <span class="label">트래킹</span>
+      <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+    </div>
   </div>
 
   <p class="help" id="pomoHelp">
-    · <b>집중 시간</b>: 원을 시계처럼 돌리듯 드래그해서 정해요 (1–60분).<br>
+    · <b>집중 시간</b>: 원을 시계처럼 돌리듯 드래그해서 분 단위로 정하거나, 큰 숫자를 눌러 <b>분:초</b>로 초 단위까지 입력해요 (0:01–60:00, ↑/↓ 키로 1초씩).<br>
     · <b>휴식 시간</b>: 아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요 (예: 4:30, 0:50). 초는 10초 단위이고, 입력칸에서 ↑/↓ 키로 10초씩 바꿀 수 있어요 (0:10–60:00).<br>
     · <b>반복 횟수</b>: 맨 위 숫자를 눌러 목표 횟수를 입력해요 (1–99). 비워 두면 <b>--</b>로 표시되고 목표 없이 완료 횟수만 계속 세요.
   </p>
   <p class="help hidden" id="trackHelp">
-    시작을 누르면 순수 집중 시간이 누적되고, 일시정지(휴식) 중인 시간은 기록되지 않습니다. 최대 12시간까지 쌓이며 브라우저를 닫아도 기록이 유지됩니다.
+    · 시작을 누르면 순수 집중 시간이 누적되고, 일시정지(휴식) 중인 시간은 기록되지 않아요. 최대 12시간까지 쌓이며 브라우저를 닫아도 기록이 유지돼요.<br>
+    · <b>목표 시간</b>: 원을 돌리듯 드래그하면 1시간 단위(눈금 5 = 1시간, 0 = 12시간)로, 맨 위 <b>목표</b>를 누르면 <b>시:분</b>으로 입력해요 (예: 2:30). 비워 두면 목표 없이 기록만 해요.<br>
+    · 목표가 있으면 원이 목표까지의 진행률을 보여주고, 목표에 도달하면 알림음이 울려요 (기록은 계속 쌓여요).
   </p>
 </div>
 
@@ -290,7 +298,7 @@
     sound: store.get("sound", true),
     pomo: {
       target: saved.target ? clamp(saved.target, 1, 99) : null,   // null = 목표 없이 카운트만
-      focusMin: clamp(saved.focusMin || 25, 1, 60),
+      focusSec: clamp(saved.focusSec || (saved.focusMin || 25) * 60, 1, 3600),   // 집중 시간(초)
       breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 10, 3600),   // 휴식 시간(초, 10초 단위)
       done: 0,
       phase: "focus",      // focus | break
@@ -302,10 +310,12 @@
     track: {
       total: clamp(store.get("trackTotal", 0), 0, MAX_TRACK),
       running: false,
-      startedAt: 0
+      startedAt: 0,
+      goalMin: store.get("trackGoal", null),   // 목표(분), null = 목표 없음
+      goalHit: false
     }
   };
-  S.pomo.remaining = S.pomo.focusMin * 60000;
+  S.pomo.remaining = S.pomo.focusSec * 1000;
 
   // ---------- 다이얼 그리기 ----------
   const polar = (r, deg) => {
@@ -458,7 +468,7 @@
           P.running = false;
           P.finished = true;
           P.phase = "focus";
-          P.remaining = P.focusMin * 60000;
+          P.remaining = 0;               // 다 끝나면 00:00으로
           beep(5);
           break;
         }
@@ -466,7 +476,7 @@
         P.remaining = P.breakSec * 1000 - over;
       } else {
         P.phase = "focus";
-        P.remaining = P.focusMin * 60000 - over;
+        P.remaining = P.focusSec * 1000 - over;
       }
       P.endAt = now + P.remaining;
       beep(3);
@@ -474,19 +484,20 @@
   }
 
   function renderPomo() {
-    const focusMs = P.phase === "focus" ? P.remaining : P.focusMin * 60000;
-    const breakMs = P.phase === "break" ? P.remaining : P.breakSec * 1000;
+    // 끝난 단계는 00:00으로 표시
+    const focusMs = P.phase === "focus" ? P.remaining : 0;
+    const breakMs = P.finished ? 0 : P.phase === "break" ? P.remaining : P.breakSec * 1000;
     $("doneText").textContent = pad(P.done);
     $("targetText").textContent = P.target ? pad(P.target) : "--";
     $("focusText").textContent = fmtMS(focusMs);
     $("breakText").textContent = fmtMS(breakMs);
 
-    const paused = !P.running && !P.finished && (P.phase === "break" || P.remaining !== P.focusMin * 60000);
+    const paused = !P.running && !P.finished && (P.phase === "break" || P.remaining !== P.focusSec * 1000);
     const phase = P.phase === "focus" ? "집중" : "휴식";
     $("phaseText").textContent = P.finished ? "완료!" : P.running ? phase : paused ? phase + " · 일시정지" : "대기";
 
     // 진행 중인 단계만 밝게
-    $("focusText").style.opacity = P.phase === "focus" ? 1 : 0.45;
+    $("focusText").style.opacity = P.phase === "focus" && !P.finished ? 1 : 0.45;
     $("breakText").style.opacity = P.phase === "break" ? 1 : 0.55;
     $("breakText").setAttribute("font-size", P.phase === "break" ? 44 : 40);
     $(P.phase === "focus" ? "focusText" : "breakText").classList.toggle("blink", paused);
@@ -501,6 +512,10 @@
   const trackElapsed = now => Math.min(MAX_TRACK, T.total + (T.running ? now - T.startedAt : 0));
 
   function trackStep(now) {
+    if (T.running && T.goalMin && !T.goalHit && trackElapsed(now) >= T.goalMin * 60000) {
+      T.goalHit = true;
+      beep(5);
+    }
     if (T.running && trackElapsed(now) >= MAX_TRACK) {
       T.total = MAX_TRACK; T.running = false;
       store.set("trackTotal", T.total);
@@ -513,10 +528,15 @@
     const h = Math.floor(totalSec / 3600), m = Math.floor(totalSec / 60) % 60;
     $("trackText").textContent = `${pad(h)}:${pad(m)}`;
     $("trackSec").textContent = `${pad(totalSec % 60)}s`;
+    const hit = T.goalMin && ms >= T.goalMin * 60000;
     $("trackState").textContent = ms >= MAX_TRACK ? "최대 12시간 도달"
-      : T.running ? "집중 중" : ms > 0 ? "휴식 중 (기록 제외)" : "대기";
+      : (hit ? "목표 달성! · " : "") + (T.running ? "집중 중" : ms > 0 ? "휴식 중 (기록 제외)" : "대기");
+    $("goalText").textContent = "목표 " + (T.goalMin ? `${pad(Math.floor(T.goalMin / 60))}:${pad(T.goalMin % 60)}` : "--:--");
+    $("goalText").style.fill = hit ? "var(--arc-track)" : "";
     $("trackText").classList.toggle("blink", !T.running && ms > 0 && ms < MAX_TRACK);
-    drawArc(ms >= MAX_TRACK ? 60 : m, "var(--arc-on)");
+    // 목표가 있으면 진행률, 없으면 현재 시간 안의 분
+    const segs = T.goalMin ? Math.min(60, Math.floor(ms / (T.goalMin * 60000) * 60)) : (ms >= MAX_TRACK ? 60 : m);
+    drawArc(segs, "var(--arc-track)");
   }
 
   // ---------- 공통 렌더 ----------
@@ -552,7 +572,9 @@
         pomoStep(now);
         P.running = false;
       } else {
-        if (P.finished || (P.target && P.done >= P.target)) { P.finished = false; P.done = 0; }
+        if (P.finished || (P.target && P.done >= P.target)) {
+          P.finished = false; P.done = 0; P.phase = "focus"; P.remaining = P.focusSec * 1000;
+        }
         P.running = true;
         P.endAt = now + P.remaining;
       }
@@ -570,19 +592,19 @@
   }
   function reset() {
     if (S.mode === "pomo") {
-      Object.assign(P, { running: false, finished: false, done: 0, phase: "focus", remaining: P.focusMin * 60000 });
+      Object.assign(P, { running: false, finished: false, done: 0, phase: "focus", remaining: P.focusSec * 1000 });
     } else {
       if (T.total > 0 || T.running) {
         if (!confirm("누적된 집중 시간을 초기화할까요?")) return;
       }
-      Object.assign(T, { running: false, total: 0 });
+      Object.assign(T, { running: false, total: 0, goalHit: false });
       store.set("trackTotal", 0);
     }
     render();
   }
   $("startBtn").addEventListener("click", toggleStart);
   $("resetBtn").addEventListener("click", reset);
-  $("modePomo").addEventListener("click", () => { S.mode = "pomo"; render(); });
+  $("modePomo").addEventListener("click", () => { closeEdit(false); S.mode = "pomo"; render(); });
   $("modeTrack").addEventListener("click", () => { closeEdit(false); S.mode = "track"; render(); });
   document.addEventListener("keydown", e => {
     if (e.code === "Space" && e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
@@ -594,7 +616,7 @@
   });
 
   // ---------- 설정 ----------
-  const LIMITS = { target: [1, 99], focusMin: [1, 60], breakSec: [10, 3600] };
+  const LIMITS = { target: [1, 99], focusSec: [1, 3600], breakSec: [10, 3600] };
   function setSetting(key, val) {
     if (key === "target") {
       P.target = val ? clamp(Math.round(val), ...LIMITS.target) : null;
@@ -603,10 +625,20 @@
       if (P.running) return;
       if (key === "breakSec") val = Math.round(val / 10) * 10;   // 10초 단위
       P[key] = clamp(Math.round(val), ...LIMITS[key]);
-      if (key === "focusMin" && P.phase === "focus") P.remaining = P[key] * 60000;
+      if (key === "focusSec") {
+        P.finished = false;
+        if (P.phase === "focus") P.remaining = P[key] * 1000;
+      }
       if (key === "breakSec" && P.phase === "break") P.remaining = P[key] * 1000;
     }
-    store.set("pomoSettings", { target: P.target, focusMin: P.focusMin, breakSec: P.breakSec });
+    store.set("pomoSettings", { target: P.target, focusSec: P.focusSec, breakSec: P.breakSec });
+    render();
+  }
+  function setGoal(min) {
+    const ms = trackElapsed(Date.now());
+    T.goalMin = min ? clamp(Math.round(min), 1, 720) : null;
+    T.goalHit = !!T.goalMin && ms >= T.goalMin * 60000;   // 이미 넘긴 목표는 다시 울리지 않음
+    store.set("trackGoal", T.goalMin);
     render();
   }
 
@@ -614,19 +646,22 @@
   const screen = $("screen"), editInput = $("editInput");
   let editKey = null;
   function openEdit(key, anchorEl, fontPx) {
-    if (S.mode !== "pomo") return;
-    if (key === "breakSec" && P.running) return;
+    if ((key === "trackGoal") !== (S.mode === "track")) return;
+    if ((key === "breakSec" || key === "focusSec") && P.running) return;
     const sr = screen.getBoundingClientRect(), ar = anchorEl.getBoundingClientRect();
     const k = sr.width / 400;
     editKey = key;
     editInput.style.left = (ar.left + ar.width / 2 - sr.left) + "px";
     editInput.style.top = (ar.top + ar.height / 2 - sr.top) + "px";
     editInput.style.fontSize = fontPx * k + "px";
-    editInput.style.width = fontPx * k * (key === "target" ? 2.2 : 3.2) + "px";
+    editInput.style.width = fontPx * k * (key === "target" ? 2.2 : key === "trackGoal" ? 4 : 3.2) + "px";
     editInput.style.height = fontPx * k * 1.35 + "px";
-    editInput.placeholder = key === "target" ? "--" : "분:초";
+    editInput.style.setProperty("--edit-accent", key === "trackGoal" ? "var(--arc-track)" : "var(--arc-on)");
+    editInput.placeholder = key === "target" ? "--" : key === "trackGoal" ? "시:분" : "분:초";
     editInput.maxLength = key === "target" ? 2 : 5;
-    editInput.value = key === "target" ? (P.target || "") : fmtSec(P.breakSec);
+    editInput.value = key === "target" ? (P.target || "")
+      : key === "trackGoal" ? (T.goalMin ? fmtSec(T.goalMin) : "")
+      : fmtSec(P[key]);
     editInput.classList.remove("hidden");
     editInput.focus();
     editInput.select();
@@ -640,9 +675,11 @@
     if (key === "target") {
       const n = parseInt(raw, 10);
       setSetting("target", n > 0 ? n : null);   // 비우면 목표 해제
+    } else if (key === "trackGoal") {
+      setGoal(parseMS(raw));   // 시:분 → 분, 비우면 목표 해제
     } else {
       const sec = parseMS(raw);
-      if (sec > 0) setSetting("breakSec", sec);
+      if (sec > 0) setSetting(key, sec);
     }
   }
   const fmtSec = sec => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
@@ -667,10 +704,15 @@
     editInput.value = editInput.value.replace(re, "");
   });
   editInput.addEventListener("keydown", e => {
-    if (editKey === "breakSec" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+    if (editKey && editKey !== "target" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
       e.preventDefault();
-      const cur = Math.round((parseMS(editInput.value.trim()) || P.breakSec) / 10) * 10;
-      editInput.value = fmtSec(clamp(cur + (e.key === "ArrowUp" ? 10 : -10), 10, 3600));
+      const dir = e.key === "ArrowUp" ? 1 : -1;
+      const cur = parseMS(editInput.value.trim());
+      let next;
+      if (editKey === "breakSec") next = clamp(Math.round((cur || P.breakSec) / 10) * 10 + dir * 10, 10, 3600);   // 10초씩
+      else if (editKey === "focusSec") next = clamp((cur || P.focusSec) + dir, 1, 3600);                           // 1초씩
+      else next = clamp((cur || T.goalMin || 0) + dir * 10, 10, 720);                                              // 10분씩
+      editInput.value = fmtSec(next);
       editInput.select();
     }
     else if (e.key === "Enter") { e.preventDefault(); closeEdit(true); }
@@ -679,6 +721,8 @@
   editInput.addEventListener("blur", () => closeEdit(true));
   $("cycleText").addEventListener("click", () => openEdit("target", $("targetText"), 22));
   $("breakText").addEventListener("click", () => openEdit("breakSec", $("breakText"), 40));
+  $("focusText").addEventListener("click", () => openEdit("focusSec", $("focusText"), 68));
+  $("goalText").addEventListener("click", () => openEdit("trackGoal", $("goalText"), 22));
 
   // 다이얼 드래그 → 집중 시간 설정 (물리 타이머처럼)
   const svg = $("svg");
@@ -693,22 +737,29 @@
     return { dist, min: Math.round(deg / 6) || 60 };
   }
   svg.addEventListener("pointerdown", e => {
-    if (S.mode !== "pomo" || P.running || P.phase !== "focus") return;
+    if (S.mode === "pomo" && (P.running || P.phase !== "focus")) return;
     const { dist, min } = dialMinutes(e);
     if (dist < R_IN - 8 || dist > 190) return;
+    closeEdit(true);
     dragging = true;
+    lastDial = null;
     screen.classList.add("dragging");
     svg.setPointerCapture(e.pointerId);
-    setSetting("focusMin", min);
+    applyDial(min);
   });
   svg.addEventListener("pointermove", e => {
-    if (!dragging) return;
-    let { min } = dialMinutes(e);
-    // 0 근처에서 60 ↔ 1로 튀지 않도록 보정
-    if (P.focusMin >= 50 && min <= 10) min = 60;
-    else if (P.focusMin <= 10 && min >= 50) min = 1;
-    setSetting("focusMin", min);
+    if (dragging) applyDial(dialMinutes(e).min);
   });
+  let lastDial = null;
+  // 뽀모도로: 눈금 = 분 / 트래킹: 5칸 = 1시간 (0 = 12시간)
+  function applyDial(min) {
+    // 0 근처에서 60 ↔ 1로 튀지 않도록 보정
+    if (lastDial !== null && lastDial >= 50 && min <= 10) min = 60;
+    else if (lastDial !== null && lastDial <= 10 && min >= 50) min = 1;
+    lastDial = min;
+    if (S.mode === "pomo") setSetting("focusSec", min * 60);
+    else setGoal(Math.max(1, Math.round(min / 5)) * 60);
+  }
   const endDrag = () => { dragging = false; screen.classList.remove("dragging"); };
   svg.addEventListener("pointerup", endDrag);
   svg.addEventListener("pointercancel", endDrag);
