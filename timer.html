@@ -102,16 +102,14 @@
   /* 본문 그리드 */
   .grid { display: grid; grid-template-columns: 1.35fr 1fr; border-bottom: 1px solid var(--line); }
   .cell { padding: 36px 32px; min-width: 0; }
+  .grid .cell:last-child { display: flex; flex-direction: column; justify-content: center; }
   .cell + .cell { border-left: 1px solid var(--line); }
-  .cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
-  .cell-title { font-size: 26px; font-weight: 400; text-transform: uppercase; letter-spacing: .01em; margin: 0; line-height: 1.1; }
-  .cell-title small { display: block; font-family: "Noto Sans KR", sans-serif; font-size: 13px; color: var(--muted); text-transform: none; margin-top: 8px; font-weight: 400; }
 
   /* 타이머 화면 */
   .device { max-width: 480px; margin: 0 auto; user-select: none; }
   .screen {
     background: var(--screen); aspect-ratio: 1 / 1; position: relative; overflow: hidden;
-    touch-action: none; border-radius: 4px;
+    touch-action: none; border-radius: 5%;
   }
   .screen svg { width: 100%; height: 100%; display: block; }
   .device-cap { display: flex; justify-content: space-between; margin-top: 10px; }
@@ -173,27 +171,6 @@
   #settingsPanel.track #soundSection { display: none; }
   #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
 
-  /* 사용법 (반전 섹션) */
-  .guide { background: var(--inv-bg); color: var(--inv-ink); display: grid; grid-template-columns: 1fr 1.35fr; }
-  .guide .cell + .cell { border-left: 1px solid var(--inv-line); }
-  .guide .tag { color: var(--inv-line); }
-  .guide h2 { font-size: 34px; font-weight: 400; text-transform: uppercase; margin: 18px 0 20px; line-height: 1.05; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chips span {
-    border: 1px solid var(--inv-ink); padding: 6px 10px; font-size: 11px; letter-spacing: .06em;
-    text-transform: uppercase; font-weight: 500;
-  }
-  .chips span.on { background: var(--inv-ink); color: var(--inv-bg); }
-  .rules { width: 100%; border-collapse: collapse; font-family: "Noto Sans KR", sans-serif; }
-  .rules th {
-    text-align: left; font: 600 11px "Manrope", sans-serif; letter-spacing: .08em; text-transform: uppercase;
-    padding: 0 0 10px; border-bottom: 1px solid var(--inv-line);
-  }
-  .rules td { padding: 12px 0; border-bottom: 1px solid var(--inv-line); font-size: 13px; vertical-align: top; line-height: 1.6; }
-  .rules td:first-child { width: 34%; padding-right: 16px; font-weight: 500; }
-  .rules td:last-child { color: color-mix(in srgb, var(--inv-ink) 72%, transparent); }
-  .rules b { color: var(--inv-ink); font-weight: 500; }
-
   footer { display: flex; justify-content: space-between; padding: 14px 32px; }
   .hidden { display: none !important; }
 
@@ -201,12 +178,10 @@
     body { padding: 0; }
     header { padding: 12px 16px; }
     nav { margin-left: 12px; gap: 14px; }
-    .grid, .guide { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
     .cell { padding: 28px 16px; }
-    .cell + .cell, .guide .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
-    .guide .cell + .cell { border-top-color: var(--inv-line); }
+    .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
     footer { padding: 14px 16px; }
-    #guideLink { display: none; }
   }
 </style>
 </head>
@@ -220,7 +195,6 @@
       <button id="modePomo" class="active" role="tab">뽀모도로</button>
       <button id="modeTrack" role="tab">타임트래킹</button>
     </nav>
-    <a class="btn-black" id="guideLink" href="#guide">사용법</a>
   </header>
 
   <h1>Focus Timer</h1>
@@ -268,9 +242,6 @@
     </div>
 
     <div class="cell">
-      <div class="cell-head"><span class="tag">(Control)</span></div>
-      <h2 class="cell-title" id="panelTitle">Pomodoro<small>집중과 휴식을 반복해요</small></h2>
-      <div style="height:22px"></div>
       <div class="controls">
         <button id="startBtn" class="btn-black">시작</button>
         <button id="resetBtn" class="btn-line">리셋</button>
@@ -316,31 +287,6 @@
           </div>
         </details>
       </div>
-    </div>
-  </section>
-
-  <section class="guide" id="guide">
-    <div class="cell">
-      <span class="tag">(How to use)</span>
-      <h2 id="guideTitle">사용법</h2>
-      <div class="chips" id="guideChips">
-        <span class="on">원 드래그</span><span>숫자 탭 입력</span><span>↑ / ↓ 1초</span><span>알람 3회</span>
-      </div>
-    </div>
-    <div class="cell">
-      <table class="rules" id="pomoHelp">
-        <tr><th>항목</th><th>설정 방법</th></tr>
-        <tr><td>집중 시간</td><td>원을 시계처럼 <b>드래그</b>하면 분 단위로, 큰 숫자를 <b>눌러</b> 분:초로 입력하면 초 단위까지 정해요. (0:01–60:00)</td></tr>
-        <tr><td>휴식 시간</td><td>아래 작은 숫자를 눌러 <b>분:초</b>로 입력해요. 예: 4:30, 0:50 (0:01–60:00)</td></tr>
-        <tr><td>반복 횟수</td><td>맨 위 숫자를 눌러 목표를 입력해요 (1–99). 비워 두면 <b>--</b> 로 표시되고 완료 횟수만 계속 세요.</td></tr>
-        <tr><td>알람</td><td>단계가 바뀔 때마다 <b>3번</b> 울리고 꺼져요.</td></tr>
-      </table>
-      <table class="rules hidden" id="trackHelp">
-        <tr><th>항목</th><th>설명</th></tr>
-        <tr><td>기록</td><td>시작하면 순수 집중 시간이 쌓이고, 일시정지(휴식) 시간은 제외돼요. 최대 <b>12시간</b>, 브라우저를 닫아도 유지돼요.</td></tr>
-        <tr><td>목표 시간</td><td>원을 <b>드래그</b>하면 1시간 단위(눈금 5 = 1시간), 맨 위 <b>목표</b>를 누르면 시:분으로 입력해요. 비워 두면 기록만 해요.</td></tr>
-        <tr><td>진행 표시</td><td>목표가 있으면 원이 진행률을 보여주고, 도달하면 알림이 <b>3번</b> 울려요.</td></tr>
-      </table>
     </div>
   </section>
 
@@ -624,12 +570,9 @@
     $("pomoView").classList.toggle("hidden", !pomo);
     $("trackView").classList.toggle("hidden", pomo);
     $("settingsPanel").classList.toggle("track", !pomo);
-    $("pomoHelp").classList.toggle("hidden", !pomo);
-    $("trackHelp").classList.toggle("hidden", pomo);
     $("modePomo").classList.toggle("active", pomo);
     $("modeTrack").classList.toggle("active", !pomo);
     $("modeCap").textContent = pomo ? "Pomodoro" : "Time Tracking";
-    $("panelTitle").innerHTML = pomo ? "Pomodoro<small>집중과 휴식을 반복해요</small>" : "Time Tracking<small>순수 집중 시간만 쌓여요</small>";
 
     const running = pomo ? P.running : T.running;
     $("startBtn").textContent = running ? (pomo ? "일시정지" : "휴식 (일시정지)") : "시작";
