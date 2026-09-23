@@ -212,6 +212,19 @@ main{flex:1;min-height:0;position:relative}
 .evtm{flex:none;margin-right:6px;font-size:11px;font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
 .evdot{flex:none;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px}
 .sheet [hidden]{display:none!important}
+.icbtn{width:32px;padding:0;display:grid;place-items:center}
+.icbtn svg{width:18px;height:18px}
+.sheet .flabel{display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.16em}
+.sw{position:relative}
+.sw.auto::after{content:"A";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;letter-spacing:0;color:var(--fg,#fff)}
+.sw.custom{background:conic-gradient(#e5484d,#f5b400,#30a46c,#12a594,#0090ff,#8e4ec6,#d6409f,#e5484d)}
+.sw.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.crow{display:flex;flex-direction:column;gap:10px;padding:14px 0 4px;border-top:1px solid var(--border)}
+.chead{display:flex;align-items:center;gap:12px;font-size:14px}
+.chead b{min-width:44px}
+.cprev{display:inline-flex;align-items:center;height:28px;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.cprev.event{border-radius:999px}
+.btns{flex-wrap:wrap}
 
 /* ---------- paste import ---------- */
 .sheet.wide{width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto}
@@ -275,6 +288,7 @@ main{flex:1;min-height:0;position:relative}
         <button id="dateLabel" title="오늘로 이동"></button>
         <button id="next" aria-label="다음">&gt;</button>
       </div>
+      <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></button>
       <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기">계획 붙여넣기</button>
     </div>
     <nav class="tabs" role="tablist">
@@ -348,7 +362,7 @@ main{flex:1;min-height:0;position:relative}
     </div>
     <label id="fTimeWrap">시간 (선택)<input type="time" id="fTime"></label>
     <label>메모 (완료 기준)<input id="fNote" autocomplete="off" enterkeyhint="done"></label>
-    <label>색상<div class="swatches" id="fColors"></div></label>
+    <div class="flabel">색상 (A = 종류 기본색)<div class="swatches" id="fColors"></div></div>
     <div class="row" id="fTodoRow">
       <label>사분면
         <select id="fQuad">
@@ -373,6 +387,27 @@ main{flex:1;min-height:0;position:relative}
       <div class="grow"></div>
       <button class="pill-btn" id="fCancel">취소</button>
       <button class="pill-btn primary" id="fSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="cmodal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+    <h3 id="cTitle">색상 설정</h3>
+    <p class="psub">일정과 할 일의 기본 색이에요. 색을 따로 고르지 않은 항목은 모두 이 색으로 보여요. 무지개 칸을 누르면 원하는 색을 직접 고를 수 있어요.</p>
+    <div class="crow" data-kind="event">
+      <div class="chead"><b>일정</b><span class="cprev event">14:00 순천향 외래</span></div>
+      <div class="swatches"></div>
+    </div>
+    <div class="crow" data-kind="todo">
+      <div class="chead"><b>할 일</b><span class="cprev">☐ Cortex p.2–8 정리</span></div>
+      <div class="swatches"></div>
+    </div>
+    <div class="btns">
+      <button class="danger" id="cClear"></button>
+      <div class="grow"></div>
+      <button class="pill-btn" id="cReset">기본값</button>
+      <button class="pill-btn primary" id="cDone">완료</button>
     </div>
   </div>
 </div>
@@ -448,15 +483,15 @@ function load() {
 }
 let savedTimer;
 function save() {
-  const { view, tasks, imported, calFilter, lastBatch } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   const el = $('#saved'); el.classList.add('show');
   clearTimeout(savedTimer); savedTimer = setTimeout(() => el.classList.remove('show'), 1200);
 }
 function makeTask(title, date, extra = {}) {
-  return { id: uid(), kind: 'todo', title, date, end: null, time: null, done: false, fav: false, quad: null, slot: null, order: 0, forder: null, color: 'gray', note: '', calOnly: false, ...extra };
+  return { id: uid(), kind: 'todo', title, date, end: null, time: null, done: false, fav: false, quad: null, slot: null, order: 0, forder: null, color: 'auto', note: '', calOnly: false, ...extra };
 }
 function seed() {
   const t = todayStr();
@@ -468,8 +503,8 @@ function seed() {
       makeTask('이전까지 수업들 GPT에 올리기', t, { fav: true, order: 3 }),
       makeTask('연휴 강의들 정리', t, { fav: true, order: 4 }),
       makeTask('드림닥터 팝업', addDays(t, -8), { kind: 'event', end: addDays(t, -4), order: 5 }),
-      makeTask('순천향 외래', addDays(t, 3), { kind: 'event', color: 'pink', order: 6 }),
-      makeTask('봉화산 짐 옮기기', addDays(t, 9), { kind: 'event', color: 'pink', order: 7 })
+      makeTask('순천향 외래', addDays(t, 3), { kind: 'event', order: 6 }),
+      makeTask('봉화산 짐 옮기기', addDays(t, 9), { kind: 'event', order: 7 })
     ]
   };
 }
@@ -483,6 +518,24 @@ if (!['all', 'event', 'todo'].includes(state.calFilter)) state.calFilter = 'all'
 const EVENT_IDS = new Set(['p3-phase1', 'p3-phase2', 'p3-1002-3']);
 const EVENT_TITLES = new Set(['드림닥터 팝업', '순천향 외래', '봉화산 짐 옮기기']);
 state.tasks.forEach(t => { if (!t.kind) t.kind = EVENT_IDS.has(t.id) || EVENT_TITLES.has(t.title) ? 'event' : 'todo'; });
+// 종류별 기본색: 예전 기본값(회색 할 일, 파란 일정)으로 남아 있던 항목은 종류 색을 따라가게
+const DEFAULT_KC = { event: '#3b57e0', todo: '#ececed' };
+const isHex = c => /^#[0-9a-f]{6}$/i.test(c || '');
+if (!state.kindColors) {
+  state.kindColors = { ...DEFAULT_KC };
+  state.tasks.forEach(t => { if (!t.color || t.color === 'gray' || (t.kind === 'event' && t.color === 'pink')) t.color = 'auto'; });
+}
+['event', 'todo'].forEach(k => { if (!isHex(state.kindColors[k])) state.kindColors[k] = DEFAULT_KC[k]; });
+const kindColor = k => state.kindColors[k === 'event' ? 'event' : 'todo'];
+function textOn(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return ((n >> 16) * 299 + (n >> 8 & 255) * 587 + (n & 255) * 114) / 1000 >= 150 ? '#1a1a1a' : '#ffffff';
+}
+function colorOf(t) {
+  const c = !t.color || t.color === 'auto' ? kindColor(t.kind) : t.color;
+  if (COLORS[c]) return COLORS[c];
+  return isHex(c) ? [c, textOn(c)] : COLORS.gray;
+}
 
 const find = id => state.tasks.find(t => t.id === id);
 const endOf = t => t.end || t.date;
@@ -537,7 +590,7 @@ function render() {
 
 function renderDayEvents(box) {
   box.innerHTML = eventsOn(state.date).map(t =>
-    `<button class="evchip" data-evedit="${t.id}"><span class="tm">${t.time || (t.end ? '기간' : '일정')}</span><span class="tt">${esc(t.title)}</span></button>`).join('');
+    `<button class="evchip" data-evedit="${t.id}" style="border-left-color:${colorOf(t)[0]}"><span class="tm">${t.time || (t.end ? '기간' : '일정')}</span><span class="tt">${esc(t.title)}</span></button>`).join('');
 }
 
 function renderMatrix() {
@@ -632,7 +685,7 @@ function renderCalendar() {
     placed.forEach(p => {
       const ev = isEvent(p.t);
       const cls = ['ev']; if (p.l) cls.push('l'); if (p.r) cls.push('r'); if (ev) cls.push('event'); else if (p.t.done) cls.push('done');
-      const [bg, fg] = COLORS[p.t.color] || COLORS.gray;
+      const [bg, fg] = colorOf(p.t);
       const tip = [ev ? '일정' + (p.t.time ? ' ' + p.t.time : '') : '할 일', p.t.note, p.t.quad && QUADS.find(q => q.key === p.t.quad).title, p.t.slot && SLOTS.find(x => x.key === p.t.slot).title].filter(Boolean).join(' / ');
       h += `<div class="${cls.join(' ')}" data-ev="${p.t.id}" title="${esc(tip)}" style="grid-row:${p.lane + 2};grid-column:${p.cs + 1}/${p.ce + 2};background:${bg};color:${fg}">`
         + (p.l ? '' : ev ? (p.t.time ? `<span class="evtm">${p.t.time}</span>` : '<i class="evdot"></i>')
@@ -798,13 +851,26 @@ function setKind(k) {
   $('#fTimeWrap').hidden = k !== 'event';
   $('#fTodoRow').hidden = k === 'event';
   $('#mdTitle').textContent = (editing ? '' : '새 ') + (k === 'event' ? '일정' : '할 일') + (editing ? ' 편집' : '');
+  renderSwatches();
 }
 $('#fKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (b) setKind(b.dataset.kind); });
+const COLOR_NAMES = { gray: '회색', pink: '파랑', yellow: '연파랑', blue: '하늘', green: '검정', purple: '진회색' };
 function renderSwatches() {
-  $('#fColors').innerHTML = Object.entries(COLORS).map(([k, c]) =>
-    `<button type="button" class="sw ${k === selColor ? 'on' : ''}" data-color="${k}" style="background:${c[0]}" aria-label="${k}"></button>`).join('');
+  const kc = kindColor(selKind);
+  $('#fColors').innerHTML =
+    `<button type="button" class="sw auto" data-color="auto" style="background:${kc};--fg:${textOn(kc)}" aria-label="자동 (종류 기본색)" title="자동: 종류 기본색 따라가기"></button>`
+    + Object.entries(COLORS).map(([k, c]) => `<button type="button" class="sw" data-color="${k}" style="background:${c[0]}" aria-label="${COLOR_NAMES[k]}"></button>`).join('')
+    + `<span class="sw custom" title="직접 고르기"><input type="color" id="fCustom" value="${isHex(selColor) ? selColor : kc}" aria-label="직접 고르기"></span>`;
+  markSwatches();
 }
-$('#fColors').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b) { selColor = b.dataset.color; renderSwatches(); } });
+function markSwatches() {
+  document.querySelectorAll('#fColors [data-color]').forEach(b => b.classList.toggle('on', b.dataset.color === selColor));
+  const c = $('#fColors .custom');
+  c.classList.toggle('on', isHex(selColor));
+  c.style.background = isHex(selColor) ? selColor : '';
+}
+$('#fColors').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b) { selColor = b.dataset.color; markSwatches(); } });
+$('#fColors').addEventListener('input', e => { if (e.target.id === 'fCustom') { selColor = e.target.value; markSwatches(); } });
 function openModal({ task, date, kind }) {
   editing = task || null;
   $('#fTitle').value = task ? task.title : '';
@@ -815,7 +881,7 @@ function openModal({ task, date, kind }) {
   $('#fSlot').value = task?.slot || '';
   $('#fTime').value = task?.time || '';
   setKind(task ? (task.kind || 'todo') : (kind || 'todo'));
-  selColor = task ? task.color : kind === 'event' ? 'pink' : 'gray';
+  selColor = task ? task.color || 'auto' : 'auto';
   $('#fDel').hidden = !task;
   renderSwatches();
   $('#modal').hidden = false;
@@ -842,7 +908,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
+  if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
 });
 
 
@@ -1049,7 +1115,6 @@ function stripMd(x) {
   for (let i = 0; i < 2; i++) s = s.replace(BULLET_RE, '').replace(/^\s*\[[ xX✓]?\]\s*/, '');
   return s.replace(/\*\*|__|`|~~/g, '').replace(/^\*(.+)\*$/, '$1').replace(/\s+/g, ' ').trim();
 }
-const evColor = (title, end) => /시험|exam|test/i.test(title) ? 'green' : end ? 'yellow' : 'pink';
 function makeItem(text, ctx) {
   let s = text.trim(), kind = null, slot = ctx.slot || null, time = null, note = '';
   const tag = s.match(/^[\[【(]\s*(일정|약속|event|schedule|할\s*일|todo|투두|task)\s*[\]】)]\s*[:：]?\s*/i) || s.match(/^(일정|할\s*일)\s*[:：]\s*/);
@@ -1075,7 +1140,7 @@ function makeItem(text, ctx) {
   if (kind === 'todo' && time) note = [time, note].filter(Boolean).join(' · ');
   return {
     inc: true, kind, title, note: note.trim(), date: ctx.date, end: ctx.end || null,
-    time: kind === 'event' ? time : null, slot, color: kind === 'event' ? evColor(title, ctx.end) : 'gray'
+    time: kind === 'event' ? time : null, slot, color: 'auto'
   };
 }
 function tableHeader(cells) {
@@ -1218,7 +1283,6 @@ $('#pPreview').addEventListener('click', e => {
   const b = e.target.closest('[data-f="kind"]'); if (!b) return;
   const it = pItemOf(b);
   it.kind = it.kind === 'event' ? 'todo' : 'event';
-  it.color = it.kind === 'event' ? evColor(it.title, it.end) : 'gray';
   renderPreview();
 });
 function updUndo() { $('#pUndo').hidden = !state.lastBatch || !state.tasks.some(t => t.batch === state.lastBatch); }
@@ -1265,6 +1329,52 @@ $('#pUndo').onclick = () => {
   if (!n || !confirm(`최근 붙여넣기로 등록한 ${n}개를 삭제할까요?`)) return;
   state.tasks = state.tasks.filter(t => t.batch !== state.lastBatch);
   state.lastBatch = null; updUndo(); commit();
+};
+
+/* ---------- 색상 설정 (일정 / 할 일 기본색) ---------- */
+const PALETTE = ['#3b57e0', '#0090ff', '#12a594', '#30a46c', '#f5b400', '#f76b15', '#e5484d', '#d6409f', '#8e4ec6', '#1b1b1b', '#9a9aa0', '#ececed', '#e4e9fc', '#dff3e4', '#fff1c2', '#ffe0e0'];
+function buildColorRows() {
+  ['event', 'todo'].forEach(k => {
+    const c = kindColor(k);
+    $(`#cmodal [data-kind="${k}"] .swatches`).innerHTML =
+      PALETTE.map(p => `<button type="button" class="sw" data-hex="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')
+      + `<span class="sw custom" title="직접 고르기"><input type="color" value="${c}" aria-label="직접 고르기"></span>`;
+    markColorRow(k);
+  });
+  const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
+  $('#cClear').hidden = !n;
+  $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
+}
+function markColorRow(k) {
+  const row = $(`#cmodal [data-kind="${k}"]`), c = kindColor(k), inPal = PALETTE.includes(c);
+  row.querySelector('.cprev').style.cssText = `background:${c};color:${textOn(c)}`;
+  row.querySelectorAll('[data-hex]').forEach(b => b.classList.toggle('on', b.dataset.hex === c));
+  const cu = row.querySelector('.custom');
+  cu.classList.toggle('on', !inPal);
+  cu.style.background = inPal ? '' : c;
+}
+function setKindColor(k, hex) {
+  state.kindColors[k] = hex.toLowerCase();
+  markColorRow(k); save(); render();
+}
+$('#cmodal').addEventListener('click', e => {
+  if (e.target.id === 'cmodal') { closeColors(); return; }
+  const b = e.target.closest('[data-hex]');
+  if (b) setKindColor(b.closest('[data-kind]').dataset.kind, b.dataset.hex);
+});
+$('#cmodal').addEventListener('input', e => {
+  if (e.target.type === 'color') setKindColor(e.target.closest('[data-kind]').dataset.kind, e.target.value);
+});
+function openColors() { buildColorRows(); $('#cmodal').hidden = false; }
+function closeColors() { $('#cmodal').hidden = true; }
+$('#colorOpen').onclick = openColors;
+$('#cDone').onclick = closeColors;
+$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; buildColorRows(); commit(); };
+$('#cClear').onclick = () => {
+  const list = state.tasks.filter(t => t.color && t.color !== 'auto');
+  if (!confirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`)) return;
+  list.forEach(t => { t.color = 'auto'; });
+  buildColorRows(); commit();
 };
 
 render();
