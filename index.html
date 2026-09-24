@@ -833,6 +833,7 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
     <div id="cQuads"></div>
     <div class="btns">
       <button class="danger" id="cClear"></button>
+      <button class="danger" id="wipeAll" type="button">모든 일정·할 일 지우기</button>
       <div class="grow"></div>
       <button class="pill-btn" id="cReset">모두 기본값</button>
       <button class="pill-btn primary" id="cDone">완료</button>
@@ -1702,8 +1703,8 @@ function load() {
 }
 let savedTimer;
 function persist() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
 }
@@ -1715,20 +1716,9 @@ function save() {
 function makeTask(title, date, extra = {}) {
   return { id: uid(), kind: 'todo', title, date, end: null, time: null, done: false, fav: false, quad: null, slot: null, order: 0, forder: null, color: 'auto', note: '', calOnly: false, ...extra };
 }
+// 처음 여는 사람은 빈 상태로 시작
 function seed() {
-  const t = todayStr();
-  return {
-    view: 'matrix',
-    tasks: [
-      makeTask('연휴 학습 계획 세우기', t, { fav: true, order: 1 }),
-      makeTask('[신경물치] PBL 자료 수집', t, { fav: true, order: 2 }),
-      makeTask('이전까지 수업들 GPT에 올리기', t, { fav: true, order: 3 }),
-      makeTask('연휴 강의들 정리', t, { fav: true, order: 4 }),
-      makeTask('드림닥터 팝업', addDays(t, -8), { kind: 'event', end: addDays(t, -4), order: 5 }),
-      makeTask('순천향 외래', addDays(t, 3), { kind: 'event', order: 6 }),
-      makeTask('봉화산 짐 옮기기', addDays(t, 9), { kind: 'event', order: 7 })
-    ]
-  };
+  return { view: 'matrix', tasks: [], resetAsked: true };
 }
 
 let state = load() || seed();
@@ -2403,68 +2393,6 @@ document.addEventListener('keydown', e => {
 });
 
 
-/* ---------- 9/23~10/2 공부 계획 (한 번만 가져오기) ---------- */
-const PLAN_ID = 'study-2026-0923-1002-v3';
-const PLAN = [
-  { id: 'p3-phase1', kind: 'event', date: '2026-09-23', title: '1단계 누적 진도 단권화', note: '9/27까지 밀린 범위 최대한 정리', color: 'yellow', end: '2026-09-27' },
-  { id: 'p3-phase2', kind: 'event', date: '2026-09-28', title: '2단계 Cortex Dysfunction 시험 집중', note: 'Cortex를 가장 큰 공부 블록으로 고정', color: 'blue', end: '2026-10-01' },
-  { id: 'p3-0923-1', date: '2026-09-23', title: '[전기광선] 당일 새 진도', note: '수업 필기 정리 + 교수 강조점 표시 → 당일 수업 내용 정리 완료', color: 'gray' },
-  { id: 'p3-0923-2', date: '2026-09-23', title: '[임상신경학] Cortex p.2–8', note: 'Hemisphere·gyri/sulci·6 lobes·cortical layers·hemispheric dominance → 구조와 우세반구 개념 설명 가능', color: 'pink' },
-  { id: 'p3-0923-3', date: '2026-09-23', title: '[신경물치1] Adult Neuro Exam p.3–17', note: 'Brainstem localization·CN I·CN II·pupillary light reflex → CN I–II와 reflex 설명 가능', color: 'gray' },
-  { id: 'p3-0924-1', date: '2026-09-24', title: '[운동치료학] 당일 새 진도', note: '수업 필기 정리 → 당일 진도 정리 완료', color: 'gray' },
-  { id: 'p3-0924-2', date: '2026-09-24', title: '[임상신경학] Cortex p.9–18', note: 'Frontal lobe function/dysfunction → Precentral·SMA·Premotor·Broca·Prefrontal·FEF 기능→손상 연결', color: 'pink' },
-  { id: 'p3-0924-3', date: '2026-09-24', title: '[임상운동학] Ch.2 p.3–18', note: 'Joint classification + synovial joint mechanical types → 7가지 joint type 비교 가능', color: 'gray' },
-  { id: 'p3-0925-1', date: '2026-09-25', title: '[임상신경학] Cortex p.22–25', note: 'Parietal function/dysfunction·dominant/non-dominant·Gerstmann → 반구별 dysfunction 구분 가능', color: 'pink' },
-  { id: 'p3-0925-2', date: '2026-09-25', title: '[신경물치1] Adult Neuro Exam p.18–40', note: 'CN III/IV/VI·versions·ductions·supranuclear gaze → 안구운동 검사 흐름 설명 가능', color: 'gray' },
-  { id: 'p3-0925-3', date: '2026-09-25', title: '[전기광선] Ch.2 p.2–11', note: 'History·rehabilitation·ICIDH·Nagi·ICF 복습 → 모델별 차이 자료 없이 설명', color: 'gray' },
-  { id: 'p3-0925-4', date: '2026-09-25', title: '[전기광선] Ch.2 p.12–16', note: 'Professional role·EBP·PICO·documentation → EBP/PICO 핵심 흐름 정리', color: 'gray' },
-  { id: 'p3-0926-1', date: '2026-09-26', title: '[임상신경학] Cortex p.29–38', note: 'Visual radiation 일부 + Temporal/Limbic function/dysfunction → 핵심 증상 정리', color: 'pink' },
-  { id: 'p3-0926-2', date: '2026-09-26', title: '[임상신경학] Cortex p.40–45', note: 'Occipital·cortical blindness·Balint·Anton·visual agnosia → 증상→병변 위치 추론 가능', color: 'pink' },
-  { id: 'p3-0926-3', date: '2026-09-26', title: '[임상운동학] Ch.2 p.19–30', note: 'Connective tissue·cartilage·bone·Wolff’s law → 조직별 특징 + Wolff’s law 정리', color: 'gray' },
-  { id: 'p3-0926-4', date: '2026-09-26', title: '[임상운동학] Ch.3 p.2–7', note: 'Posture/movement·muscle fiber·sarcomere·contractile/noncontractile protein → 근육 구조 흐름 설명', color: 'gray' },
-  { id: 'p3-0926-5', date: '2026-09-26', title: '[전체] Catch-up', note: '밀린 파트 1~2개 처리 → 이월 최소화', color: 'gray' },
-  { id: 'p3-0927-1', date: '2026-09-27', title: '[임상신경학] Cortex p.47', note: 'Apraxia 종류 정리 → 종류별 병변 위치 구분', color: 'pink' },
-  { id: 'p3-0927-2', date: '2026-09-27', title: '[신경물치1] Adult Neuro Exam p.41–64', note: 'CN V–XII 기능·검사법·이상소견 정리', color: 'gray' },
-  { id: 'p3-0927-3', date: '2026-09-27', title: '[운동치료학] Week 1 p.5–11', note: 'Patient vs Client·physical function·therapeutic exercise·safety → 정의·목적·안전성 정리', color: 'gray' },
-  { id: 'p3-0927-4', date: '2026-09-27', title: '[운동치료학] Week 1 p.12–30', note: 'Disablement models·ICF·impairment/activity/participation → WHO/Nagi/NCMRR/ICF 비교', color: 'gray' },
-  { id: 'p3-0927-5', date: '2026-09-27', title: '[운동치료학] Week 2 p.2–20', note: 'Patient Management model → Examination~Outcomes 백지 인출', color: 'gray' },
-  { id: 'p3-0927-6', date: '2026-09-27', title: '[운동치료학] Week 2 p.21–35', note: 'Exercise prescription·instruction·adherence·motor learning → 처방 변수 + motor learning 단계 정리', color: 'gray' },
-  { id: 'p3-0927-7', date: '2026-09-27', title: '[임상운동학] Ch.3 p.8–14', note: 'Structural protein + epimysium/perimysium/endomysium → 3층 구조와 역할 설명', color: 'gray' },
-  { id: 'p3-0927-8', date: '2026-09-27', title: '[전체] 주간 마감', note: '미완료 확인 + 9/28부터 Cortex 시험 대비 모드 전환', color: 'gray' },
-  { id: 'p3-0928-1', date: '2026-09-28', title: '[임상신경학] Cortex p.2–18', note: 'Frontal lobe 중심 2회독 + 백지회상 → 영역→기능→dysfunction 90% 이상 인출', color: 'pink' },
-  { id: 'p3-0928-2', date: '2026-09-28', title: '[신경물치1] 팀과제 Objective', note: '케이스 관련 평가도구 조사 → 검사 리스트 + 출처 정리', color: 'gray' },
-  { id: 'p3-0928-3', date: '2026-09-28', title: '[신경물치1] 팀과제 Assessment', note: '판단 근거 조사 → Assessment 근거 + 출처 정리', color: 'gray' },
-  { id: 'p3-0929-1', date: '2026-09-29', title: '[임상신경학] Cortex p.22–25', note: 'Parietal lobe + Gerstmann 2회독 → dominant/non-dominant 차이 즉시 설명', color: 'pink' },
-  { id: 'p3-0929-2', date: '2026-09-29', title: '[임상신경학] Cortex p.9–25 Language', note: 'Broca/Wernicke 비교 → expressive/receptive 차이 인출', color: 'pink' },
-  { id: 'p3-0929-3', date: '2026-09-29', title: '[기타과목] 가장 밀린 파트 1개', note: '20~30분 유지복습 → 추가 학습부채 방지', color: 'gray' },
-  { id: 'p3-0930-1', date: '2026-09-30', title: '[임상신경학] Cortex p.29–38', note: 'Temporal/Limbic + visual radiation 2회독 → 기능·병변 연결', color: 'pink' },
-  { id: 'p3-0930-2', date: '2026-09-30', title: '[임상신경학] Cortex p.40–47', note: 'Occipital/Visual/Apraxia 2회독 → 혼합 사례형 병변 추론', color: 'pink' },
-  { id: 'p3-0930-3', date: '2026-09-30', title: '[전기광선] 당일 새 진도', note: '필기만 정리, 추가복습은 보류', color: 'gray' },
-  { id: 'p3-1001-1', date: '2026-10-01', title: '[임상신경학] Cortex p.2–25', note: 'Frontal + Parietal 3회독 → 노트 없이 기능·증상·병변 설명', color: 'pink' },
-  { id: 'p3-1001-2', date: '2026-10-01', title: '[임상신경학] Cortex p.29–47', note: 'Temporal + Occipital + Visual + Apraxia 3회독 → 혼합 사례형 전 범위 회수', color: 'pink' },
-  { id: 'p3-1001-3', date: '2026-10-01', title: '[임상신경학] 전체 오답', note: '취약 개념 최종 압축 → 1장 오답노트 완성', color: 'pink' },
-  { id: 'p3-1001-4', date: '2026-10-01', title: '[기타과목] 최소 유지', note: '당일 수업 필수 정리만 → 시험 집중 유지', color: 'gray' },
-  { id: 'p3-1002-1', date: '2026-10-02', title: '[임상신경학] Cortex p.2–25', note: 'Frontal/Parietal 핵심표 빠른 인출 (15~20분)', color: 'pink' },
-  { id: 'p3-1002-2', date: '2026-10-02', title: '[임상신경학] Cortex p.29–47', note: 'Language/Neglect/Gerstmann/Visual/Apraxia 오답 중심 인출 (15~20분)', color: 'pink' },
-  { id: 'p3-1002-3', kind: 'event', date: '2026-10-02', title: 'Cortex Dysfunction 시험', note: '임상신경학 Cortex Dysfunction 시험 응시', color: 'green' }
-];
-function importPlan() {
-  state.imported = state.imported || [];
-  if (state.imported.includes(PLAN_ID)) return false;
-  const keep = new Set(PLAN.map(p => p.id));
-  // 이전 계획본으로 들어온 항목 제거
-  state.tasks = state.tasks.filter(t => !(/^p3?-/.test(t.id) && !keep.has(t.id)));
-  const map = new Map(state.tasks.map(t => [t.id, t]));
-  let o = maxOrder();
-  PLAN.forEach(p => {
-    const t = map.get(p.id);
-    if (t) Object.assign(t, { title: p.title, note: p.note, color: p.color, date: p.date, end: p.end || null, calOnly: false });
-    else state.tasks.push(makeTask(p.title, p.date, { ...p, order: ++o }));
-  });
-  state.imported.push(PLAN_ID);
-  return true;
-}
-if (importPlan()) save();
 
 
 /* ---------- calendar: drag a pill to another date ---------- */
@@ -3366,6 +3294,29 @@ applyFontScale();
 migrateSubjects();
 render();
 renderDump();
+/* ---------- 모든 일정·할 일 지우기 ---------- */
+function wipeTasks() {
+  state.tasks = [];
+  state.lastBatch = null;
+  commit();
+}
+function askWipe(msg) {
+  const n = state.tasks.length;
+  if (!n) return Promise.resolve(false);
+  return askConfirm(msg.replace('{n}', n), '모두 지우기').then(ok => { if (ok) wipeTasks(); return ok; });
+}
+$('#wipeAll').onclick = () => {
+  if (!state.tasks.length) { askConfirm('지울 일정·할 일이 없어요.', '확인'); return; }
+  closeColors();
+  askWipe('일정과 할 일 {n}개를 모두 지울까요? 지운 뒤에는 되돌릴 수 없어요. (과목·색·글씨 설정과 브레인 덤프 메모는 남아요)');
+};
+// 이 버전을 처음 열 때 한 번만 물어봐요
+if (!state.resetAsked) {
+  state.resetAsked = true;
+  persist();
+  if (state.tasks.length) setTimeout(() => askWipe('지금까지 등록된 일정과 할 일 {n}개를 모두 지울까요? 지운 뒤에는 되돌릴 수 없어요. 나중에 설정(팔레트 버튼)에서도 지울 수 있어요.'), 300);
+}
+
 </script>
 </body>
 </html>
