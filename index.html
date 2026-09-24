@@ -1824,11 +1824,12 @@ function card(t, o = {}) {
   let h = '';
   if (o.num != null) h += `<span class="grip">${I.grip}</span><span class="num">${o.num}</span>`;
   h += `<button class="chk" data-act="done" aria-label="${t.done ? '완료 취소' : '완료'}">${I.check}</button><div class="tt">`;
-  if (sj || t.fav || qd) {
+  const favMark = t.fav && !sj;   // 과목이 있으면 즐겨찾기 별은 붙이지 않아요
+  if (sj || favMark || qd) {
     h += '<span class="meta">';
     if (qd) h += `<i class="qdot ${t.quad}"${quadColor(t.quad) ? ` style="background:${quadColor(t.quad)};box-shadow:none"` : ''}></i>`;
     if (sj) h += `<span class="subj" style="--sc:${sj.color}">${esc(t.subject)}</span>`;
-    if (t.fav) h += `<span class="favmark" title="즐겨찾기">${I.heart}</span>`;
+    if (favMark) h += `<span class="favmark" title="즐겨찾기">${I.heart}</span>`;
     h += '</span>';
   }
   h += `<span class="title">${esc(t.title)}</span>`;
