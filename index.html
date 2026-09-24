@@ -50,23 +50,30 @@ body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 /* ---------- window chrome ---------- */
 .window{max-width:1440px;height:100%;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border-top:14px solid #cfcfd2;box-shadow:0 1px 0 rgba(0,0,0,.04),0 24px 60px rgba(0,0,0,.08);position:relative}
 .window::before{content:"";position:absolute;top:-10px;left:10px;width:34px;height:6px;background:radial-gradient(circle,#b3b3b7 2.6px,transparent 3px) 0 0/12px 6px repeat-x}
-.titlebar{display:flex;align-items:flex-end;gap:18px;background:var(--chrome);border-bottom:1px solid var(--border);padding:0 26px;flex-wrap:wrap}
-.dots{display:none}
-.address{align-self:center;display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 560px;margin:18px 0}
-.address svg{width:15px;height:15px;fill:var(--blue);flex:none}
-.address .url{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800;font-size:15px;letter-spacing:.32em;text-transform:uppercase;color:var(--text)}
-.datenav{display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:.12em;flex:none;border:1px solid var(--border)}
-.datenav button{padding:7px 11px;white-space:nowrap}
+.titlebar{position:relative;display:flex;align-items:center;gap:10px;background:var(--chrome);border-bottom:1px solid var(--border);padding:10px 20px;flex:none}
+.brand{display:flex;align-items:center;gap:8px;flex:none;margin-right:6px}
+.brand svg{width:15px;height:15px;fill:var(--blue);flex:none}
+.brand .url{font-weight:800;font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--text)}
+.datenav{display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:.08em;flex:none;border:1px solid var(--border);height:34px}
+.datenav button{height:100%;padding:0 11px;white-space:nowrap}
 .datenav button:hover{color:var(--blue)}
-#dateLabel{border-left:1px solid var(--border);border-right:1px solid var(--border);min-width:120px}
-.tabs{margin-left:auto;display:flex;align-items:flex-end;gap:34px}
-.tab{position:relative;height:52px;font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--muted);padding:0 2px}
-.tab:hover{color:var(--text)}
-.tab.on{color:var(--blue)}
-.tab.on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--blue)}
+#dateLabel{border-left:1px solid var(--border);border-right:1px solid var(--border);min-width:118px}
+#dateLabel .sm{display:none}
+.vseg{display:flex;flex:none;border:1px solid var(--border);height:34px}
+.vseg .tab{display:flex;align-items:center;justify-content:center;gap:7px;height:100%;padding:0 13px;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--muted)}
+.vseg .tab + .tab{border-left:1px solid var(--border)}
+.vseg .tab svg{width:16px;height:16px;flex:none}
+.vseg .tab:hover{color:var(--text)}
+.vseg .tab.on{background:var(--blue);color:#fff}
+.titlebar .grow{flex:1;min-width:0}
+.tools{display:flex;align-items:center;gap:8px}
+.tools .tl{display:none}
+#moreBtn{display:none}
+.titlebar .pastebtn{height:34px}
+.titlebar .icbtn{width:34px}
 
 main{flex:1;min-height:0;position:relative}
-.view{display:none;height:100%;padding:30px 32px 24px;min-height:0}
+.view{display:none;height:100%;padding:22px 32px 20px;min-height:0}
 .view.on{display:grid}
 
 /* ---------- task cards ---------- */
@@ -176,9 +183,9 @@ main{flex:1;min-height:0;position:relative}
 
 /* ---------- calendar ---------- */
 #view-calendar{grid-template-rows:auto auto 1fr}
-.cal-top{display:flex;align-items:center;gap:10px;margin-bottom:18px;min-height:64px}
+.cal-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-height:52px}
 .cal-top h2{margin:0;display:flex;align-items:center;gap:16px;font-weight:400}
-.cal-top .script{font-family:var(--script);color:var(--blue);font-size:54px;line-height:1;transform:rotate(-5deg) translateY(-2px);letter-spacing:-.01em}
+.cal-top .script{font-family:var(--script);color:var(--blue);font-size:44px;line-height:1;transform:rotate(-5deg) translateY(-2px);letter-spacing:-.01em}
 .cal-top .yr{font-size:12px;font-weight:700;letter-spacing:.28em;color:var(--text);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
 .cal-top .grow{flex:1}
 .pill-btn{height:38px;padding:0 18px;border:1px solid var(--text);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--surface)}
@@ -187,7 +194,26 @@ main{flex:1;min-height:0;position:relative}
 .pill-btn.primary:hover{color:#fff;filter:brightness(1.08)}
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted);text-align:center;padding-bottom:10px}
 .cal-dow div:first-child{color:var(--blue)}
-.cal-weeks{overflow-y:auto;border-bottom:1px solid var(--line);min-height:0}
+.cal-weeks{overflow:hidden;border-bottom:1px solid var(--line);min-height:0}
+.cal-weeks.tight .ev{font-size:11.5px;padding:0 6px}
+.cal-weeks.tight .evchk{width:11px;height:11px;margin-right:5px}
+.cal-weeks.tight .evtm{font-size:10px}
+.moren{position:relative;z-index:2;align-self:center;justify-self:start;margin:0 4px;padding:0 6px;height:calc(var(--row) - 8px);min-height:14px;font-size:11px;font-weight:800;color:var(--blue);white-space:nowrap}
+.moren:hover{background:var(--blue-soft)}
+.daypop{position:fixed;z-index:1700;width:280px;max-width:calc(100vw - 16px);max-height:min(60vh,420px);display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue)}
+.daypop header{display:flex;align-items:center;gap:8px;padding:10px 8px 10px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:800}
+.daypop header span{flex:1}
+.daypop header button{width:28px;height:28px;display:grid;place-items:center;color:var(--muted)}
+.daypop header svg{width:15px;height:15px}
+.dp-list{overflow-y:auto;padding:4px 0}
+.dp-row{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:4px 14px;text-align:left;font-size:13px;font-weight:600}
+.dp-row:hover{background:var(--blue-soft)}
+.dp-row i{flex:none;width:10px;height:10px}
+.dp-row i.ev{border-radius:50%}
+.dp-row .dp-tm{flex:none;font-size:11px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+.dp-row .dp-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-row.done .dp-t{text-decoration:line-through;color:var(--muted)}
+.daypop .pill-btn{margin:6px 14px 12px;align-self:flex-start;height:32px}
 .week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--border)}
 .week:first-child{border-top:0}
 .cell{grid-row:1/-1;position:relative;border-left:1px solid var(--border);cursor:pointer;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(var(--row) - 1px),var(--rule) calc(var(--row) - 1px) var(--row))}
@@ -323,16 +349,48 @@ main{flex:1;min-height:0;position:relative}
 body.fwin-moving{user-select:none;-webkit-user-select:none}
 body.fwin-moving .fwin-body{pointer-events:none}
 #qmodal{z-index:2100}
+#view-timer{position:relative}
+.solo-btn{position:absolute;z-index:5;top:14px;right:16px;display:flex;align-items:center;gap:8px;height:34px;padding:0 14px}
+.solo-btn svg{width:15px;height:15px}
+.solo-exit{display:none;position:fixed;z-index:1900;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));align-items:center;gap:6px;height:34px;padding:0 12px;background:var(--text);color:var(--surface);font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.55;transition:opacity .15s}
+.solo-exit:hover,.solo-exit:focus-visible{opacity:1}
+.solo-exit svg{width:14px;height:14px}
+body.solo{padding:0}
+body.solo .window{border-top:0;box-shadow:none;max-width:none}
+body.solo .window::before,body.solo .titlebar,body.solo .solo-btn,body.solo #timerNote{display:none}
+body.solo .solo-exit{display:flex}
+body.solo #view-timer.on{overflow-y:auto}
+body.solo #timerSlot{height:100%}
 
 /* ---------- responsive ---------- */
+@media (max-width:1150px){
+  .vseg .tab span{display:none}
+  .vseg .tab{padding:0 11px}
+}
 @media (max-width:900px){
-  body{padding:10px}
-  .titlebar{padding:0 14px}
-  .address{flex:1 1 100%;margin:14px 0 4px}
-  .address .url{font-size:12px;letter-spacing:.2em}
-  .tabs{margin-left:0;width:100%;justify-content:space-around;gap:0}
-  .tab{height:42px;font-size:10px}
-  .view{padding:18px 14px 14px;overflow-y:auto}
+  body{padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+  .window{border-top:0;box-shadow:none}
+  .window::before{display:none}
+  .titlebar{padding:8px 10px;gap:6px}
+  .brand{display:none}
+  #dateLabel{min-width:0;padding:0 8px}
+  #dateLabel .lg{display:none}
+  #dateLabel .sm{display:inline}
+  .datenav button{padding:0 9px}
+  .vseg .tab{padding:0 10px}
+  #moreBtn{display:grid}
+  .tools{display:none;position:absolute;z-index:1600;top:calc(100% + 4px);right:8px;flex-direction:column;align-items:stretch;gap:0;min-width:200px;padding:4px 0;background:var(--surface);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue)}
+  .tools.open{display:flex}
+  .tools .pastebtn,.tools .icbtn{width:auto;height:44px;border:0;display:flex;align-items:center;gap:12px;padding:0 16px;color:var(--text);font-size:13px;letter-spacing:0;justify-content:flex-start}
+  .tools .pastebtn:hover{background:var(--blue-soft);color:var(--text)}
+  .tools .pastebtn[hidden]{display:none}
+  .tools .tl{display:inline}
+  .tools .icbtn.running::after{position:static;margin-left:auto}
+  .cal-top{margin-bottom:8px;min-height:0;flex-wrap:nowrap}
+  .cal-top h2,#calToday{display:none}
+  .cal-top .seg button{height:34px;padding:0 10px}
+  #calAdd{height:34px;padding:0 12px}
+  .view{padding:12px 12px 12px;overflow-y:auto}
   #view-matrix,#view-flow{grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
   .side .drop-list{max-height:55vh}
   .quad .drop-list{flex:none;max-height:50vh}
@@ -344,6 +402,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
   .cal-weeks{overflow:visible}
   .cell{background-image:none}
   .ev{height:6px;margin:0 1px;padding:0;font-size:0}
+  .moren{height:auto;min-height:0;margin:0 1px;padding:0 2px;font-size:9.5px;line-height:1}
   .ev > *{display:none}
   .ev.sub{background:var(--sc)!important;box-shadow:none}
   .ev.event{height:8px}
@@ -352,15 +411,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
   .evchk svg{width:9px;height:9px}
   .evq{width:5px;height:5px;margin-right:4px}
   .num{font-size:10px;top:5px;right:3px;padding:0 3px}
-  .cal-top .script{font-size:38px}
   .cal-dow{font-size:9px;letter-spacing:.1em}
-  .cal-top{flex-wrap:wrap}
-  .cal-top .seg button{padding:0 10px}
-  .pastebtn{padding:0 8px;letter-spacing:.04em}
-  .m-hide{display:none}
-  .address{gap:6px}
-  .address .url{display:none}
-  #dateLabel{min-width:0}
   .pv-row{grid-template-columns:20px 54px 1fr}
   .pv-row .pv-title{grid-column:2/-1}
   .pv-note{grid-column:2/-1}
@@ -372,26 +423,29 @@ body.fwin-moving .fwin-body{pointer-events:none}
 
 <div class="window">
   <div class="titlebar">
-    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="address">
+    <div class="brand">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.4-4.5-9.5-9.1C1 8.6 3 5 6.6 5c2.1 0 3.7 1.2 5.4 3.2C13.7 6.2 15.3 5 17.4 5 21 5 23 8.6 21.5 11.9 19.4 16.5 12 21 12 21z"/></svg>
       <span class="url">dayflow</span>
-      <div class="datenav">
-        <button id="prev" aria-label="이전">&lt;</button>
-        <button id="dateLabel" title="오늘로 이동"></button>
-        <button id="next" aria-label="다음">&gt;</button>
-      </div>
-      <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg></button>
-      <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></button>
-      <button class="pastebtn" id="installApp" hidden title="홈 화면·PC에 앱으로 설치">앱 설치</button>
-      <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기"><span class="m-hide">계획 </span>붙여넣기</button>
     </div>
-    <nav class="tabs" role="tablist">
-      <button class="tab" data-view="calendar" role="tab">CALENDAR</button>
-      <button class="tab" data-view="matrix" role="tab">MATRIX</button>
-      <button class="tab" data-view="flow" role="tab">FLOW</button>
-      <button class="tab" data-view="timer" role="tab">TIMER</button>
+    <div class="datenav">
+      <button id="prev" aria-label="이전">&lt;</button>
+      <button id="dateLabel" title="오늘로 이동"></button>
+      <button id="next" aria-label="다음">&gt;</button>
+    </div>
+    <nav class="vseg" role="tablist" aria-label="화면">
+      <button class="tab" data-view="calendar" role="tab" title="캘린더"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="1"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/></svg><span>CALENDAR</span></button>
+      <button class="tab" data-view="matrix" role="tab" title="매트릭스"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg><span>MATRIX</span></button>
+      <button class="tab" data-view="flow" role="tab" title="플로우"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M4 12h16M4 18h7"/><path d="M17 3l3 3-3 3" stroke-linejoin="round"/></svg><span>FLOW</span></button>
+      <button class="tab" data-view="timer" role="tab" title="타이머"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg><span>TIMER</span></button>
     </nav>
+    <div class="grow"></div>
+    <button class="pastebtn icbtn" id="moreBtn" aria-label="도구 더보기" aria-expanded="false" aria-controls="tools"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg></button>
+    <div class="tools" id="tools">
+      <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg><span class="tl">타이머 팝업</span></button>
+      <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg><span class="tl">색상 설정</span></button>
+      <button class="pastebtn" id="installApp" hidden title="홈 화면·PC에 앱으로 설치">앱 설치</button>
+      <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기">계획 붙여넣기</button>
+    </div>
   </div>
 
   <main>
@@ -434,6 +488,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
 
     <!-- TIMER -->
     <section class="view" id="view-timer">
+      <button class="pill-btn solo-btn" id="soloOn" title="다른 화면 없이 타이머만 크게 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>타이머만 보기</button>
       <div class="tnote" id="timerNote" hidden>타이머가 팝업으로 떠 있어요.<button class="pill-btn primary" id="twDockHere">여기로 가져오기</button></div>
       <div id="timerSlot"></div>
     </section>
@@ -457,6 +512,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
 <div class="fwin" id="timerWin" role="dialog" aria-label="Focus Timer" hidden>
   <div class="fwin-bar" id="twBar">
     <span class="ttl">FOCUS TIMER</span>
+    <button id="twSolo" aria-label="타이머만 보기" title="타이머만 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <button id="twToTab" aria-label="TIMER 탭에서 크게 보기" title="TIMER 탭에서 크게 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
     <button id="twClose" aria-label="팝업 닫기" title="팝업 닫기 (타이머는 계속 돌아가요)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
@@ -465,6 +521,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
   <div class="fwin-grip" data-grip="r" title="크기 조절"></div>
 </div>
 <div id="timerPark" hidden></div>
+<button class="solo-exit" id="soloOff" aria-label="타이머만 보기 끝내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>나가기</span></button>
 
 <div class="modal" id="qmodal" hidden>
   <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qText">
@@ -697,6 +754,14 @@ const FOCUS_TIMER_CSS = `
   #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
   footer { display: flex; justify-content: space-between; padding: 14px 32px; }
   :host(.popup) footer { display: none; }
+  /* 타이머만 보기 */
+  :host(.solo) { height: 100%; }
+  :host(.solo) .tcq { height: 100%; }
+  :host(.solo) .tbody { padding: 0; height: 100%; }
+  :host(.solo) .page { max-width: none; min-height: 100%; box-shadow: none; display: flex; flex-direction: column; }
+  :host(.solo) h1, :host(.solo) footer { display: none; }
+  :host(.solo) .grid { flex: 1; align-items: center; border-bottom: 0; }
+  :host(.solo) .device { max-width: min(560px, 68vh); }
   .hidden { display: none !important; }
   @container tm (max-width: 760px) {
     .tbody { padding: 0; }
@@ -1510,11 +1575,11 @@ function render() {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + state.view));
   if (state.view === 'calendar') {
     const [y, m] = state.month.split('-');
-    $('#dateLabel').textContent = `${y}년 ${+m}월`;
+    $('#dateLabel').innerHTML = `<span class="lg">${y}년 ${+m}월</span><span class="sm">${y}.${m}</span>`;
     renderCalendar();
   } else {
     const d = parse(state.date);
-    $('#dateLabel').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+    $('#dateLabel').innerHTML = `<span class="lg">${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})</span><span class="sm">${d.getMonth() + 1}/${d.getDate()} ${DOW[d.getDay()]}</span>`;
     if (state.view === 'matrix') renderMatrix(); else if (state.view === 'flow') renderFlow();
   }
   placeTimer();
@@ -1631,21 +1696,48 @@ function attachScrollbar(list) {
   update();
 }
 
+// 캘린더가 쓸 수 있는 높이를 재서, 주마다 높이와 보일 줄 수를 정해요
+// 바쁜 주는 높게, 빈 주는 낮게. 그래도 모자라면 넘치는 줄은 "+N"으로
+function calFit(lanesPerWeek) {
+  const phone = isPhone(), wrap = $('#calWeeks'), view = $('#view-calendar');
+  const head = phone ? 24 : 30, base = phone ? 12 : 34, min = phone ? 9 : 24, minLanes = phone ? 3 : 1;
+  let avail;
+  if (phone) {
+    const off = wrap.getBoundingClientRect().top - view.getBoundingClientRect().top + view.scrollTop;
+    avail = view.clientHeight - off - 12;
+  } else avail = wrap.clientHeight;
+  if (!(avail > 0)) return null;
+  const need = lanesPerWeek.map(n => Math.max(minLanes, n));
+  const total = (row, cap) => need.reduce((sum, n) => sum + head + Math.min(n, cap) * row + 1, 0);
+  // 1) 줄 높이를 조금씩 줄여 가며 전부 들어가는지
+  let row = base, cap = Infinity;
+  while (row > min && total(row, cap) > avail) row--;
+  // 2) 가장 작은 줄 높이로도 모자라면, 한 주에 보일 줄 수에 상한을 둬요
+  if (total(row, cap) > avail) {
+    cap = Math.max(...need);
+    while (cap > minLanes && total(row, cap) > avail) cap--;
+  }
+  const rows = need.map(n => Math.min(n, cap));
+  const used = total(row, cap), extra = Math.max(0, Math.floor((avail - used) / need.length));
+  return { head, row, rows, heights: rows.map(r => head + r * row + 1 + extra) };
+}
 function renderCalendar() {
+  closeDayPop();
   const [y, m] = state.month.split('-').map(Number);
   $('#calTitle').innerHTML = `<span class="script">${MONTHS[m - 1]}</span><span class="yr">${y} / ${pad(m)}</span>`;
   const first = new Date(y, m - 1, 1), last = new Date(y, m, 0);
-  let ws = ymd(new Date(y, m - 1, 1 - first.getDay()));
+  const start = ymd(new Date(y, m - 1, 1 - first.getDay()));
   const endS = ymd(new Date(y, m - 1, last.getDate() + (6 - last.getDay())));
   const today = todayStr();
   document.querySelectorAll('#calFilter [data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === state.calFilter));
-  const shown = t => state.calFilter === 'all' || (state.calFilter === 'event') === isEvent(t);
   const wrap = $('#calWeeks');
-  wrap.innerHTML = '';
-  while (ws <= endS) {
+
+  // 1) 주마다 막대 줄(lane) 배치
+  const weeks = [];
+  for (let ws = start; ws <= endS; ws = addDays(ws, 7)) {
     const we = addDays(ws, 6);
     const evs = state.tasks
-      .filter(t => t.date <= we && endOf(t) >= ws && shown(t))
+      .filter(t => t.date <= we && endOf(t) >= ws && calShown(t))
       .sort((a, b) => a.date.localeCompare(b.date) || isEvent(b) - isEvent(a) || (a.time || '').localeCompare(b.time || '') || diffDays(b.date, endOf(b)) - diffDays(a.date, endOf(a)) || byOrder(a, b));
     const lanes = [];
     const placed = evs.map(t => {
@@ -1655,10 +1747,35 @@ function renderCalendar() {
       if (lane < 0) { lane = lanes.length; lanes.push(ce); } else lanes[lane] = ce;
       return { t, cs, ce, lane, l: t.date < ws, r: endOf(t) > we };
     });
+    weeks.push({ ws, placed, n: lanes.length });
+  }
+
+  // 2) 화면 높이에 맞추기
+  wrap.innerHTML = '';
+  const fit = calFit(weeks.map(w => w.n));
+  if (fit) {
+    wrap.style.setProperty('--row', fit.row + 'px');
+    wrap.style.setProperty('--head', fit.head + 'px');
+  } else { wrap.style.removeProperty('--row'); wrap.style.removeProperty('--head'); }
+  wrap.classList.toggle('tight', !!fit && !isPhone() && fit.row < 30);
+
+  // 3) 그리기: 넘치는 줄은 숨기고 날짜마다 "+N"
+  weeks.forEach(({ ws, placed, n }, wi) => {
     const week = document.createElement('div');
     week.className = 'week';
-    const filler = Math.max(1, 3 - lanes.length);
-    week.style.gridTemplateRows = `var(--head) repeat(${lanes.length + filler}, var(--row))`;
+    let rows, show = n, hidden = [0, 0, 0, 0, 0, 0, 0];
+    if (fit) {
+      rows = fit.rows[wi];
+      if (n > rows) {
+        show = rows - 1;
+        placed.filter(p => p.lane >= show).forEach(p => { for (let i = p.cs; i <= p.ce; i++) hidden[i]++; });
+      }
+      week.style.height = fit.heights[wi] + 'px';
+      week.style.gridTemplateRows = `var(--head) repeat(${rows}, var(--row)) 1fr`;
+    } else {
+      rows = n + Math.max(1, 3 - n);
+      week.style.gridTemplateRows = `var(--head) repeat(${rows}, var(--row))`;
+    }
     let h = '';
     for (let i = 0; i < 7; i++) {
       const d = addDays(ws, i);
@@ -1667,8 +1784,9 @@ function renderCalendar() {
       if (d === today) cls.push('today');
       if (d === state.date && d !== today) cls.push('sel');
       h += `<div class="${cls.join(' ')}" data-date="${d}" style="grid-column:${i + 1}"><span class="num">${pad(+d.slice(8))}</span></div>`;
+      if (hidden[i]) h += `<button class="moren" data-more="${d}" style="grid-row:${rows + 1};grid-column:${i + 1}" aria-label="${hidden[i]}개 더 보기">+${hidden[i]}</button>`;
     }
-    placed.forEach(p => {
+    placed.filter(p => p.lane < show).forEach(p => {
       const ev = isEvent(p.t);
       const cls = ['ev']; if (p.l) cls.push('l'); if (p.r) cls.push('r'); if (ev) cls.push('event'); else if (p.t.done) cls.push('done');
       const [bg, fg] = colorOf(p.t), sj = subjOf(p.t);
@@ -1683,10 +1801,50 @@ function renderCalendar() {
     });
     week.innerHTML = h;
     wrap.append(week);
-    ws = addDays(ws, 7);
-  }
+  });
   renderCalDay();
 }
+const calShown = t => state.calFilter === 'all' || (state.calFilter === 'event') === isEvent(t);
+
+// "+N"을 누르면 그날 전체 목록을 작은 창으로
+let dayPop = null;
+function closeDayPop() { if (dayPop) { dayPop.remove(); dayPop = null; } }
+function openDayPop(date, anchor) {
+  closeDayPop();
+  const d = parse(date);
+  const items = tasksOn(date).filter(calShown)
+    .sort((a, b) => isEvent(b) - isEvent(a) || (a.time || '').localeCompare(b.time || '') || byOrder(a, b));
+  dayPop = document.createElement('div');
+  dayPop.className = 'daypop';
+  dayPop.setAttribute('role', 'dialog');
+  dayPop.innerHTML = `<header><span>${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]}) · ${items.length}개</span><button data-dpclose aria-label="닫기">${I.x}</button></header>`
+    + '<div class="dp-list">' + items.map(t => {
+      const ev = isEvent(t), sj = subjOf(t);
+      return `<button class="dp-row${!ev && t.done ? ' done' : ''}" data-dpedit="${t.id}"><i class="${ev ? 'ev' : ''}" style="background:${sj ? sj.color : colorOf(t)[0]}"></i>`
+        + (ev && t.time ? `<span class="dp-tm">${t.time}</span>` : '') + `<span class="dp-t">${esc(fullTitle(t))}</span></button>`;
+    }).join('') + `</div><button class="pill-btn primary" data-dpadd="${date}">+ 이 날에 추가</button>`;
+  document.body.append(dayPop);
+  const r = anchor.getBoundingClientRect(), w = dayPop.offsetWidth, hh = dayPop.offsetHeight;
+  let top = r.bottom + 4;
+  if (top + hh > innerHeight - 8) top = Math.max(8, r.top - hh - 4);
+  dayPop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+  dayPop.style.top = top + 'px';
+}
+document.addEventListener('click', e => {
+  if (!dayPop) return;
+  const ed = e.target.closest('[data-dpedit]'), add = e.target.closest('[data-dpadd]');
+  if (ed) { const t = find(ed.dataset.dpedit); closeDayPop(); if (t) openModal({ task: t }); return; }
+  if (add) { const d = add.dataset.dpadd; closeDayPop(); openModal({ date: d, kind: 'todo' }); return; }
+  if (e.target.closest('[data-dpclose]') || (!e.target.closest('.daypop') && !e.target.closest('[data-more]'))) closeDayPop();
+});
+window.addEventListener('scroll', e => { if (dayPop && !dayPop.contains(e.target)) closeDayPop(); }, true);
+// 창 크기가 바뀌면 캘린더를 다시 맞춰요
+let calFitTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(calFitTimer);
+  calFitTimer = setTimeout(() => { if (state.view === 'calendar') renderCalendar(); }, 120);
+});
+
 // 폰: 캘린더 아래에 고른 날짜의 목록
 function renderCalDay() {
   const d = parse(state.date);
@@ -1732,12 +1890,15 @@ document.addEventListener('click', e => {
 $('#calWeeks').addEventListener('click', e => {
   const chk = e.target.closest('[data-evdone]');
   if (chk) { const t = find(chk.dataset.evdone); if (t) { t.done = !t.done; commit(); } return; }
+  const more = e.target.closest('[data-more]');
   if (isPhone()) {
     // 폰에서는 날짜를 누르면 아래 목록만 바꿔요
-    const c = e.target.closest('.cell') || cellAt(e.clientX, e.clientY);
+    const c = more ? document.querySelector(`.cell[data-date="${more.dataset.more}"]`) : e.target.closest('.cell') || cellAt(e.clientX, e.clientY);
     if (c) { state.date = c.dataset.date; renderCalendar(); }
+    if (more) $('#calDay').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
+  if (more) { if (dayPop) closeDayPop(); else openDayPop(more.dataset.more, more); return; }
   const ev = e.target.closest('[data-ev]');
   if (ev) { const t = find(ev.dataset.ev); if (t) openModal({ task: t }); return; }
   const cell = e.target.closest('.cell');
@@ -1967,7 +2128,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
+  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (dayPop) closeDayPop(); else if ($('#tools').classList.contains('open')) setTools(false); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal(); else if (document.body.classList.contains('solo')) exitSolo();
 });
 
 
@@ -2516,13 +2677,17 @@ function placeTimer() {
   const target = twOpen() ? $('#twBody') : state.view === 'timer' ? $('#timerSlot') : $('#timerPark');
   if (timerHost.parentElement !== target) target.append(timerHost);
   timerHost.classList.toggle('popup', twOpen());
+  timerHost.classList.toggle('solo', document.body.classList.contains('solo'));
   $('#timerNote').hidden = !(twOpen() && state.view === 'timer');
   $('#timerOpen').setAttribute('aria-pressed', twOpen());
 }
 createFocusTimer(timerHost, {
   confirm: askConfirm,
   isShown: () => twOpen() || state.view === 'timer',
-  onTick: running => $('#timerOpen').classList.toggle('running', running)
+  onTick: running => {
+    $('#timerOpen').classList.toggle('running', running);
+    $('#moreBtn').classList.toggle('running', running);
+  }
 });
 
 const TW_MIN_W = 260, TW_MIN_H = 220;
@@ -2611,6 +2776,44 @@ $('#installApp').onclick = async () => {
   $('#installApp').hidden = true;
 };
 window.addEventListener('appinstalled', () => { $('#installApp').hidden = true; });
+
+/* ---------- 폰: 도구 버튼을 ⋯ 메뉴로 ---------- */
+function setTools(open) {
+  $('#tools').classList.toggle('open', open);
+  $('#moreBtn').setAttribute('aria-expanded', open);
+}
+$('#moreBtn').onclick = () => setTools(!$('#tools').classList.contains('open'));
+$('#tools').addEventListener('click', e => { if (e.target.closest('button')) setTimeout(() => setTools(false), 0); });
+document.addEventListener('pointerdown', e => {
+  if ($('#tools').classList.contains('open') && !e.target.closest('#tools') && !e.target.closest('#moreBtn')) setTools(false);
+});
+
+/* ---------- 타이머만 보기 ---------- */
+let soloPrevView = null, soloFs = false;
+function enterSolo() {
+  if (document.body.classList.contains('solo')) return;
+  soloPrevView = state.view === 'timer' ? null : state.view;
+  $('#timerWin').hidden = true;
+  document.body.classList.add('solo');
+  state.view = 'timer';
+  render();
+  // 컴퓨터에서는 전체 화면으로 (안 되는 곳에서는 그냥 넘어가요)
+  const el = document.documentElement;
+  if (!isPhone() && el.requestFullscreen) el.requestFullscreen().then(() => { soloFs = true; }).catch(() => {});
+}
+function exitSolo() {
+  if (!document.body.classList.contains('solo')) return;
+  document.body.classList.remove('solo');
+  if (soloFs && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  soloFs = false;
+  if (soloPrevView) state.view = soloPrevView;
+  soloPrevView = null;
+  save(); render();
+}
+$('#soloOn').onclick = enterSolo;
+$('#twSolo').onclick = enterSolo;
+$('#soloOff').onclick = exitSolo;
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && soloFs) exitSolo(); });
 
 migrateSubjects();
 render();
