@@ -244,9 +244,6 @@ main{flex:1;min-height:0;position:relative}
 .cal-day{display:none;flex-direction:column;margin-top:20px}
 .cal-day .drop-list{overflow:visible}
 .cal-day .pill-btn{margin-top:14px;align-self:flex-start}
-.srow{display:flex;align-items:center;gap:12px;padding:6px 0}
-.srow .sname{flex:1;min-width:0;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.srow .sab{width:70px;height:34px;padding:0 8px;font-size:13px;flex:none}
 .ev:hover{filter:brightness(.95)}
 
 /* ---------- modal ---------- */
@@ -352,6 +349,22 @@ main{flex:1;min-height:0;position:relative}
 body.fwin-moving{user-select:none;-webkit-user-select:none}
 body.fwin-moving .fwin-body{pointer-events:none}
 #qmodal{z-index:2100}
+.sadd{display:flex;gap:8px}
+.sheet .sadd input{flex:1;height:40px}
+.sadd .pill-btn{height:40px;flex:none}
+.serr{margin:-6px 0 0;font-size:12px;font-weight:600;color:#d23a3a}
+.shead,.srow2{display:grid;grid-template-columns:34px minmax(0,1fr) 64px 44px 34px;gap:8px;align-items:center}
+.shead{padding-bottom:8px;border-bottom:1px solid var(--line);font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.slist{display:flex;flex-direction:column}
+.srow2{padding:7px 0;border-bottom:1px solid var(--border)}
+.srow2 .sw{width:34px;height:34px}
+.sheet .srow2 input[type=text]{height:36px;font-size:14px;padding:0 10px}
+.sheet .srow2 .sname2{font-weight:700;color:var(--sc)}
+.srow2 .scount{font-size:12px;font-weight:700;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.srow2 .sdel{width:34px;height:34px;display:grid;place-items:center;color:var(--muted)}
+.srow2 .sdel:hover{color:#d23a3a}
+.srow2 .sdel svg{width:16px;height:16px}
+.sempty{padding:16px 0;font-size:13px;color:var(--muted)}
 #view-timer{position:relative}
 .solo-btn{position:absolute;z-index:5;top:14px;right:16px;display:flex;align-items:center;gap:8px;height:34px;padding:0 14px}
 .solo-btn svg{width:15px;height:15px}
@@ -423,6 +436,10 @@ body.solo #timerSlot{height:100%}
   .num{font-size:10px;top:5px;right:3px;padding:0 3px}
   .cal-dow{font-size:9px;letter-spacing:.1em}
   .pv-row{grid-template-columns:20px 54px 1fr}
+  .modal{padding:12px}
+  .sheet{padding:20px}
+  .shead,.srow2{grid-template-columns:34px minmax(0,1fr) 52px 34px;gap:6px}
+  .shead span:nth-child(4),.srow2 .scount{display:none}
   .pv-row .pv-title{grid-column:2/-1}
   .pv-note{grid-column:2/-1}
 }
@@ -453,6 +470,7 @@ body.solo #timerSlot{height:100%}
     <div class="tools" id="tools">
       <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg><span class="tl">타이머 팝업</span></button>
       <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg><span class="tl">색상 설정</span></button>
+      <button class="pastebtn icbtn" id="subjOpen" aria-label="과목 관리" title="과목 관리"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10.5a3 3 0 013 3V20H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h10.5"/><path d="M9 8.5h6"/></svg><span class="tl">과목 관리</span></button>
       <button class="pastebtn" id="installApp" hidden title="홈 화면·PC에 앱으로 설치">앱 설치</button>
       <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기">계획 붙여넣기</button>
     </div>
@@ -601,8 +619,8 @@ body.solo #timerSlot{height:100%}
       <div class="swatches"></div>
     </div>
     <div class="csec">과목 색 · 줄임말</div>
-    <p class="psub">줄임말은 캘린더 막대 앞에 보여요. 색 칸을 누르면 과목 색을 바꿀 수 있어요.</p>
-    <div id="cSubjs"></div>
+    <p class="psub">과목 색과 줄임말, 과목 추가·이름 바꾸기·삭제는 과목 관리에서 할 수 있어요.</p>
+    <button class="pill-btn" id="cSubjOpen" type="button" style="align-self:flex-start">과목 관리 열기</button>
     <div class="csec">매트릭스 사분면</div>
     <div id="cQuads"></div>
     <div class="btns">
@@ -611,6 +629,21 @@ body.solo #timerSlot{height:100%}
       <button class="pill-btn" id="cReset">모두 기본값</button>
       <button class="pill-btn primary" id="cDone">완료</button>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="smodal" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+    <h3 id="sTitle">과목 관리</h3>
+    <p class="psub">이름을 바꾸면 그 과목의 할 일도 모두 함께 바뀌어요. 줄임말은 캘린더 막대 앞에 보여요.</p>
+    <form class="sadd" id="sAddForm">
+      <input id="sNew" maxlength="20" autocomplete="off" placeholder="새 과목 이름 (예: 해부학)" aria-label="새 과목 이름">
+      <button class="pill-btn primary" type="submit">+ 추가</button>
+    </form>
+    <p class="serr" id="sErr" hidden></p>
+    <div class="shead"><span>색</span><span>과목 이름</span><span>줄임말</span><span>할 일</span><span></span></div>
+    <div class="slist" id="sList"></div>
+    <div class="btns"><div class="grow"></div><button class="pill-btn primary" id="sDone">완료</button></div>
   </div>
 </div>
 
@@ -2148,7 +2181,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (dayPop) closeDayPop(); else if ($('#tools').classList.contains('open')) setTools(false); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal(); else if (document.body.classList.contains('solo')) exitSolo();
+  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (dayPop) closeDayPop(); else if ($('#tools').classList.contains('open')) setTools(false); else if (!$('#smodal').hidden) closeSubjects(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal(); else if (document.body.classList.contains('solo')) exitSolo();
 });
 
 
@@ -2598,15 +2631,6 @@ function buildColorRows() {
       </div>
     </div>`).join('');
   QUADS.forEach(x => markQuadRow(x.key));
-  const names = Object.keys(state.subjects).filter(n => state.tasks.some(t => t.subject === n));
-  $('#cSubjs').innerHTML = names.length ? names.map(n => {
-    const sj = state.subjects[n];
-    return `<div class="srow" data-subj="${esc(n)}">
-      <span class="sw custom" style="background:${sj.color}"><input type="color" value="${sj.color}" aria-label="${esc(n)} 색"></span>
-      <span class="sname" style="color:${sj.color}">${esc(n)}</span>
-      <input class="sab" value="${esc(sj.ab)}" maxlength="3" aria-label="${esc(n)} 줄임말">
-    </div>`;
-  }).join('') : '<p class="psub">과목이 붙은 할 일이 아직 없어요.</p>';
   const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
   $('#cClear').hidden = !n;
   $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
@@ -2645,16 +2669,6 @@ $('#cmodal').addEventListener('click', e => {
   if (qb) setQuadColor(qb.closest('[data-quad]').dataset.quad, qb.dataset.qhex);
 });
 $('#cmodal').addEventListener('input', e => {
-  const sr = e.target.closest('[data-subj]');
-  if (sr) {
-    const sj = state.subjects[sr.dataset.subj]; if (!sj) return;
-    if (e.target.type === 'color') {
-      sj.color = e.target.value;
-      sr.querySelector('.custom').style.background = sj.color;
-      sr.querySelector('.sname').style.color = sj.color;
-    } else sj.ab = e.target.value.trim() || sr.dataset.subj.slice(0, 2);
-    save(); render(); return;
-  }
   if (e.target.type !== 'color') return;
   const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]');
   if (kr) setKindColor(kr.dataset.kind, e.target.value);
@@ -2844,6 +2858,86 @@ $('#soloOn').onclick = enterSolo;
 $('#twSolo').onclick = enterSolo;
 $('#soloOff').onclick = exitSolo;
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && soloFs) exitSolo(); });
+
+/* ---------- 과목 관리: 추가 · 이름 바꾸기 · 색 · 줄임말 · 삭제 ---------- */
+const cleanSubj = v => v.trim().replace(/^[\[【]\s*|\s*[\]】]$/g, '').trim();
+function renderSubjects() {
+  const names = Object.keys(state.subjects);
+  $('#sList').innerHTML = names.length ? names.map(n => {
+    const sj = state.subjects[n], cnt = state.tasks.filter(t => t.subject === n).length;
+    return `<div class="srow2" data-sname="${esc(n)}">
+      <span class="sw custom" style="background:${sj.color}"><input type="color" value="${sj.color}" aria-label="${esc(n)} 색"></span>
+      <input type="text" class="sname2" value="${esc(n)}" maxlength="20" aria-label="과목 이름" style="--sc:${sj.color}">
+      <input type="text" class="sab2" value="${esc(sj.ab)}" maxlength="3" aria-label="${esc(n)} 줄임말">
+      <span class="scount">${cnt}개</span>
+      <button type="button" class="sdel" aria-label="${esc(n)} 삭제" title="삭제">${I.x}</button>
+    </div>`;
+  }).join('') : '<p class="sempty">아직 과목이 없어요. 위에서 추가하거나, 할 일 제목 앞에 [과목]을 붙이면 자동으로 생겨요.</p>';
+}
+function subjErr(msg) { $('#sErr').textContent = msg; $('#sErr').hidden = !msg; }
+function openSubjects() { subjErr(''); renderSubjects(); $('#smodal').hidden = false; setTimeout(() => $('#sNew').focus(), 30); }
+function closeSubjects() { $('#smodal').hidden = true; }
+$('#subjOpen').onclick = openSubjects;
+$('#cSubjOpen').onclick = () => { closeColors(); openSubjects(); };
+$('#sDone').onclick = closeSubjects;
+$('#smodal').addEventListener('click', e => { if (e.target.id === 'smodal') closeSubjects(); });
+
+$('#sAddForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const n = cleanSubj($('#sNew').value);
+  if (!n) { $('#sNew').focus(); return; }
+  if (state.subjects[n]) { subjErr(`'${n}' 과목은 이미 있어요.`); return; }
+  subjErr('');
+  ensureSubject(n);
+  $('#sNew').value = '';
+  save(); render(); renderSubjects();
+});
+// 색과 줄임말은 바로 반영
+$('#sList').addEventListener('input', e => {
+  const row = e.target.closest('[data-sname]'); if (!row) return;
+  const sj = state.subjects[row.dataset.sname]; if (!sj) return;
+  if (e.target.type === 'color') {
+    sj.color = e.target.value;
+    row.querySelector('.custom').style.background = sj.color;
+    row.querySelector('.sname2').style.setProperty('--sc', sj.color);
+  } else if (e.target.classList.contains('sab2')) {
+    sj.ab = e.target.value.trim() || row.dataset.sname.replace(/[\s\d]/g, '').slice(0, 2) || row.dataset.sname.slice(0, 2);
+  } else return;
+  save(); render();
+});
+// 이름은 입력을 마치면(엔터·다른 곳 누르기) 바꿔요
+async function renameSubject(oldName, input) {
+  const n = cleanSubj(input.value);
+  if (!n || n === oldName) { input.value = oldName; return; }
+  if (state.subjects[n]) {
+    const ok = await askConfirm(`'${n}' 과목이 이미 있어요. '${oldName}'의 할 일을 '${n}'(으)로 합칠까요?`, '합치기');
+    if (!ok) { input.value = oldName; return; }
+    state.tasks.forEach(t => { if (t.subject === oldName) t.subject = n; });
+    delete state.subjects[oldName];
+  } else {
+    // 순서를 지키면서 이름만 바꿔요
+    state.subjects = Object.fromEntries(Object.entries(state.subjects).map(([k, v]) => [k === oldName ? n : k, v]));
+    state.tasks.forEach(t => { if (t.subject === oldName) t.subject = n; });
+  }
+  subjErr('');
+  save(); render(); renderSubjects();
+}
+$('#sList').addEventListener('change', e => {
+  if (!e.target.classList.contains('sname2')) return;
+  renameSubject(e.target.closest('[data-sname]').dataset.sname, e.target);
+});
+$('#sList').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.isComposing && e.target.matches('input[type=text]')) { e.preventDefault(); e.target.blur(); }
+});
+$('#sList').addEventListener('click', async e => {
+  const b = e.target.closest('.sdel'); if (!b) return;
+  const n = b.closest('[data-sname]').dataset.sname;
+  const cnt = state.tasks.filter(t => t.subject === n).length;
+  if (cnt && !(await askConfirm(`'${n}' 과목을 삭제할까요? 할 일 ${cnt}개는 그대로 남고 과목만 빠져요.`, '삭제'))) return;
+  state.tasks.forEach(t => { if (t.subject === n) t.subject = ''; });
+  delete state.subjects[n];
+  save(); render(); renderSubjects();
+});
 
 migrateSubjects();
 render();
