@@ -396,8 +396,9 @@ body.fwin-moving .fwin-body{pointer-events:none}
 body.dumping #dumpWin{opacity:.12;pointer-events:none;transition:opacity .15s}
 .dump-empty{padding:18px 4px;font-size:calc(13px * var(--fs));color:var(--muted);text-align:center}
 .sadd{display:flex;gap:8px}
-.sheet .sadd input{flex:1;height:40px}
-.sadd .pill-btn{height:40px;flex:none}
+.sheet .sadd textarea{flex:1;min-height:0;height:auto;padding:9px 12px;resize:vertical;border-radius:12px;font-size:calc(14px * var(--fs));line-height:1.45}
+.sadd .pill-btn{height:auto;min-height:40px;flex:none}
+.serr.ok{color:var(--muted)}
 .serr{margin:-6px 0 0;font-size:calc(12px * var(--fs));font-weight:600;color:#d23a3a}
 .shead,.srow2{display:grid;grid-template-columns:34px minmax(0,1fr) 64px 44px 62px 34px;gap:8px;align-items:center}
 .sdone{height:32px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.04em;white-space:nowrap}
@@ -846,7 +847,7 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
     <h3 id="sTitle">과목 관리</h3>
     <p class="psub">이름을 바꾸면 그 과목의 할 일도 모두 함께 바뀌어요. 줄임말은 캘린더 막대 앞에 보여요.</p>
     <form class="sadd" id="sAddForm">
-      <input id="sNew" maxlength="20" autocomplete="off" placeholder="새 과목 이름 (예: 해부학)" aria-label="새 과목 이름">
+      <textarea id="sNew" rows="2" autocomplete="off" placeholder="과목 이름 (여러 개는 줄바꿈이나 쉼표로)&#10;예: 해부학, 생리학, 신경과학" aria-label="새 과목 이름 (여러 개 가능)"></textarea>
       <button class="pill-btn primary" type="submit">+ 추가</button>
     </form>
     <p class="serr" id="sErr" hidden></p>
@@ -1752,14 +1753,34 @@ function splitSubject(title) {
   return m && rest ? { subject: m[1], title: rest } : { subject: '', title: title.trim() };
 }
 const SUBJ_DEF = { '임상신경학': ['#3b57e0', '신경'], '신경물치1': ['#12a594', '물치'], '운동치료학': ['#f76b15', '운치'], '임상운동학': ['#8e4ec6', '운동'], '전기광선': ['#d6409f', '전기'], '전체': ['#9a9aa0', '전체'], '기타과목': ['#9a9aa0', '기타'] };
-const SUBJ_PALETTE = ['#0090ff', '#30a46c', '#e5484d', '#f5b400', '#1b1b1b', '#3b57e0', '#12a594', '#f76b15', '#8e4ec6', '#d6409f'];
 state.subjects = state.subjects || {};
+// 흰 바탕에서도 글자가 잘 보이는 서로 다른 색들
+const SUBJ_COLORS = ['#e5484d', '#f76b15', '#c98a00', '#30a46c', '#12a594', '#0090ff', '#3b57e0', '#8e4ec6', '#d6409f', '#a35829', '#5a7a1e', '#0d74ce', '#c2298a', '#6e56cf', '#e54666', '#2b9a66', '#b5651d', '#4f6bed'];
+function hslHex(h, sat, l) {
+  sat /= 100; l /= 100;
+  const f = n => { const k = (n + h / 30) % 12, a = sat * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, '0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
+// 아직 아무 과목도 쓰지 않은 색 중에서 무작위로, 다 쓰면 새 색을 만들어요
+function pickSubjColor() {
+  const used = new Set(Object.values(state.subjects).map(v => (v.color || '').toLowerCase()));
+  const free = SUBJ_COLORS.filter(c => !used.has(c));
+  if (free.length) return free[Math.floor(Math.random() * free.length)];
+  return hslHex(Math.floor(Math.random() * 360), 62, 45);
+}
+// 다른 과목과 겹치지 않는 두 글자 줄임말
+function uniqueAb(name) {
+  const used = new Set(Object.values(state.subjects).map(v => v.ab));
+  const b = name.replace(/[\s\d\[\]()]/g, '') || name;
+  const cands = [b.slice(0, 2), b[0] + (b[2] || ''), b[0] + b[b.length - 1], b.slice(1, 3)].filter(x => x && x.length >= 1);
+  for (const c of cands) if (!used.has(c)) return c;
+  for (let i = 2; ; i++) if (!used.has(b.slice(0, 2) + i)) return b.slice(0, 2) + i;
+}
 function ensureSubject(name) {
   if (!name) return null;
   if (!state.subjects[name]) {
     const def = SUBJ_DEF[name];
-    const n = Object.keys(state.subjects).filter(k => !SUBJ_DEF[k]).length;
-    state.subjects[name] = { color: def ? def[0] : SUBJ_PALETTE[n % SUBJ_PALETTE.length], ab: def ? def[1] : name.replace(/[\s\d]/g, '').slice(0, 2) || name.slice(0, 2) };
+    state.subjects[name] = { color: def ? def[0] : pickSubjColor(), ab: def ? def[1] : uniqueAb(name) };
   }
   return state.subjects[name];
 }
@@ -3030,7 +3051,7 @@ function renderSubjects() {
   }
   $('#sList').innerHTML = h;
 }
-function subjErr(msg) { $('#sErr').textContent = msg; $('#sErr').hidden = !msg; }
+function subjErr(msg) { $('#sErr').textContent = msg; $('#sErr').hidden = !msg; if (!msg) $('#sErr').classList.remove('ok'); }
 function openSubjects() { subjErr(''); renderSubjects(); $('#smodal').hidden = false; setTimeout(() => $('#sNew').focus(), 30); }
 function closeSubjects() { $('#smodal').hidden = true; }
 $('#subjOpen').onclick = openSubjects;
@@ -3038,15 +3059,31 @@ $('#cSubjOpen').onclick = () => { closeColors(); openSubjects(); };
 $('#sDone').onclick = closeSubjects;
 $('#smodal').addEventListener('click', e => { if (e.target.id === 'smodal') closeSubjects(); });
 
+// 여러 과목을 한꺼번에: 줄바꿈 · 쉼표 · / · · · ; 로 나누고, 앞의 번호·글머리표는 떼요
+function splitSubjects(text) {
+  const out = [];
+  text.split(/[\n,，、/·;|\t]+/).forEach(x => {
+    const n = cleanSubj(x.replace(/^\s*(?:[-*•▪◦●○]|\d{1,2}[.)])\s*/, '')).slice(0, 20);
+    if (n && !out.includes(n)) out.push(n);
+  });
+  return out;
+}
 $('#sAddForm').addEventListener('submit', e => {
   e.preventDefault();
-  const n = cleanSubj($('#sNew').value);
-  if (!n) { $('#sNew').focus(); return; }
-  if (state.subjects[n]) { subjErr(`'${n}' 과목은 이미 있어요.`); return; }
-  subjErr('');
-  ensureSubject(n);
+  const names = splitSubjects($('#sNew').value);
+  if (!names.length) { $('#sNew').focus(); return; }
+  const added = [], dup = [];
+  names.forEach(n => { if (state.subjects[n]) dup.push(n); else { ensureSubject(n); added.push(n); } });
+  $('#sErr').classList.toggle('ok', added.length > 0);
+  subjErr([added.length ? `${added.length}개 추가했어요.` : '', dup.length ? `이미 있는 과목: ${dup.join(', ')}` : ''].filter(Boolean).join(' '));
+  if (!added.length) return;
   $('#sNew').value = '';
   save(); render(); renderSubjects();
+  const rows = document.querySelectorAll('#sList .srow2:not(.fin)');
+  rows[rows.length - 1]?.scrollIntoView({ block: 'nearest' });
+});
+$('#sNew').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#sAddForm').requestSubmit(); }
 });
 // 색과 줄임말은 바로 반영
 $('#sList').addEventListener('input', e => {
