@@ -349,6 +349,32 @@ main{flex:1;min-height:0;position:relative}
 body.fwin-moving{user-select:none;-webkit-user-select:none}
 body.fwin-moving .fwin-body{pointer-events:none}
 #qmodal{z-index:2100}
+.dumpbtn{display:flex;align-items:center;gap:8px}
+.dumpbtn svg{width:17px;height:17px;flex:none}
+.dumpbtn b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--blue);color:#fff;font-size:11px;letter-spacing:0;display:grid;place-items:center}
+.dumpbtn b[hidden]{display:none}
+.dump-body{display:flex;flex-direction:column;gap:10px;padding:14px}
+.dump-form{display:flex;gap:8px;align-items:stretch}
+.dump-form textarea{flex:1;min-width:0;resize:none;border:1px solid var(--border);padding:9px 11px;font:inherit;font-size:14px;line-height:1.45;background:var(--surface);color:var(--text)}
+.dump-form textarea:focus{outline:none;border-color:var(--blue)}
+.dump-form .pill-btn{height:auto;padding:0 14px}
+.dump-hint{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.dump-list{display:flex;flex-direction:column;gap:8px}
+.ditem{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 4px 4px 8px;border:1px solid var(--border);background:var(--card);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.ditem:hover{border-color:var(--text)}
+.ditem .dgrip{display:flex;color:var(--muted);flex:none}
+.ditem .dgrip svg{width:13px;height:13px}
+.ditem .dtext{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere;cursor:text}
+.ditem .dtext .dsub{font-size:10.5px;font-weight:800;letter-spacing:.08em;margin-right:6px}
+.ditem input{flex:1;min-width:0;height:34px;border:1px solid var(--blue);padding:0 8px;font:inherit;font-size:14px;background:var(--surface);color:var(--text)}
+.ditem .dsend{flex:none;height:30px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;white-space:nowrap}
+.ditem .dsend:hover{background:var(--blue);color:#fff}
+.ditem .ddel{flex:none;width:30px;height:30px;display:grid;place-items:center;color:var(--muted)}
+.ditem .ddel:hover{color:#d23a3a}
+.ditem .ddel svg{width:15px;height:15px}
+.dghost{position:fixed;z-index:2050;pointer-events:none;margin:0;box-shadow:6px 6px 0 var(--blue);transform:rotate(-1.5deg);opacity:.95}
+body.dumping #dumpWin{opacity:.12;pointer-events:none;transition:opacity .15s}
+.dump-empty{padding:18px 4px;font-size:13px;color:var(--muted);text-align:center}
 .sadd{display:flex;gap:8px}
 .sheet .sadd input{flex:1;height:40px}
 .sadd .pill-btn{height:40px;flex:none}
@@ -420,6 +446,8 @@ body.solo #timerSlot{height:100%}
   .cal-top h2,#calToday{display:none}
   .cal-top .seg button{height:34px;padding:0 10px}
   #calAdd{height:34px;padding:0 12px}
+  .dumpbtn{height:34px;padding:0 10px}
+  .dumpbtn .dl{display:none}
   .view{padding:12px 12px 12px;overflow-y:auto}
   #view-matrix,#view-flow{grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
   .side .drop-list{max-height:55vh}
@@ -498,6 +526,7 @@ body.solo #timerSlot{height:100%}
           <button type="button" data-f="todo">할 일</button>
         </div>
         <button class="pill-btn" id="calToday">오늘</button>
+        <button class="pill-btn dumpbtn" id="dumpOpen" title="브레인 덤프: 떠오르는 할 일을 일단 적어두기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5a3 3 0 00-5 2.3 3 3 0 00-.5 5.4A3.2 3.2 0 007 17h0a3 3 0 005 1.8V5.6A3 3 0 009 4.5z"/><path d="M15 4.5a3 3 0 015 2.3 3 3 0 01.5 5.4A3.2 3.2 0 0117 17h0a3 3 0 01-5 1.8"/></svg><span class="dl">브레인 덤프</span><b id="dumpCount" hidden>0</b></button>
         <button class="pill-btn primary" id="calAdd">+ 추가</button>
       </div>
       <div class="cal-dow"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
@@ -559,6 +588,23 @@ body.solo #timerSlot{height:100%}
   <div class="fwin-grip" data-grip="r" title="크기 조절"></div>
 </div>
 <div id="timerPark" hidden></div>
+
+<div class="fwin" id="dumpWin" role="dialog" aria-label="브레인 덤프" hidden>
+  <div class="fwin-bar" data-fbar>
+    <span class="ttl">BRAIN DUMP</span>
+    <button id="dumpClose" aria-label="브레인 덤프 닫기" title="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="fwin-body dump-body">
+    <form class="dump-form" id="dumpForm">
+      <textarea id="dumpIn" rows="2" placeholder="떠오르는 걸 적고 Enter" aria-label="브레인 덤프 입력"></textarea>
+      <button class="pill-btn primary" type="submit">추가</button>
+    </form>
+    <p class="dump-hint">여러 줄을 붙여넣으면 한 줄씩 들어가요. 항목을 캘린더 날짜로 끌어다 놓으면 그날 할 일이 되고, 글자를 누르면 고칠 수 있어요.</p>
+    <div class="dump-list" id="dumpList"></div>
+  </div>
+  <div class="fwin-grip l" data-grip="l" title="크기 조절"></div>
+  <div class="fwin-grip" data-grip="r" title="크기 조절"></div>
+</div>
 <button class="solo-exit" id="soloOff" aria-label="타이머만 보기 끝내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>나가기</span></button>
 <div class="solo-tip" id="soloTip" aria-hidden="true">화면을 누르면 시작 · 일시정지 · Esc로 나가기</div>
 
@@ -1504,8 +1550,8 @@ function load() {
 }
 let savedTimer;
 function persist() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
 }
@@ -1863,6 +1909,7 @@ function renderCalendar() {
     wrap.append(week);
   });
   renderCalDay();
+  if (typeof renderDump === 'function' && state.dump) renderDump();
   // 컴퓨터: 달력 칸 안에서, 폰: 캘린더 화면 전체(아래 목록 포함)가 스크롤
   attachScrollbar(wrap);
   attachScrollbar($('#view-calendar'));
@@ -2191,7 +2238,7 @@ $('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isCo
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (dayPop) closeDayPop(); else if ($('#tools').classList.contains('open')) setTools(false); else if (!$('#smodal').hidden) closeSubjects(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal(); else if (document.body.classList.contains('solo')) exitSolo();
+  if (!$('#qmodal').hidden) $('#qNo').click(); else if (dumpOpen() && $('#dumpWin').contains(document.activeElement)) setDump(false); else if (menuEl) closeMenu(); else if (dayPop) closeDayPop(); else if ($('#tools').classList.contains('open')) setTools(false); else if (!$('#smodal').hidden) closeSubjects(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal(); else if (document.body.classList.contains('solo')) exitSolo();
 });
 
 
@@ -2966,8 +3013,182 @@ $('#sList').addEventListener('click', async e => {
   save(); render(); renderSubjects();
 });
 
+/* ---------- 브레인 덤프: 떠오르는 할 일을 일단 적고, 캘린더 날짜로 끌어다 놓기 ---------- */
+state.dump = Array.isArray(state.dump) ? state.dump : [];
+let fwinZ = 1800;
+// 떠 있는 창 공통: 제목줄로 옮기기, 아래 모서리로 크기 조절, 누르면 맨 앞으로
+function makeFloat(win, key, defaults) {
+  const MIN_W = 260, MIN_H = 220;
+  const fit = () => {
+    const vw = innerWidth, vh = innerHeight;
+    let r = state[key];
+    if (!r || !(r.w > 0)) r = state[key] = defaults(vw, vh);
+    r.w = Math.max(Math.min(MIN_W, vw - 16), Math.min(r.w, vw - 16));
+    r.h = Math.max(Math.min(MIN_H, vh - 16), Math.min(r.h, vh - 16));
+    r.x = Math.min(Math.max(8, r.x), vw - r.w - 8);
+    r.y = Math.min(Math.max(8, r.y), vh - r.h - 8);
+    Object.assign(win.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  };
+  let d = null;
+  win.addEventListener('pointerdown', () => { win.style.zIndex = ++fwinZ; }, true);
+  win.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('[data-grip]'), bar = !grip && e.target.closest('[data-fbar]');
+    if (!grip && !bar) return;
+    if (bar && e.target.closest('button')) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    const r = state[key];
+    d = { mode: grip ? grip.dataset.grip : 'move', sx: e.clientX, sy: e.clientY, x: r.x, y: r.y, w: r.w, h: r.h, pid: e.pointerId };
+    e.target.setPointerCapture(e.pointerId);
+    document.body.classList.add('fwin-moving');
+  });
+  win.addEventListener('pointermove', e => {
+    if (!d || e.pointerId !== d.pid) return;
+    const dx = e.clientX - d.sx, dy = e.clientY - d.sy, r = state[key];
+    if (d.mode === 'move') { r.x = d.x + dx; r.y = d.y + dy; }
+    else {
+      r.h = Math.max(MIN_H, d.h + dy);
+      if (d.mode === 'r') r.w = Math.max(MIN_W, d.w + dx);
+      else { r.w = Math.max(MIN_W, d.w - dx); r.x = d.x + d.w - r.w; }
+    }
+    fit();
+  });
+  const end = e => { if (!d || e.pointerId !== d.pid) return; d = null; document.body.classList.remove('fwin-moving'); persist(); };
+  win.addEventListener('pointerup', end);
+  win.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => { if (!win.hidden) fit(); });
+  return { fit };
+}
+$('#timerWin').addEventListener('pointerdown', () => { $('#timerWin').style.zIndex = ++fwinZ; }, true);
+
+const dumpFloat = makeFloat($('#dumpWin'), 'dumpWin', (vw, vh) => vw <= 900
+  ? { w: vw - 16, h: Math.min(420, Math.round(vh * 0.48)), x: 8, y: vh - Math.min(420, Math.round(vh * 0.48)) - 8 }
+  : { w: 340, h: Math.min(560, vh - 140), x: vw - 360, y: 120 });
+const dumpOpen = () => !$('#dumpWin').hidden;
+function setDump(open) {
+  $('#dumpWin').hidden = !open;
+  $('#dumpOpen').setAttribute('aria-pressed', open);
+  if (open) { dumpFloat.fit(); renderDump(); setTimeout(() => $('#dumpIn').focus(), 30); }
+}
+$('#dumpOpen').onclick = () => setDump(!dumpOpen());
+$('#dumpClose').onclick = () => setDump(false);
+
+function dumpLabel(text) {
+  const x = splitSubject(text), sj = x.subject && state.subjects[x.subject];
+  return (x.subject ? `<span class="dsub" style="color:${sj ? sj.color : 'var(--muted)'}">${esc(x.subject)}</span>` : '') + esc(x.title);
+}
+function renderDump() {
+  const n = state.dump.length;
+  $('#dumpCount').hidden = !n;
+  $('#dumpCount').textContent = n;
+  if (!dumpOpen()) return;
+  const d = parse(state.date), to = `→ ${d.getMonth() + 1}/${d.getDate()}`;
+  $('#dumpList').innerHTML = n ? state.dump.map(it => `
+    <div class="ditem" data-did="${it.id}">
+      <span class="dgrip">${I.grip}</span>
+      <span class="dtext" data-dedit>${dumpLabel(it.text)}</span>
+      <button type="button" class="dsend" title="${d.getMonth() + 1}월 ${d.getDate()}일 할 일로 보내기">${to}</button>
+      <button type="button" class="ddel" aria-label="지우기">${I.x}</button>
+    </div>`).join('') : '<p class="dump-empty">아직 적은 게 없어요. 머릿속에 있는 걸 전부 꺼내 적어 보세요.</p>';
+}
+function addDump(raw) {
+  const lines = raw.split('\n').map(l => stripMd(l)).filter(Boolean);
+  if (!lines.length) return;
+  lines.forEach(text => state.dump.push({ id: uid(), text }));
+  save(); renderDump();
+  $('#dumpList').lastElementChild?.scrollIntoView({ block: 'nearest' });
+}
+$('#dumpForm').addEventListener('submit', e => { e.preventDefault(); addDump($('#dumpIn').value); $('#dumpIn').value = ''; $('#dumpIn').focus(); });
+$('#dumpIn').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#dumpForm').requestSubmit(); }
+});
+// 덤프 항목 → 할 일
+function dumpToTask(id, date) {
+  const it = state.dump.find(x => x.id === id); if (!it) return;
+  const x = splitSubject(it.text);
+  ensureSubject(x.subject);
+  state.tasks.push(makeTask(x.title, date, { subject: x.subject, order: maxOrder() + 1 }));
+  state.dump = state.dump.filter(v => v !== it);
+  commit(); renderDump();
+}
+$('#dumpList').addEventListener('click', e => {
+  const row = e.target.closest('[data-did]'); if (!row || dumpDrag?.started) return;
+  const id = row.dataset.did;
+  if (e.target.closest('.ddel')) { state.dump = state.dump.filter(v => v.id !== id); save(); renderDump(); return; }
+  if (e.target.closest('.dsend')) { dumpToTask(id, state.date); return; }
+  if (e.target.closest('[data-dedit]')) {
+    // 글자를 누르면 그 자리에서 고치기
+    const it = state.dump.find(v => v.id === id);
+    const inp = document.createElement('input');
+    inp.value = it.text;
+    inp.setAttribute('aria-label', '덤프 항목 고치기');
+    e.target.closest('[data-dedit]').replaceWith(inp);
+    inp.focus(); inp.select();
+    let done = false;
+    const finish = ok => {
+      if (done) return; done = true;
+      const v = stripMd(inp.value);
+      if (ok && v) it.text = v;
+      save(); renderDump();
+    };
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' && !ev.isComposing) { ev.preventDefault(); finish(true); }
+      if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); finish(false); }
+    });
+    inp.addEventListener('blur', () => finish(true));
+  }
+});
+// 끌어서 캘린더 날짜에 놓기
+let dumpDrag = null;
+$('#dumpList').addEventListener('pointerdown', e => {
+  const row = e.target.closest('.ditem');
+  if (!row || e.target.closest('button, input')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  dumpDrag = { row, id: row.dataset.did, sx: e.clientX, sy: e.clientY, pid: e.pointerId, started: false, over: null };
+});
+window.addEventListener('pointermove', e => {
+  const d = dumpDrag;
+  if (!d || e.pointerId !== d.pid) return;
+  if (!d.started) {
+    if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) return;
+    const r = d.row.getBoundingClientRect();
+    d.ox = d.sx - r.left; d.oy = d.sy - r.top;
+    d.g = d.row.cloneNode(true);
+    d.g.classList.add('dghost');
+    Object.assign(d.g.style, { width: r.width + 'px', left: r.left + 'px', top: r.top + 'px' });
+    document.body.append(d.g);
+    d.row.style.opacity = '.35';
+    d.started = true;
+    // 끄는 동안 창을 투명하게 해서 뒤에 가려진 날짜에도 놓을 수 있게
+    document.body.classList.add('dragging', 'dumping');
+  }
+  e.preventDefault();
+  d.g.style.left = (e.clientX - d.ox) + 'px';
+  d.g.style.top = (e.clientY - d.oy) + 'px';
+  // 캘린더 위·아래 끝으로 끌면 스크롤
+  const sc = isPhone() ? $('#view-calendar') : $('#calWeeks');
+  const sr = sc.getBoundingClientRect();
+  if (e.clientY < sr.top + 40) sc.scrollTop -= 14; else if (e.clientY > sr.bottom - 40) sc.scrollTop += 14;
+  const cell = state.view === 'calendar' ? cellAt(e.clientX, e.clientY) : null;
+  if (d.over && d.over !== cell) d.over.classList.remove('drop');
+  d.over = cell;
+  if (cell) cell.classList.add('drop');
+}, { passive: false });
+function endDumpDrag(ok) {
+  const d = dumpDrag; dumpDrag = null;
+  if (!d || !d.started) return;
+  d.g.remove(); d.row.style.opacity = '';
+  document.body.classList.remove('dragging', 'dumping');
+  if (d.over) d.over.classList.remove('drop');
+  justDragged = true; setTimeout(() => { justDragged = false; }, 60);
+  if (ok && d.over) dumpToTask(d.id, d.over.dataset.date);
+}
+window.addEventListener('pointerup', e => { if (dumpDrag && e.pointerId === dumpDrag.pid) endDumpDrag(true); });
+window.addEventListener('pointercancel', e => { if (dumpDrag && e.pointerId === dumpDrag.pid) endDumpDrag(false); });
+
 migrateSubjects();
 render();
+renderDump();
 </script>
 </body>
 </html>
