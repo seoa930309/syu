@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 앱을 켤 때 잠깐 보이는 화면: 밝은 회색 바탕 가운데 dayflow 아이콘 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_background" />
+    <item android:gravity="center" android:width="88dp" android:height="88dp" android:drawable="@mipmap/ic_launcher_round" />
+</layer-list>
