@@ -15,14 +15,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Manrope:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;800&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Manrope:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700;800&family=Share+Tech+Mono&display=swap">
 <style>
+/* 1984대화나눔 본문체 (fonts/ 폴더) */
+@font-face{font-family:"Daehwa";src:url("fonts/daehwa-light.woff2") format("woff2");font-weight:100 300;font-style:normal;font-display:swap}
+@font-face{font-family:"Daehwa";src:url("fonts/daehwa-regular.woff2") format("woff2");font-weight:400 500;font-style:normal;font-display:swap}
+@font-face{font-family:"Daehwa";src:url("fonts/daehwa-bold.woff2") format("woff2");font-weight:600 900;font-style:normal;font-display:swap}
 :root{
   --bg:#e6e6e8; --surface:#ffffff; --panel:#f3f3f4; --card:#ffffff; --chrome:#ffffff;
   --text:#141414; --muted:#8a8a8f; --border:#dcdcdf; --line:#1a1a1a; --rule:#f0f0f1;
   --blue:#3b57e0; --blue-soft:#e4e9fc; --ink:#161616; --ink-card:#242426;
   --row:34px; --head:var(--row);
-  --sans:"Montserrat","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --fs:1;
+  --sans:"Daehwa","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --script:"Kaushan Script","Brush Script MT",cursive;
   font-family:var(--sans);
 }
@@ -53,14 +58,14 @@ body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .titlebar{position:relative;display:flex;align-items:center;gap:10px;background:var(--chrome);border-bottom:1px solid var(--border);padding:10px 20px;flex:none}
 .brand{display:flex;align-items:center;gap:8px;flex:none;margin-right:6px}
 .brand svg{width:15px;height:15px;fill:var(--blue);flex:none}
-.brand .url{font-weight:800;font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--text)}
-.datenav{display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:.08em;flex:none;border:1px solid var(--border);height:34px}
+.brand .url{font-weight:800;font-size:calc(14px * var(--fs));letter-spacing:.3em;text-transform:uppercase;color:var(--text)}
+.datenav{display:flex;align-items:center;font-size:calc(12px * var(--fs));font-weight:600;letter-spacing:.08em;flex:none;border:1px solid var(--border);height:34px}
 .datenav button{height:100%;padding:0 11px;white-space:nowrap}
 .datenav button:hover{color:var(--blue)}
 #dateLabel{border-left:1px solid var(--border);border-right:1px solid var(--border);min-width:118px}
 #dateLabel .sm{display:none}
 .vseg{display:flex;flex:none;border:1px solid var(--border);height:34px}
-.vseg .tab{display:flex;align-items:center;justify-content:center;gap:7px;height:100%;padding:0 13px;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--muted)}
+.vseg .tab{display:flex;align-items:center;justify-content:center;gap:7px;height:100%;padding:0 13px;font-size:calc(10.5px * var(--fs));font-weight:700;letter-spacing:.16em;color:var(--muted)}
 .vseg .tab + .tab{border-left:1px solid var(--border)}
 .vseg .tab svg{width:16px;height:16px;flex:none}
 .vseg .tab:hover{color:var(--text)}
@@ -78,8 +83,8 @@ main{flex:1;min-height:0;position:relative}
 
 /* ---------- task cards ---------- */
 .side{display:flex;flex-direction:column;min-height:0}
-.side-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 14px;margin-bottom:14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
-.side-head b{color:var(--text);font-size:13px;letter-spacing:.05em}
+.side-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 14px;margin-bottom:14px;border-bottom:1px solid var(--line);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
+.side-head b{color:var(--text);font-size:calc(13px * var(--fs));letter-spacing:.05em}
 .drop-list{display:flex;flex-direction:column;gap:10px;min-height:60px;overflow-y:auto;overscroll-behavior:contain;padding:2px;transition:background .15s}
 /* 항상 보이는 스크롤바 (맥·폰에서도) */
 .side,.quad,#view-flow{position:relative}
@@ -95,18 +100,18 @@ main{flex:1;min-height:0;position:relative}
 .q-schedule .sbthumb{background:var(--blue)}
 .side .drop-list{flex:1}
 .drop-list.over{background:var(--blue-soft)}
-.hint{color:inherit;opacity:.6;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:6px 2px}
+.hint{color:inherit;opacity:.6;font-size:calc(11px * var(--fs));font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:6px 2px}
 .drop-list:has(.ph) .hint{display:none}
 
 .card{display:flex;align-items:center;gap:10px;padding:0 8px 0 14px;min-height:58px;border:1px solid var(--border);background:var(--card);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;flex:none;transition:border-color .15s}
 .card:hover{border-color:var(--text)}
 .card .tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;padding:8px 0}
-.card .note{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .title{min-width:0;font-size:15px;font-weight:600;letter-spacing:-.005em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.card .note{font-size:calc(12px * var(--fs));font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .title{min-width:0;font-size:calc(15px * var(--fs));font-weight:600;letter-spacing:-.005em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .card.done .title{text-decoration:line-through;color:var(--muted);font-weight:500}
 .card .grip{display:flex;color:var(--muted)}
 .card .grip svg{width:13px;height:13px}
-.card .num{position:static;padding:0;line-height:inherit;font-size:12px;font-weight:800;color:var(--blue);min-width:14px;margin-left:-4px;letter-spacing:.04em}
+.card .num{position:static;padding:0;line-height:inherit;font-size:calc(12px * var(--fs));font-weight:800;color:var(--blue);min-width:14px;margin-left:-4px;letter-spacing:.04em}
 .acts{display:flex;align-items:center}
 .ic{width:36px;height:36px;display:grid;place-items:center;color:var(--muted)}
 .ic:hover{color:var(--blue)}
@@ -118,7 +123,7 @@ main{flex:1;min-height:0;position:relative}
 .qdot{width:8px;height:8px;flex:none}
 .qdot.do{background:var(--blue)} .qdot.schedule{background:transparent;box-shadow:inset 0 0 0 1.5px var(--blue)} .qdot.delegate{background:var(--text)} .qdot.pass{background:var(--muted)}
 .card.compact{min-height:48px;padding-left:12px}
-.card.compact .title{font-size:14px}
+.card.compact .title{font-size:calc(14px * var(--fs))}
 .card.compact .ic{width:32px;height:32px}
 .card{gap:12px;padding:0 2px 0 12px}
 .card .chk{flex:none;width:22px;height:22px;border:1.5px solid var(--muted);display:grid;place-items:center;color:transparent;transition:background .15s,border-color .15s}
@@ -127,13 +132,13 @@ main{flex:1;min-height:0;position:relative}
 .card.done .chk{background:var(--blue);border-color:var(--blue);color:#fff}
 .card .meta{display:flex;align-items:center;gap:8px;min-width:0}
 .card.done .meta{opacity:.6}
-.subj{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--sc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subj{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:calc(10.5px * var(--fs));font-weight:800;letter-spacing:.12em;color:var(--sc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subj::before{content:"";width:7px;height:7px;background:currentColor;flex:none}
 .favmark{display:flex;flex:none}
 .favmark svg{width:11px;height:11px;fill:var(--blue)}
 .card .more{flex:none}
 .cmenu{position:fixed;z-index:1500;min-width:170px;padding:4px 0;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue);display:flex;flex-direction:column}
-.cmenu button{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;font-size:13px;font-weight:600;text-align:left;white-space:nowrap}
+.cmenu button{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;font-size:calc(13px * var(--fs));font-weight:600;text-align:left;white-space:nowrap}
 .cmenu button:hover,.cmenu button:focus-visible{background:var(--blue-soft);outline:none}
 .cmenu .del{color:#d23a3a}
 .cmenu svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
@@ -141,7 +146,7 @@ main{flex:1;min-height:0;position:relative}
 .ghost{position:fixed;z-index:1000;pointer-events:none;margin:0;border-color:var(--blue)!important;box-shadow:8px 8px 0 var(--blue);transform:rotate(-1.5deg)}
 
 .quick{display:flex;margin-top:16px;border:1px solid var(--text)}
-.quick input{flex:1;min-width:0;height:50px;border:0;padding:0 16px;font-size:14px;background:var(--surface)}
+.quick input{flex:1;min-width:0;height:50px;border:0;padding:0 16px;font-size:calc(14px * var(--fs));background:var(--surface)}
 .quick input::placeholder{color:var(--muted);letter-spacing:.04em}
 .quick button{width:54px;height:50px;background:var(--text);display:grid;place-items:center;color:var(--surface);transition:background .15s}
 .quick button:hover{background:var(--blue);color:#fff}
@@ -153,7 +158,7 @@ main{flex:1;min-height:0;position:relative}
 .quad{display:flex;flex-direction:column;min-height:0;padding:22px 20px 18px;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:-8px}
 .quad.over{outline-color:currentColor}
 .quad header{display:flex;align-items:center;gap:6px;margin-bottom:16px}
-.quad h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.quad h3{margin:0;font-size:calc(17px * var(--fs));font-weight:800;letter-spacing:-.01em;flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .quad h3 svg{width:19px;height:19px;flex:none}
 .quad .drop-list{flex:1}
 .q-do{background:var(--blue);color:#fff}
@@ -165,7 +170,7 @@ main{flex:1;min-height:0;position:relative}
 .q-delegate .card{background:var(--ink-card);color:#f1f1f2;border-color:#333}
 .q-delegate .card .ic{color:#9a9aa0}
 .q-delegate .card .chk,.slot:nth-child(3) .card .chk{border-color:#77777d}
-.tag{font-size:9.5px;font-weight:700;letter-spacing:.14em;padding:5px 8px;border:1px solid currentColor;white-space:nowrap;opacity:.9}
+.tag{font-size:calc(9.5px * var(--fs));font-weight:700;letter-spacing:.14em;padding:5px 8px;border:1px solid currentColor;white-space:nowrap;opacity:.9}
 .t-nimp,.t-nurg{opacity:.5}
 
 /* ---------- flow ---------- */
@@ -176,44 +181,44 @@ main{flex:1;min-height:0;position:relative}
 .slot:nth-child(3) .card{background:var(--ink-card);color:#f1f1f2;border-color:#333}
 .slot.over{outline-color:var(--blue)}
 .slot header{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
-.slot h3{margin:0;font-size:20px;color:var(--blue);font-weight:800}
-.slot .time{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.16em;flex:1}
-.slot .cnt{font-weight:800;font-size:15px}
+.slot h3{margin:0;font-size:calc(20px * var(--fs));color:var(--blue);font-weight:800}
+.slot .time{color:var(--muted);font-size:calc(11px * var(--fs));font-weight:600;letter-spacing:.16em;flex:1}
+.slot .cnt{font-weight:800;font-size:calc(15px * var(--fs))}
 .slot .drop-list{flex:1;min-height:90px}
 
 /* ---------- calendar ---------- */
 #view-calendar{grid-template-rows:auto auto 1fr}
-.cal-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-height:52px}
+.cal-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-height:calc(52px * var(--fs))}
 .cal-top h2{margin:0;display:flex;align-items:center;gap:16px;font-weight:400}
-.cal-top .script{font-family:var(--script);color:var(--blue);font-size:44px;line-height:1;transform:rotate(-5deg) translateY(-2px);letter-spacing:-.01em}
-.cal-top .yr{font-size:12px;font-weight:700;letter-spacing:.28em;color:var(--text);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
+.cal-top .script{font-family:var(--script);color:var(--blue);font-size:calc(44px * var(--fs));line-height:1;transform:rotate(-5deg) translateY(-2px);letter-spacing:-.01em}
+.cal-top .yr{font-size:calc(12px * var(--fs));font-weight:700;letter-spacing:.28em;color:var(--text);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
 .cal-top .grow{flex:1}
-.pill-btn{height:38px;padding:0 18px;border:1px solid var(--text);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--surface)}
+.pill-btn{height:38px;padding:0 18px;border:1px solid var(--text);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--surface)}
 .pill-btn:hover{border-color:var(--blue);color:var(--blue)}
 .pill-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
 .pill-btn.primary:hover{color:#fff;filter:brightness(1.08)}
-.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted);text-align:center;padding-bottom:10px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);font-size:calc(10.5px * var(--fs));font-weight:700;letter-spacing:.24em;color:var(--muted);text-align:center;padding-bottom:10px}
 .cal-dow div:first-child{color:var(--blue)}
 .cal-weeks{overflow-y:auto;overscroll-behavior:contain;border-bottom:1px solid var(--line);min-height:0}
 #view-calendar{position:relative}
 .cal-dow,#calWeeks.hasbar{padding-right:14px}
 #view-calendar.hasbar{padding-right:32px}
-.cal-weeks.tight .ev{font-size:11.5px;padding:0 6px}
+.cal-weeks.tight .ev{font-size:calc(11.5px * var(--fs));padding:0 6px}
 .cal-weeks.tight .evchk{width:11px;height:11px;margin-right:5px}
-.cal-weeks.tight .evtm{font-size:10px}
-.moren{position:relative;z-index:2;align-self:center;justify-self:start;margin:0 4px;padding:0 6px;height:calc(var(--row) - 8px);min-height:14px;font-size:11px;font-weight:800;color:var(--blue);white-space:nowrap}
+.cal-weeks.tight .evtm{font-size:calc(10px * var(--fs))}
+.moren{position:relative;z-index:2;align-self:center;justify-self:start;margin:0 4px;padding:0 6px;height:calc(var(--row) - 8px);min-height:14px;font-size:calc(11px * var(--fs));font-weight:800;color:var(--blue);white-space:nowrap}
 .moren:hover{background:var(--blue-soft)}
 .daypop{position:fixed;z-index:1700;width:280px;max-width:calc(100vw - 16px);max-height:min(60vh,420px);display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue)}
-.daypop header{display:flex;align-items:center;gap:8px;padding:10px 8px 10px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:800}
+.daypop header{display:flex;align-items:center;gap:8px;padding:10px 8px 10px 14px;border-bottom:1px solid var(--line);font-size:calc(13px * var(--fs));font-weight:800}
 .daypop header span{flex:1}
 .daypop header button{width:28px;height:28px;display:grid;place-items:center;color:var(--muted)}
 .daypop header svg{width:15px;height:15px}
 .dp-list{overflow-y:auto;padding:4px 0}
-.dp-row{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:4px 14px;text-align:left;font-size:13px;font-weight:600}
+.dp-row{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:4px 14px;text-align:left;font-size:calc(13px * var(--fs));font-weight:600}
 .dp-row:hover{background:var(--blue-soft)}
 .dp-row i{flex:none;width:10px;height:10px}
 .dp-row i.ev{border-radius:50%}
-.dp-row .dp-tm{flex:none;font-size:11px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+.dp-row .dp-tm{flex:none;font-size:calc(11px * var(--fs));font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
 .dp-row .dp-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dp-row.done .dp-t{text-decoration:line-through;color:var(--muted)}
 .daypop .pill-btn{margin:6px 14px 12px;align-self:flex-start;height:32px}
@@ -223,10 +228,10 @@ main{flex:1;min-height:0;position:relative}
 .cell:first-child{border-left:0}
 .cell:hover{background-color:var(--blue-soft)}
 .cell.sel{background-color:var(--blue-soft)}
-.num{position:absolute;top:8px;right:8px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--text);font-variant-numeric:tabular-nums;line-height:20px;padding:0 5px}
+.num{position:absolute;top:8px;right:8px;font-size:calc(12px * var(--fs));font-weight:700;letter-spacing:.04em;color:var(--text);font-variant-numeric:tabular-nums;line-height:20px;padding:0 5px}
 .cell.out .num{color:var(--muted);opacity:.45}
 .cell.today .num{background:var(--blue);color:#fff}
-.ev{position:relative;z-index:1;align-self:center;height:calc(var(--row) - 8px);margin:0 4px;padding:0 9px;display:flex;align-items:center;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.ev{position:relative;z-index:1;align-self:center;height:calc(var(--row) - 8px);margin:0 4px;padding:0 9px;display:flex;align-items:center;font-size:calc(13px * var(--fs));font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .ev{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .evchk{position:relative;flex:none;width:14px;height:14px;margin-right:7px;border:1.5px solid currentColor;display:grid;place-items:center;opacity:.85}
 .evchk::before{content:"";position:absolute;inset:-8px}
@@ -240,7 +245,7 @@ main{flex:1;min-height:0;position:relative}
 .ev.l{margin-left:0} .ev.r{margin-right:0}
 .ev.done span{text-decoration:line-through;opacity:.55}
 .ev.sub{box-shadow:inset 3px 0 0 var(--sc)}
-.evab{flex:none;margin-right:6px;font-size:11px;font-weight:800;letter-spacing:.02em}
+.evab{flex:none;margin-right:6px;font-size:calc(11px * var(--fs));font-weight:800;letter-spacing:.02em}
 .cal-day{display:none;flex-direction:column;margin-top:20px}
 .cal-day .drop-list{overflow:visible}
 .cal-day .pill-btn{margin-top:14px;align-self:flex-start}
@@ -250,9 +255,9 @@ main{flex:1;min-height:0;position:relative}
 .modal{position:fixed;inset:0;z-index:2000;background:rgba(10,10,12,.45);display:grid;place-items:center;padding:20px}
 .modal[hidden]{display:none}
 .sheet{width:min(460px,100%);background:var(--surface);border-top:4px solid var(--blue);padding:26px;box-shadow:12px 12px 0 rgba(59,87,224,.25);display:flex;flex-direction:column;gap:14px}
-.sheet h3{margin:0 0 4px;font-weight:800;font-size:19px;color:var(--blue)}
-.sheet label{display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.16em;flex:1;min-width:0}
-.sheet input,.sheet select{height:44px;border:1px solid var(--border);border-radius:0;padding:0 12px;font-size:15px;letter-spacing:0;font-weight:500;color:var(--text);background:var(--surface);width:100%}
+.sheet h3{margin:0 0 4px;font-weight:800;font-size:calc(19px * var(--fs));color:var(--blue)}
+.sheet label{display:flex;flex-direction:column;gap:6px;font-size:calc(10.5px * var(--fs));color:var(--muted);font-weight:700;letter-spacing:.16em;flex:1;min-width:0}
+.sheet input,.sheet select{height:44px;border:1px solid var(--border);border-radius:0;padding:0 12px;font-size:calc(15px * var(--fs));letter-spacing:0;font-weight:500;color:var(--text);background:var(--surface);width:100%}
 .sheet input:focus,.sheet select:focus{border-color:var(--blue)}
 .sheet .row{display:flex;gap:12px}
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
@@ -260,46 +265,46 @@ main{flex:1;min-height:0;position:relative}
 .sw.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
 .btns{display:flex;gap:8px;align-items:center;margin-top:6px}
 .btns .grow{flex:1}
-.danger{color:#d23a3a;font-size:11px;font-weight:700;letter-spacing:.16em;padding:8px 2px}
+.danger{color:#d23a3a;font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.16em;padding:8px 2px}
 
-.saved{position:fixed;right:34px;bottom:28px;z-index:50;font-family:var(--script);font-size:30px;color:var(--blue);transform:rotate(-6deg);opacity:0;transition:opacity .3s}
+.saved{position:fixed;right:34px;bottom:28px;z-index:50;font-family:var(--script);font-size:calc(30px * var(--fs));color:var(--blue);transform:rotate(-6deg);opacity:0;transition:opacity .3s}
 .saved.show{opacity:1}
 .saved svg{display:none}
 
 /* ---------- 일정 vs 할 일 ---------- */
-.pastebtn{flex:none;height:32px;padding:0 12px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.12em;white-space:nowrap}
+.pastebtn{flex:none;height:32px;padding:0 12px;border:1px solid var(--blue);color:var(--blue);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.12em;white-space:nowrap}
 .pastebtn:hover{background:var(--blue);color:#fff}
 .seg{display:flex;border:1px solid var(--border)}
-.seg button{flex:1;height:38px;padding:0 14px;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted);white-space:nowrap}
+.seg button{flex:1;height:38px;padding:0 14px;font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.14em;color:var(--muted);white-space:nowrap}
 .seg button+button{border-left:1px solid var(--border)}
 .seg button.on{background:var(--blue);color:#fff}
 .dayev{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .dayev:empty{display:none}
-.evchip{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;background:var(--ink);color:#fff;border-left:4px solid var(--blue);font-size:13px;font-weight:600;text-align:left}
-.evchip .tm{flex:none;min-width:38px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#a9b6ff;font-variant-numeric:tabular-nums}
+.evchip{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;background:var(--ink);color:#fff;border-left:4px solid var(--blue);font-size:calc(13px * var(--fs));font-weight:600;text-align:left}
+.evchip .tm{flex:none;min-width:38px;font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.08em;color:#a9b6ff;font-variant-numeric:tabular-nums}
 .evchip .tt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .evchip:hover{filter:brightness(1.2)}
 .ev.event{font-weight:700;border-radius:999px}
 .ev.event.l{border-top-left-radius:0;border-bottom-left-radius:0}
 .ev.event.r{border-top-right-radius:0;border-bottom-right-radius:0}
-.evtm{flex:none;margin-right:6px;font-size:11px;font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
+.evtm{flex:none;margin-right:6px;font-size:calc(11px * var(--fs));font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
 .evdot{flex:none;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px}
 .sheet [hidden]{display:none!important}
 .icbtn{width:32px;padding:0;display:grid;place-items:center}
 .icbtn svg{width:18px;height:18px}
-.sheet .flabel{display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.16em}
+.sheet .flabel{display:flex;flex-direction:column;gap:6px;font-size:calc(10.5px * var(--fs));color:var(--muted);font-weight:700;letter-spacing:.16em}
 .sw{position:relative}
-.sw.auto::after{content:"A";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;letter-spacing:0;color:var(--fg,#fff)}
+.sw.auto::after{content:"A";position:absolute;inset:0;display:grid;place-items:center;font-size:calc(12px * var(--fs));font-weight:800;letter-spacing:0;color:var(--fg,#fff)}
 .sw.custom{background:conic-gradient(#e5484d,#f5b400,#30a46c,#12a594,#0090ff,#8e4ec6,#d6409f,#e5484d)}
 .sw.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .crow{display:flex;flex-direction:column;gap:10px;padding:14px 0 4px;border-top:1px solid var(--border)}
-.chead{display:flex;align-items:center;gap:12px;font-size:14px}
+.chead{display:flex;align-items:center;gap:12px;font-size:calc(14px * var(--fs))}
 .chead b{min-width:44px}
-.cprev{display:inline-flex;align-items:center;height:28px;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.cprev{display:inline-flex;align-items:center;height:28px;padding:0 12px;font-size:calc(12.5px * var(--fs));font-weight:700;white-space:nowrap}
 .cprev.event{border-radius:999px}
 .btns{flex-wrap:wrap}
 .sheet.tall{max-height:calc(100vh - 40px);overflow-y:auto}
-.csec{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--blue)}
+.csec{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.2em;color:var(--blue)}
 .swatches.sm{gap:6px}
 .swatches.sm .sw{width:26px;height:26px}
 .sw.auto.q-schedule,.cprev.q-schedule{box-shadow:inset 0 0 0 1px var(--blue)}
@@ -307,20 +312,20 @@ main{flex:1;min-height:0;position:relative}
 
 /* ---------- paste import ---------- */
 .sheet.wide{width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto}
-.psub{margin:-6px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
-.sheet textarea{min-height:180px;border:1px solid var(--border);padding:12px;font:inherit;font-size:14px;line-height:1.5;resize:vertical;background:var(--surface);color:var(--text);width:100%}
+.psub{margin:-6px 0 0;font-size:calc(13px * var(--fs));color:var(--muted);line-height:1.5}
+.sheet textarea{min-height:180px;border:1px solid var(--border);padding:12px;font:inherit;font-size:calc(14px * var(--fs));line-height:1.5;resize:vertical;background:var(--surface);color:var(--text);width:100%}
 .sheet textarea:focus{outline:none;border-color:var(--blue)}
-.pv-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--blue)}
+.pv-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.18em;color:var(--blue)}
 .pv-head b{color:var(--text)}
 .pv-row{display:grid;grid-template-columns:20px 58px 138px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
 .pv-row.off{opacity:.4}
-.pv-row .sheet-in,.sheet .pv-row input{height:34px;font-size:13px;padding:0 8px}
+.pv-row .sheet-in,.sheet .pv-row input{height:34px;font-size:calc(13px * var(--fs));padding:0 8px}
 .sheet .pv-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue)}
-.kbtn{height:30px;font-size:11px;font-weight:700;border:1px solid var(--blue);color:var(--blue)}
+.kbtn{height:30px;font-size:calc(11px * var(--fs));font-weight:700;border:1px solid var(--blue);color:var(--blue)}
 .kbtn.event{background:var(--blue);color:#fff}
-.pv-note{grid-column:4;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-note{grid-column:4;font-size:calc(12px * var(--fs));color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-note em{font-style:normal;color:var(--blue);font-weight:700;margin-right:6px}
-.pv-empty{padding:14px 0;font-size:13px;color:var(--muted)}
+.pv-empty{padding:14px 0;font-size:calc(13px * var(--fs));color:var(--muted)}
 
 /* ---------- timer: floating window + tab ---------- */
 .icbtn{position:relative}
@@ -335,11 +340,11 @@ main{flex:1;min-height:0;position:relative}
 #view-timer.on{display:block;overflow-y:auto;padding:0}
 #timerSlot{min-height:100%}
 .tnote[hidden]{display:none}
-.tnote{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:30px 32px;padding:18px 20px;border:1px dashed var(--blue);background:var(--blue-soft);font-size:14px;font-weight:600}
+.tnote{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:30px 32px;padding:18px 20px;border:1px dashed var(--blue);background:var(--blue-soft);font-size:calc(14px * var(--fs));font-weight:600}
 .fwin{position:fixed;z-index:1800;display:flex;padding-bottom:18px;flex-direction:column;min-width:0;background:var(--surface);border:1px solid var(--text);box-shadow:10px 10px 0 rgba(59,87,224,.28)}
 .fwin[hidden]{display:none}
 .fwin-bar{flex:none;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 14px;background:var(--text);color:var(--surface);cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}
-.fwin-bar .ttl{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.22em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fwin-bar .ttl{flex:1;min-width:0;font-size:calc(11px * var(--fs));font-weight:800;letter-spacing:.22em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fwin-bar button{width:32px;height:30px;display:grid;place-items:center;color:inherit;opacity:.8}
 .fwin-bar button:hover{opacity:1}
 .fwin-bar svg{width:16px;height:16px}
@@ -349,63 +354,71 @@ main{flex:1;min-height:0;position:relative}
 body.fwin-moving{user-select:none;-webkit-user-select:none}
 body.fwin-moving .fwin-body{pointer-events:none}
 #qmodal{z-index:2100}
+.fsrow{display:flex;align-items:center;gap:10px}
+.sheet .fsrow input[type=range]{flex:1;min-width:0;height:28px;padding:0;border:0;accent-color:var(--blue);background:none}
+.fsa{flex:none;font-weight:700;color:var(--muted)}
+.fsa.small{font-size:12px}
+.fsa.big{font-size:20px}
+.fsrow output{flex:none;min-width:44px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.fsrow .pill-btn{flex:none;height:32px;padding:0 12px}
+.fsprev{margin:0;font-size:calc(14px * var(--fs));color:var(--text)}
 .dumpbtn{display:flex;align-items:center;gap:8px}
 .dumpbtn svg{width:17px;height:17px;flex:none}
-.dumpbtn b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--blue);color:#fff;font-size:11px;letter-spacing:0;display:grid;place-items:center}
+.dumpbtn b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--blue);color:#fff;font-size:calc(11px * var(--fs));letter-spacing:0;display:grid;place-items:center}
 .dumpbtn b[hidden]{display:none}
 .dump-body{display:flex;flex-direction:column;gap:10px;padding:14px}
 .dump-form{display:flex;gap:8px;align-items:stretch}
-.dump-form textarea{flex:1;min-width:0;resize:none;border:1px solid var(--border);padding:9px 11px;font:inherit;font-size:14px;line-height:1.45;background:var(--surface);color:var(--text)}
+.dump-form textarea{flex:1;min-width:0;resize:none;border:1px solid var(--border);padding:9px 11px;font:inherit;font-size:calc(14px * var(--fs));line-height:1.45;background:var(--surface);color:var(--text)}
 .dump-form textarea:focus{outline:none;border-color:var(--blue)}
 .dump-form .pill-btn{height:auto;padding:0 14px}
-.dump-hint{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.dump-hint{margin:0;font-size:calc(12px * var(--fs));line-height:1.5;color:var(--muted)}
 .dump-list{display:flex;flex-direction:column;gap:8px}
 .ditem{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 4px 4px 8px;border:1px solid var(--border);background:var(--card);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .ditem:hover{border-color:var(--text)}
 .ditem .dgrip{display:flex;color:var(--muted);flex:none}
 .ditem .dgrip svg{width:13px;height:13px}
-.ditem .dtext{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere;cursor:text}
-.ditem .dtext .dsub{font-size:10.5px;font-weight:800;letter-spacing:.08em;margin-right:6px}
-.ditem input{flex:1;min-width:0;height:34px;border:1px solid var(--blue);padding:0 8px;font:inherit;font-size:14px;background:var(--surface);color:var(--text)}
-.ditem .dsend{flex:none;height:30px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;white-space:nowrap}
+.ditem .dtext{flex:1;min-width:0;font-size:calc(14px * var(--fs));font-weight:600;line-height:1.35;overflow-wrap:anywhere;cursor:text}
+.ditem .dtext .dsub{font-size:calc(10.5px * var(--fs));font-weight:800;letter-spacing:.08em;margin-right:6px}
+.ditem input{flex:1;min-width:0;height:34px;border:1px solid var(--blue);padding:0 8px;font:inherit;font-size:calc(14px * var(--fs));background:var(--surface);color:var(--text)}
+.ditem .dsend{flex:none;height:30px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:calc(11px * var(--fs));font-weight:700;white-space:nowrap}
 .ditem .dsend:hover{background:var(--blue);color:#fff}
 .ditem .ddel{flex:none;width:30px;height:30px;display:grid;place-items:center;color:var(--muted)}
 .ditem .ddel:hover{color:#d23a3a}
 .ditem .ddel svg{width:15px;height:15px}
 .dghost{position:fixed;z-index:2050;pointer-events:none;margin:0;box-shadow:6px 6px 0 var(--blue);transform:rotate(-1.5deg);opacity:.95}
 body.dumping #dumpWin{opacity:.12;pointer-events:none;transition:opacity .15s}
-.dump-empty{padding:18px 4px;font-size:13px;color:var(--muted);text-align:center}
+.dump-empty{padding:18px 4px;font-size:calc(13px * var(--fs));color:var(--muted);text-align:center}
 .sadd{display:flex;gap:8px}
 .sheet .sadd input{flex:1;height:40px}
 .sadd .pill-btn{height:40px;flex:none}
-.serr{margin:-6px 0 0;font-size:12px;font-weight:600;color:#d23a3a}
+.serr{margin:-6px 0 0;font-size:calc(12px * var(--fs));font-weight:600;color:#d23a3a}
 .shead,.srow2{display:grid;grid-template-columns:34px minmax(0,1fr) 64px 44px 62px 34px;gap:8px;align-items:center}
-.sdone{height:32px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.sdone{height:32px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.04em;white-space:nowrap}
 .sdone:hover{background:var(--blue);color:#fff}
-.ssec{display:flex;align-items:center;gap:8px;margin-top:18px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--muted);width:100%;text-align:left}
+.ssec{display:flex;align-items:center;gap:8px;margin-top:18px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.16em;color:var(--muted);width:100%;text-align:left}
 .ssec b{color:var(--text)}
 .ssec .car{margin-left:auto;transition:transform .15s}
 .ssec[aria-expanded="true"] .car{transform:rotate(180deg)}
 .srow2.fin .sw,.srow2.fin .sname2,.srow2.fin .sab2{opacity:.55}
 .srow2.fin .sdone{border-color:var(--border);color:var(--muted)}
 .srow2.fin .sdone:hover{border-color:var(--text);color:var(--text);background:none}
-.shead{padding-bottom:8px;border-bottom:1px solid var(--line);font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.shead{padding-bottom:8px;border-bottom:1px solid var(--line);font-size:calc(10px * var(--fs));font-weight:700;letter-spacing:.14em;color:var(--muted)}
 .slist{display:flex;flex-direction:column}
 .srow2{padding:7px 0;border-bottom:1px solid var(--border)}
 .srow2 .sw{width:34px;height:34px}
-.sheet .srow2 input[type=text]{height:36px;font-size:14px;padding:0 10px}
+.sheet .srow2 input[type=text]{height:36px;font-size:calc(14px * var(--fs));padding:0 10px}
 .sheet .srow2 .sname2{font-weight:700;color:var(--sc)}
-.srow2 .scount{font-size:12px;font-weight:700;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.srow2 .scount{font-size:calc(12px * var(--fs));font-weight:700;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .srow2 .sdel{width:34px;height:34px;display:grid;place-items:center;color:var(--muted)}
 .srow2 .sdel:hover{color:#d23a3a}
 .srow2 .sdel svg{width:16px;height:16px}
-.sempty{padding:16px 0;font-size:13px;color:var(--muted)}
+.sempty{padding:16px 0;font-size:calc(13px * var(--fs));color:var(--muted)}
 #view-timer{position:relative}
 .solo-btn{position:absolute;z-index:5;top:14px;right:16px;display:flex;align-items:center;gap:8px;height:34px;padding:0 14px}
 .solo-btn svg{width:15px;height:15px}
-.solo-exit{display:none;position:fixed;z-index:1900;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));align-items:center;gap:6px;height:34px;padding:0 12px;background:rgba(255,255,255,.14);color:#f5f5f5;font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.8;transition:opacity .4s}
+.solo-exit{display:none;position:fixed;z-index:1900;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));align-items:center;gap:6px;height:34px;padding:0 12px;background:rgba(255,255,255,.14);color:#f5f5f5;font-size:calc(11px * var(--fs));font-weight:700;letter-spacing:.14em;opacity:.8;transition:opacity .4s}
 .solo-exit:hover,.solo-exit:focus-visible{opacity:1;background:rgba(255,255,255,.24)}
-.solo-tip{display:none;position:fixed;z-index:1900;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:8px 14px;background:rgba(255,255,255,.12);color:#d9d9d9;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+.solo-tip{display:none;position:fixed;z-index:1900;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:8px 14px;background:rgba(255,255,255,.12);color:#d9d9d9;font-size:calc(12px * var(--fs));font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .4s}
 body.solo .solo-tip{display:block}
 body.solo.idle .solo-exit:not(:focus-visible),body.solo.idle .solo-tip{opacity:0}
 body.solo.idle{cursor:none}
@@ -437,7 +450,7 @@ body.solo #timerSlot{height:100%}
   #moreBtn{display:grid}
   .tools{display:none;position:absolute;z-index:1600;top:calc(100% + 4px);right:8px;flex-direction:column;align-items:stretch;gap:0;min-width:200px;padding:4px 0;background:var(--surface);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue)}
   .tools.open{display:flex}
-  .tools .pastebtn,.tools .icbtn{width:auto;height:44px;border:0;display:flex;align-items:center;gap:12px;padding:0 16px;color:var(--text);font-size:13px;letter-spacing:0;justify-content:flex-start}
+  .tools .pastebtn,.tools .icbtn{width:auto;height:44px;border:0;display:flex;align-items:center;gap:12px;padding:0 16px;color:var(--text);font-size:calc(13px * var(--fs));letter-spacing:0;justify-content:flex-start}
   .tools .pastebtn:hover{background:var(--blue-soft);color:var(--text)}
   .tools .pastebtn[hidden]{display:none}
   .tools .tl{display:inline}
@@ -462,7 +475,7 @@ body.solo #timerSlot{height:100%}
   #view-calendar.hasbar{padding-right:20px}
   .cell{background-image:none}
   .ev{height:6px;margin:0 1px;padding:0;font-size:0}
-  .moren{height:auto;min-height:0;margin:0 1px;padding:0 2px;font-size:9.5px;line-height:1}
+  .moren{height:auto;min-height:0;margin:0 1px;padding:0 2px;font-size:calc(9.5px * var(--fs));line-height:1}
   .ev > *{display:none}
   .ev.sub{background:var(--sc)!important;box-shadow:none}
   .ev.event{height:8px}
@@ -470,8 +483,8 @@ body.solo #timerSlot{height:100%}
   .evchk{width:11px;height:11px;margin-right:4px}
   .evchk svg{width:9px;height:9px}
   .evq{width:5px;height:5px;margin-right:4px}
-  .num{font-size:10px;top:5px;right:3px;padding:0 3px}
-  .cal-dow{font-size:9px;letter-spacing:.1em}
+  .num{font-size:calc(10px * var(--fs));top:5px;right:3px;padding:0 3px}
+  .cal-dow{font-size:calc(9px * var(--fs));letter-spacing:.1em}
   .pv-row{grid-template-columns:20px 54px 1fr}
   .modal{padding:12px}
   .sheet{padding:20px}
@@ -507,7 +520,7 @@ body.solo #timerSlot{height:100%}
     <button class="pastebtn icbtn" id="moreBtn" aria-label="도구 더보기" aria-expanded="false" aria-controls="tools"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg></button>
     <div class="tools" id="tools">
       <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg><span class="tl">타이머 팝업</span></button>
-      <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg><span class="tl">색상 설정</span></button>
+      <button class="pastebtn icbtn" id="colorOpen" aria-label="글씨 · 색상 설정" title="글씨 · 색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg><span class="tl">글씨 · 색상 설정</span></button>
       <button class="pastebtn icbtn" id="subjOpen" aria-label="과목 관리" title="과목 관리"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10.5a3 3 0 013 3V20H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h10.5"/><path d="M9 8.5h6"/></svg><span class="tl">과목 관리</span></button>
       <button class="pastebtn" id="installApp" hidden title="홈 화면·PC에 앱으로 설치">앱 설치</button>
       <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기">계획 붙여넣기</button>
@@ -664,7 +677,17 @@ body.solo #timerSlot{height:100%}
 
 <div class="modal" id="cmodal" hidden>
   <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="cTitle">
-    <h3 id="cTitle">색상 설정</h3>
+    <h3 id="cTitle">글씨 · 색상 설정</h3>
+    <div class="csec" style="margin-top:0">글씨 크기</div>
+    <div class="fsrow">
+      <span class="fsa small" aria-hidden="true">가</span>
+      <input type="range" id="fsRange" min="80" max="140" step="5" aria-label="글씨 크기" aria-describedby="fsOut">
+      <span class="fsa big" aria-hidden="true">가</span>
+      <output id="fsOut" for="fsRange">100%</output>
+      <button type="button" class="pill-btn" id="fsReset">기본</button>
+    </div>
+    <p class="psub fsprev">오늘 할 일 · Cortex p.9–18 · 9월 24일 (목)</p>
+    <div class="csec">일정 · 할 일 기본색</div>
     <p class="psub">일정과 할 일의 기본 색이에요. 색을 따로 고르지 않은 항목은 모두 이 색으로 보여요. 무지개 칸을 누르면 원하는 색을 직접 고를 수 있어요.</p>
     <div class="crow" data-kind="event">
       <div class="chead"><b>일정</b><span class="cprev event">14:00 순천향 외래</span></div>
@@ -746,7 +769,7 @@ const FOCUS_TIMER_CSS = `
   .tcq { container-type: inline-size; container-name: tm; }
   .tbody {
     background: var(--page); color: var(--ink);
-    font-family: "Manrope", "Noto Sans KR", system-ui, sans-serif; font-size: 14px;
+    font-family: "Daehwa", "Noto Sans KR", system-ui, sans-serif; font-size: 14px;
     padding: 32px 16px;
   }
   :host(.popup) .tbody { padding: 0; }
@@ -777,7 +800,7 @@ const FOCUS_TIMER_CSS = `
   button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   h1 {
     margin: 0; padding: 4px 24px 14px; text-align: center;
-    font-family: "Manrope", sans-serif; font-weight: 500; letter-spacing: -.02em; line-height: .95;
+    font-family: "Daehwa", "Manrope", sans-serif; font-weight: 500; letter-spacing: -.02em; line-height: .95;
     font-size: clamp(34px, 12.5cqi, 132px); text-transform: uppercase; border-bottom: 1px solid var(--line);
   }
   .grid { display: grid; grid-template-columns: 1.35fr 1fr; border-bottom: 1px solid var(--line); }
@@ -817,18 +840,18 @@ const FOCUS_TIMER_CSS = `
   .fold summary::-webkit-details-marker { display: none; }
   .fold summary::after { content: "+"; font-size: 18px; font-weight: 300; line-height: 1; }
   .fold[open] summary::after { content: "−"; }
-  .fold .ko { font-family: "Noto Sans KR", sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); margin-left: 8px; }
+  .fold .ko { font-family: "Daehwa", "Noto Sans KR", sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); margin-left: 8px; }
   .row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 12px 0; border-top: 1px solid var(--soft-line); font-family: "Noto Sans KR", sans-serif;
+    padding: 12px 0; border-top: 1px solid var(--soft-line); font-family: "Daehwa", "Noto Sans KR", sans-serif;
   }
   .row .label { font-size: 13px; font-weight: 500; }
   .ctrl { display: flex; align-items: center; gap: 8px; }
   .row select {
     height: 34px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
-    font: 400 13px "Noto Sans KR", sans-serif; padding: 0 8px;
+    font: 400 13px "Daehwa", "Noto Sans KR", sans-serif; padding: 0 8px;
   }
-  .row .btn-line { padding: 8px 12px; font-family: "Noto Sans KR", sans-serif; letter-spacing: 0; }
+  .row .btn-line { padding: 8px 12px; font-family: "Daehwa", "Noto Sans KR", sans-serif; letter-spacing: 0; }
   .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
   .vol input[type=range] { width: 100%; max-width: 150px; accent-color: var(--ink); }
   .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
@@ -1550,8 +1573,8 @@ function load() {
 }
 let savedTimer;
 function persist() {
-  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin } = state;
-  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin });
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
 }
@@ -1811,7 +1834,8 @@ function attachScrollbar(list) {
 // 바쁜 주는 높게, 빈 주는 낮게. 그래도 모자라면 다 보여주고 스크롤
 function calFit(lanesPerWeek) {
   const phone = isPhone(), wrap = $('#calWeeks'), view = $('#view-calendar');
-  const head = phone ? 24 : 30, base = phone ? 12 : 34, min = phone ? 9 : 24, minLanes = phone ? 3 : 1;
+  const k = phone ? 1 : Math.max(1, state.fontScale / 100 || 1);   // 글씨가 커지면 막대도 조금 높게
+  const head = phone ? 24 : Math.round(30 * k), base = phone ? 12 : Math.round(34 * k), min = phone ? 9 : Math.round(24 * k), minLanes = phone ? 3 : 1;
   let avail;
   if (phone) {
     const off = wrap.getBoundingClientRect().top - view.getBoundingClientRect().top + view.scrollTop;
@@ -3185,6 +3209,22 @@ function endDumpDrag(ok) {
 }
 window.addEventListener('pointerup', e => { if (dumpDrag && e.pointerId === dumpDrag.pid) endDumpDrag(true); });
 window.addEventListener('pointercancel', e => { if (dumpDrag && e.pointerId === dumpDrag.pid) endDumpDrag(false); });
+
+/* ---------- 글씨 크기 ---------- */
+function applyFontScale() {
+  const pct = Math.min(140, Math.max(80, Math.round(state.fontScale || 100)));
+  state.fontScale = pct;
+  document.documentElement.style.setProperty('--fs', pct / 100);
+  $('#fsRange').value = pct;
+  $('#fsOut').textContent = pct + '%';
+}
+$('#fsRange').addEventListener('input', e => {
+  state.fontScale = +e.target.value;
+  applyFontScale(); persist();
+  if (state.view === 'calendar') renderCalendar();
+});
+$('#fsReset').onclick = () => { state.fontScale = 100; applyFontScale(); save(); render(); };
+applyFontScale();
 
 migrateSubjects();
 render();
