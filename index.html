@@ -353,7 +353,16 @@ body.fwin-moving .fwin-body{pointer-events:none}
 .sheet .sadd input{flex:1;height:40px}
 .sadd .pill-btn{height:40px;flex:none}
 .serr{margin:-6px 0 0;font-size:12px;font-weight:600;color:#d23a3a}
-.shead,.srow2{display:grid;grid-template-columns:34px minmax(0,1fr) 64px 44px 34px;gap:8px;align-items:center}
+.shead,.srow2{display:grid;grid-template-columns:34px minmax(0,1fr) 64px 44px 62px 34px;gap:8px;align-items:center}
+.sdone{height:32px;padding:0 8px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.sdone:hover{background:var(--blue);color:#fff}
+.ssec{display:flex;align-items:center;gap:8px;margin-top:18px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--muted);width:100%;text-align:left}
+.ssec b{color:var(--text)}
+.ssec .car{margin-left:auto;transition:transform .15s}
+.ssec[aria-expanded="true"] .car{transform:rotate(180deg)}
+.srow2.fin .sw,.srow2.fin .sname2,.srow2.fin .sab2{opacity:.55}
+.srow2.fin .sdone{border-color:var(--border);color:var(--muted)}
+.srow2.fin .sdone:hover{border-color:var(--text);color:var(--text);background:none}
 .shead{padding-bottom:8px;border-bottom:1px solid var(--line);font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
 .slist{display:flex;flex-direction:column}
 .srow2{padding:7px 0;border-bottom:1px solid var(--border)}
@@ -438,7 +447,8 @@ body.solo #timerSlot{height:100%}
   .pv-row{grid-template-columns:20px 54px 1fr}
   .modal{padding:12px}
   .sheet{padding:20px}
-  .shead,.srow2{grid-template-columns:34px minmax(0,1fr) 52px 34px;gap:6px}
+  .shead,.srow2{grid-template-columns:34px minmax(0,1fr) 48px 54px 30px;gap:6px}
+  .sdone{padding:0 4px}
   .shead span:nth-child(4),.srow2 .scount{display:none}
   .pv-row .pv-title{grid-column:2/-1}
   .pv-note{grid-column:2/-1}
@@ -641,7 +651,7 @@ body.solo #timerSlot{height:100%}
       <button class="pill-btn primary" type="submit">+ 추가</button>
     </form>
     <p class="serr" id="sErr" hidden></p>
-    <div class="shead"><span>색</span><span>과목 이름</span><span>줄임말</span><span>할 일</span><span></span></div>
+    <div class="shead"><span>색</span><span>과목 이름</span><span>줄임말</span><span>할 일</span><span>이수</span><span></span></div>
     <div class="slist" id="sList"></div>
     <div class="btns"><div class="grow"></div><button class="pill-btn primary" id="sDone">완료</button></div>
   </div>
@@ -2143,7 +2153,7 @@ function openModal({ task, date, kind }) {
   editing = task || null;
   $('#fTitle').value = task ? task.title : '';
   $('#fSubj').value = task?.subject || '';
-  $('#subjList').innerHTML = Object.keys(state.subjects).map(n => `<option value="${esc(n)}">`).join('');
+  $('#subjList').innerHTML = Object.keys(state.subjects).filter(n => !state.subjects[n].done).map(n => `<option value="${esc(n)}">`).join('');
   $('#fNote').value = task ? (task.note || '') : '';
   $('#fStart').value = task ? task.date : date;
   $('#fEnd').value = task ? endOf(task) : date;
@@ -2861,18 +2871,28 @@ document.addEventListener('fullscreenchange', () => { if (!document.fullscreenEl
 
 /* ---------- 과목 관리: 추가 · 이름 바꾸기 · 색 · 줄임말 · 삭제 ---------- */
 const cleanSubj = v => v.trim().replace(/^[\[【]\s*|\s*[\]】]$/g, '').trim();
-function renderSubjects() {
-  const names = Object.keys(state.subjects);
-  $('#sList').innerHTML = names.length ? names.map(n => {
-    const sj = state.subjects[n], cnt = state.tasks.filter(t => t.subject === n).length;
-    return `<div class="srow2" data-sname="${esc(n)}">
+let subjFinOpen = true;
+function subjRow(n) {
+  const sj = state.subjects[n], cnt = state.tasks.filter(t => t.subject === n).length;
+  return `<div class="srow2${sj.done ? ' fin' : ''}" data-sname="${esc(n)}">
       <span class="sw custom" style="background:${sj.color}"><input type="color" value="${sj.color}" aria-label="${esc(n)} 색"></span>
       <input type="text" class="sname2" value="${esc(n)}" maxlength="20" aria-label="과목 이름" style="--sc:${sj.color}">
       <input type="text" class="sab2" value="${esc(sj.ab)}" maxlength="3" aria-label="${esc(n)} 줄임말">
       <span class="scount">${cnt}개</span>
+      <button type="button" class="sdone" aria-label="${esc(n)} ${sj.done ? '수강 중으로 되돌리기' : '이수 완료로 옮기기'}">${sj.done ? '되돌리기' : '이수'}</button>
       <button type="button" class="sdel" aria-label="${esc(n)} 삭제" title="삭제">${I.x}</button>
     </div>`;
-  }).join('') : '<p class="sempty">아직 과목이 없어요. 위에서 추가하거나, 할 일 제목 앞에 [과목]을 붙이면 자동으로 생겨요.</p>';
+}
+function renderSubjects() {
+  const names = Object.keys(state.subjects);
+  const cur = names.filter(n => !state.subjects[n].done), fin = names.filter(n => state.subjects[n].done);
+  let h = cur.length ? cur.map(subjRow).join('')
+    : `<p class="sempty">${names.length ? '수강 중인 과목이 없어요.' : '아직 과목이 없어요. 위에서 추가하거나, 할 일 제목 앞에 [과목]을 붙이면 자동으로 생겨요.'}</p>`;
+  if (fin.length) {
+    h += `<button type="button" class="ssec" id="sFinToggle" aria-expanded="${subjFinOpen}">이수 완료 <b>${fin.length}</b><span class="car">▾</span></button>`;
+    if (subjFinOpen) h += fin.map(subjRow).join('');
+  }
+  $('#sList').innerHTML = h;
 }
 function subjErr(msg) { $('#sErr').textContent = msg; $('#sErr').hidden = !msg; }
 function openSubjects() { subjErr(''); renderSubjects(); $('#smodal').hidden = false; setTimeout(() => $('#sNew').focus(), 30); }
@@ -2930,6 +2950,13 @@ $('#sList').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.isComposing && e.target.matches('input[type=text]')) { e.preventDefault(); e.target.blur(); }
 });
 $('#sList').addEventListener('click', async e => {
+  if (e.target.closest('#sFinToggle')) { subjFinOpen = !subjFinOpen; renderSubjects(); return; }
+  const dn = e.target.closest('.sdone');
+  if (dn) {
+    const sj = state.subjects[dn.closest('[data-sname]').dataset.sname];
+    if (sj) { sj.done = !sj.done; if (sj.done) subjFinOpen = true; save(); render(); renderSubjects(); }
+    return;
+  }
   const b = e.target.closest('.sdel'); if (!b) return;
   const n = b.closest('[data-sname]').dataset.sname;
   const cnt = state.tasks.filter(t => t.subject === n).length;
