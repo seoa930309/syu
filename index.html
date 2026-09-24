@@ -91,7 +91,7 @@ main{flex:1;min-height:0;position:relative}
 .sbthumb{position:relative;width:100%;min-height:28px;background:currentColor;opacity:.55;cursor:grab;touch-action:none;transition:opacity .15s}
 .sbtrack:hover .sbthumb,.sbthumb.drag{opacity:.9}
 .sbthumb.drag{cursor:grabbing}
-.side > .sbtrack .sbthumb,#view-flow > .sbtrack .sbthumb{background:var(--blue);opacity:.75}
+.side > .sbtrack .sbthumb,#view-flow > .sbtrack .sbthumb,#view-calendar > .sbtrack .sbthumb,main > .sbtrack .sbthumb{background:var(--blue);opacity:.75}
 .q-schedule .sbthumb{background:var(--blue)}
 .side .drop-list{flex:1}
 .drop-list.over{background:var(--blue-soft)}
@@ -194,7 +194,10 @@ main{flex:1;min-height:0;position:relative}
 .pill-btn.primary:hover{color:#fff;filter:brightness(1.08)}
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted);text-align:center;padding-bottom:10px}
 .cal-dow div:first-child{color:var(--blue)}
-.cal-weeks{overflow:hidden;border-bottom:1px solid var(--line);min-height:0}
+.cal-weeks{overflow-y:auto;overscroll-behavior:contain;border-bottom:1px solid var(--line);min-height:0}
+#view-calendar{position:relative}
+.cal-dow,#calWeeks.hasbar{padding-right:14px}
+#view-calendar.hasbar{padding-right:32px}
 .cal-weeks.tight .ev{font-size:11.5px;padding:0 6px}
 .cal-weeks.tight .evchk{width:11px;height:11px;margin-right:5px}
 .cal-weeks.tight .evtm{font-size:10px}
@@ -405,6 +408,8 @@ body.solo #timerSlot{height:100%}
   :root{--row:12px;--head:28px}
   #view-calendar.on{display:block}
   .cal-weeks{overflow:visible}
+  #calWeeks.hasbar,.cal-dow{padding-right:0}
+  #view-calendar.hasbar{padding-right:20px}
   .cell{background-image:none}
   .ev{height:6px;margin:0 1px;padding:0;font-size:0}
   .moren{height:auto;min-height:0;margin:0 1px;padding:0 2px;font-size:9.5px;line-height:1}
@@ -1714,7 +1719,7 @@ function attachScrollbar(list) {
 }
 
 // 캘린더가 쓸 수 있는 높이를 재서, 주마다 높이와 보일 줄 수를 정해요
-// 바쁜 주는 높게, 빈 주는 낮게. 그래도 모자라면 넘치는 줄은 "+N"으로
+// 바쁜 주는 높게, 빈 주는 낮게. 그래도 모자라면 다 보여주고 스크롤
 function calFit(lanesPerWeek) {
   const phone = isPhone(), wrap = $('#calWeeks'), view = $('#view-calendar');
   const head = phone ? 24 : 30, base = phone ? 12 : 34, min = phone ? 9 : 24, minLanes = phone ? 3 : 1;
@@ -1729,11 +1734,6 @@ function calFit(lanesPerWeek) {
   // 1) 줄 높이를 조금씩 줄여 가며 전부 들어가는지
   let row = base, cap = Infinity;
   while (row > min && total(row, cap) > avail) row--;
-  // 2) 가장 작은 줄 높이로도 모자라면, 한 주에 보일 줄 수에 상한을 둬요
-  if (total(row, cap) > avail) {
-    cap = Math.max(...need);
-    while (cap > minLanes && total(row, cap) > avail) cap--;
-  }
   const rows = need.map(n => Math.min(n, cap));
   const used = total(row, cap), extra = Math.max(0, Math.floor((avail - used) / need.length));
   return { head, row, rows, heights: rows.map(r => head + r * row + 1 + extra) };
@@ -1820,6 +1820,9 @@ function renderCalendar() {
     wrap.append(week);
   });
   renderCalDay();
+  // 컴퓨터: 달력 칸 안에서, 폰: 캘린더 화면 전체(아래 목록 포함)가 스크롤
+  attachScrollbar(wrap);
+  attachScrollbar($('#view-calendar'));
 }
 const calShown = t => state.calFilter === 'all' || (state.calFilter === 'event') === isEvent(t);
 
