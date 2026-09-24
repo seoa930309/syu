@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>dayflow · 오늘의 흐름</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161618" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="dayflow">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Manrope:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;800&family=Share+Tech+Mono&display=swap">
@@ -289,6 +298,13 @@ main{flex:1;min-height:0;position:relative}
 
 /* ---------- timer: floating window + tab ---------- */
 .icbtn{position:relative}
+.pastebtn[hidden]{display:none}
+/* 설치해서 앱으로 열었을 때: 바깥 여백 없이 화면 가득 */
+@media (display-mode: standalone){
+  body{padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+  .window{border-top:0;box-shadow:none;max-width:none}
+  .window::before{display:none}
+}
 .icbtn.running::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 2px var(--chrome)}
 #view-timer.on{display:block;overflow-y:auto;padding:0}
 #timerSlot{min-height:100%}
@@ -367,6 +383,7 @@ body.fwin-moving .fwin-body{pointer-events:none}
       </div>
       <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg></button>
       <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></button>
+      <button class="pastebtn" id="installApp" hidden title="홈 화면·PC에 앱으로 설치">앱 설치</button>
       <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기"><span class="m-hide">계획 </span>붙여넣기</button>
     </div>
     <nav class="tabs" role="tablist">
@@ -2574,6 +2591,26 @@ $('#twBar').addEventListener('dblclick', e => {
   else { r.prev = { x: r.x, y: r.y, w: r.w, h: r.h }; Object.assign(r, { x: 8, y: 8, w: innerWidth - 16, h: innerHeight - 16 }); }
   twFit(); persist();
 });
+
+/* ---------- 앱 설치 (PWA) ---------- */
+// GitHub Pages 같은 https 사이트에서만 동작 (미리보기 링크에서는 조용히 건너뜀)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installEvt = e;
+  $('#installApp').hidden = false;
+});
+$('#installApp').onclick = async () => {
+  if (!installEvt) return;
+  installEvt.prompt();
+  await installEvt.userChoice.catch(() => {});
+  installEvt = null;
+  $('#installApp').hidden = true;
+};
+window.addEventListener('appinstalled', () => { $('#installApp').hidden = true; });
 
 migrateSubjects();
 render();
