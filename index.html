@@ -362,8 +362,8 @@ body.solo .solo-tip{display:block}
 body.solo.idle .solo-exit:not(:focus-visible),body.solo.idle .solo-tip{opacity:0}
 body.solo.idle{cursor:none}
 .solo-exit svg{width:14px;height:14px}
-body.solo{padding:0;background:#000}
-body.solo .window{border-top:0;box-shadow:none;max-width:none;background:#000}
+body.solo{padding:0;background:#0a0a0a}
+body.solo .window{border-top:0;box-shadow:none;max-width:none;background:#0a0a0a}
 body.solo .saved{display:none}
 body.solo .window::before,body.solo .titlebar,body.solo .solo-btn,body.solo #timerNote{display:none}
 body.solo .solo-exit{display:flex}
@@ -768,7 +768,7 @@ const FOCUS_TIMER_CSS = `
   /* 타이머만 보기 */
   :host(.solo) { height: 100%; }
   :host(.solo) .tcq, :host(.solo) .tbody, :host(.solo) .page { height: 100%; }
-  :host(.solo) .tbody, :host(.solo) .page { padding: 0; max-width: none; box-shadow: none; background: #000; }
+  :host(.solo) .tbody, :host(.solo) .page { padding: 0; max-width: none; box-shadow: none; background: var(--screen); }
   :host(.solo) header, :host(.solo) h1, :host(.solo) footer,
   :host(.solo) .device-cap, :host(.solo) .grid .cell:last-child { display: none; }
   :host(.solo) .grid { height: 100%; display: flex; align-items: center; justify-content: center; border: 0; }
