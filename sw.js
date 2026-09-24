@@ -1,7 +1,7 @@
 // dayflow 오프라인 지원
 // - 앱 화면(index.html): 인터넷이 되면 항상 최신 파일, 안 되면 저장해 둔 파일
 // - 아이콘·폰트: 저장해 둔 것을 바로 쓰고 뒤에서 새로 받아 둠
-const CACHE = 'dayflow-v2';
+const CACHE = 'dayflow-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png',
   './fonts/daehwa-light.woff2', './fonts/daehwa-regular.woff2', './fonts/daehwa-bold.woff2'];
 

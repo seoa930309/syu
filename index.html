@@ -7,8 +7,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#161618" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121215" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="dayflow">
@@ -126,9 +126,6 @@ main{flex:1;min-height:0;position:relative}
 .ic{width:36px;height:36px;display:grid;place-items:center;color:var(--muted)}
 .ic:hover{color:var(--blue)}
 .ic svg{width:18px;height:18px}
-.heart{width:28px;margin-left:-6px}
-.heart svg{fill:none;stroke:var(--blue);stroke-width:2}
-.heart.on svg{fill:var(--blue)}
 .card.done [data-act=done]{color:var(--blue)}
 .qdot{width:8px;height:8px;flex:none}
 .qdot.do{background:var(--blue)} .qdot.schedule{background:transparent;box-shadow:inset 0 0 0 1.5px var(--blue)} .qdot.delegate{background:var(--text)} .qdot.pass{background:var(--muted)}
@@ -145,7 +142,7 @@ main{flex:1;min-height:0;position:relative}
 .subj{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:calc(10.5px * var(--fs));font-weight:800;letter-spacing:.12em;color:var(--sc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subj::before{content:"";width:7px;height:7px;background:currentColor;flex:none}
 .favmark{display:flex;flex:none}
-.favmark svg{width:11px;height:11px;fill:var(--blue)}
+.favmark svg{width:12px;height:12px;fill:var(--blue)}
 .card .more{flex:none}
 .cmenu{position:fixed;z-index:1500;min-width:170px;padding:4px 0;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
 .cmenu button{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;font-size:calc(13px * var(--fs));font-weight:600;text-align:left;white-space:nowrap}
@@ -634,7 +631,7 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
 <div class="window">
   <div class="titlebar">
     <div class="brand">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.4-4.5-9.5-9.1C1 8.6 3 5 6.6 5c2.1 0 3.7 1.2 5.4 3.2C13.7 6.2 15.3 5 17.4 5 21 5 23 8.6 21.5 11.9 19.4 16.5 12 21 12 21z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 5.2 3.2 8.4 10 10-6.8 1.6-9.4 4.8-10 10-.6-5.2-3.2-8.4-10-10 6.8-1.6 9.4-4.8 10-10z"/></svg>
       <span class="url">dayflow</span>
     </div>
     <div class="datenav">
@@ -1667,7 +1664,7 @@ const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '
 const DOW = '일월화수목금토';
 
 const I = {
-  heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-9-8.6C1.6 8.3 3.5 5 6.8 5c2 0 3.5 1.1 5.2 3 1.7-1.9 3.2-3 5.2-3 3.3 0 5.2 3.3 3.8 6.4-2 4.3-9 8.6-9 8.6z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24"><path d="M12 2c.6 5.2 3.2 8.4 10 10-6.8 1.6-9.4 4.8-10 10-.6-5.2-3.2-8.4-10-10 6.8-1.6 9.4-4.8 10-10z"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10h16M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01"/></svg>',
   up: '<svg viewBox="0 0 24 24"><path d="M12 5.5l7.5 12.5h-15z" fill="currentColor"/></svg>',
