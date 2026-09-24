@@ -352,11 +352,16 @@ body.fwin-moving .fwin-body{pointer-events:none}
 #view-timer{position:relative}
 .solo-btn{position:absolute;z-index:5;top:14px;right:16px;display:flex;align-items:center;gap:8px;height:34px;padding:0 14px}
 .solo-btn svg{width:15px;height:15px}
-.solo-exit{display:none;position:fixed;z-index:1900;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));align-items:center;gap:6px;height:34px;padding:0 12px;background:var(--text);color:var(--surface);font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.55;transition:opacity .15s}
-.solo-exit:hover,.solo-exit:focus-visible{opacity:1}
+.solo-exit{display:none;position:fixed;z-index:1900;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));align-items:center;gap:6px;height:34px;padding:0 12px;background:rgba(255,255,255,.14);color:#f5f5f5;font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.8;transition:opacity .4s}
+.solo-exit:hover,.solo-exit:focus-visible{opacity:1;background:rgba(255,255,255,.24)}
+.solo-tip{display:none;position:fixed;z-index:1900;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:8px 14px;background:rgba(255,255,255,.12);color:#d9d9d9;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+body.solo .solo-tip{display:block}
+body.solo.idle .solo-exit:not(:focus-visible),body.solo.idle .solo-tip{opacity:0}
+body.solo.idle{cursor:none}
 .solo-exit svg{width:14px;height:14px}
-body.solo{padding:0}
-body.solo .window{border-top:0;box-shadow:none;max-width:none}
+body.solo{padding:0;background:#000}
+body.solo .window{border-top:0;box-shadow:none;max-width:none;background:#000}
+body.solo .saved{display:none}
 body.solo .window::before,body.solo .titlebar,body.solo .solo-btn,body.solo #timerNote{display:none}
 body.solo .solo-exit{display:flex}
 body.solo #view-timer.on{overflow-y:auto}
@@ -522,6 +527,7 @@ body.solo #timerSlot{height:100%}
 </div>
 <div id="timerPark" hidden></div>
 <button class="solo-exit" id="soloOff" aria-label="타이머만 보기 끝내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>나가기</span></button>
+<div class="solo-tip" id="soloTip" aria-hidden="true">화면을 누르면 시작 · 일시정지 · Esc로 나가기</div>
 
 <div class="modal" id="qmodal" hidden>
   <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qText">
@@ -756,12 +762,14 @@ const FOCUS_TIMER_CSS = `
   :host(.popup) footer { display: none; }
   /* 타이머만 보기 */
   :host(.solo) { height: 100%; }
-  :host(.solo) .tcq { height: 100%; }
-  :host(.solo) .tbody { padding: 0; height: 100%; }
-  :host(.solo) .page { max-width: none; min-height: 100%; box-shadow: none; display: flex; flex-direction: column; }
-  :host(.solo) h1, :host(.solo) footer { display: none; }
-  :host(.solo) .grid { flex: 1; align-items: center; border-bottom: 0; }
-  :host(.solo) .device { max-width: min(560px, 68vh); }
+  :host(.solo) .tcq, :host(.solo) .tbody, :host(.solo) .page { height: 100%; }
+  :host(.solo) .tbody, :host(.solo) .page { padding: 0; max-width: none; box-shadow: none; background: #000; }
+  :host(.solo) header, :host(.solo) h1, :host(.solo) footer,
+  :host(.solo) .device-cap, :host(.solo) .grid .cell:last-child { display: none; }
+  :host(.solo) .grid { height: 100%; display: flex; align-items: center; justify-content: center; border: 0; }
+  :host(.solo) .grid .cell { padding: 0; border: 0; width: 100%; }
+  :host(.solo) .device { width: min(96vw, 96vh); max-width: none; }
+  :host(.solo) .screen { cursor: pointer; }
   .hidden { display: none !important; }
   @container tm (max-width: 760px) {
     .tbody { padding: 0; }
@@ -1359,12 +1367,21 @@ function createFocusTimer(host, opts) {
     if (deg < 0) deg += 360;
     return { dist, min: Math.round(deg / 6) || 60 };
   }
+  // 타이머만 보기: 화면 빈 곳을 누르면 시작 / 일시정지
+  let dialTouchedAt = 0;
+  screen.addEventListener("click", e => {
+    if (!host.classList.contains("solo")) return;
+    if (editKey || e.target === editInput || e.target.closest(".clickable")) return;
+    if (Date.now() - dialTouchedAt < 400) return;   // 테두리를 끌어 시간을 맞춘 직후는 무시
+    toggleStart();
+  });
   svg.addEventListener("pointerdown", e => {
     if (S.mode === "pomo" && (P.running || P.phase !== "focus")) return;
     const { dist, min } = dialMinutes(e);
     if (dist < R_IN - 8 || dist > 190) return;
     closeEdit(true);
     dragging = true;
+    dialTouchedAt = Date.now();
     lastDial = null;
     screen.classList.add("dragging");
     svg.setPointerCapture(e.pointerId);
@@ -1378,7 +1395,7 @@ function createFocusTimer(host, opts) {
     if (S.mode === "pomo") setSetting("focusSec", min * 60);
     else setGoal(Math.max(1, Math.round(min / 5)) * 60);
   }
-  const endDrag = () => { dragging = false; screen.classList.remove("dragging"); };
+  const endDrag = () => { if (dragging) dialTouchedAt = Date.now(); dragging = false; screen.classList.remove("dragging"); };
   svg.addEventListener("pointerup", endDrag);
   svg.addEventListener("pointercancel", endDrag);
 
@@ -2790,6 +2807,14 @@ document.addEventListener('pointerdown', e => {
 
 /* ---------- 타이머만 보기 ---------- */
 let soloPrevView = null, soloFs = false;
+// 가만히 있으면 나가기 버튼과 안내를 숨겨요 (움직이거나 누르면 다시 보여요)
+let soloIdleTimer;
+function soloWake() {
+  document.body.classList.remove('idle');
+  clearTimeout(soloIdleTimer);
+  if (document.body.classList.contains('solo')) soloIdleTimer = setTimeout(() => document.body.classList.add('idle'), 2500);
+}
+['pointermove', 'pointerdown', 'keydown'].forEach(n => document.addEventListener(n, () => { if (document.body.classList.contains('solo')) soloWake(); }, { passive: true }));
 function enterSolo() {
   if (document.body.classList.contains('solo')) return;
   soloPrevView = state.view === 'timer' ? null : state.view;
@@ -2797,13 +2822,15 @@ function enterSolo() {
   document.body.classList.add('solo');
   state.view = 'timer';
   render();
+  soloWake();
   // 컴퓨터에서는 전체 화면으로 (안 되는 곳에서는 그냥 넘어가요)
   const el = document.documentElement;
   if (!isPhone() && el.requestFullscreen) el.requestFullscreen().then(() => { soloFs = true; }).catch(() => {});
 }
 function exitSolo() {
   if (!document.body.classList.contains('solo')) return;
-  document.body.classList.remove('solo');
+  document.body.classList.remove('solo', 'idle');
+  clearTimeout(soloIdleTimer);
   if (soloFs && document.fullscreenElement) document.exitFullscreen().catch(() => {});
   soloFs = false;
   if (soloPrevView) state.view = soloPrevView;
