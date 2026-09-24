@@ -34,7 +34,10 @@ jobs:
         with:
           node-version: '20'
 
-      - uses: android-actions/setup-android@v3
+      - name: 안드로이드 SDK 확인
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: 안드로이드 프로젝트 준비
         run: bash android/setup.sh ${{ github.run_number }}
