@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>dayflow · 오늘의 흐름</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Manrope:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;800&family=Share+Tech+Mono&display=swap">
+<style>
+:root{
+  --bg:#e6e6e8; --surface:#ffffff; --panel:#f3f3f4; --card:#ffffff; --chrome:#ffffff;
+  --text:#141414; --muted:#8a8a8f; --border:#dcdcdf; --line:#1a1a1a; --rule:#f0f0f1;
+  --blue:#3b57e0; --blue-soft:#e4e9fc; --ink:#161616; --ink-card:#242426;
+  --row:34px; --head:var(--row);
+  --sans:"Montserrat","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --script:"Kaushan Script","Brush Script MT",cursive;
+  font-family:var(--sans);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0c0d; --surface:#161618; --panel:#1f1f22; --card:#1c1c1f; --chrome:#161618;
+    --text:#f1f1f2; --muted:#96969c; --border:#303035; --line:#c8c8cc; --rule:#222226;
+    --blue:#6d84ff; --blue-soft:#222a4f; --ink:#050506; --ink-card:#1d1d20;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0c0d; --surface:#161618; --panel:#1f1f22; --card:#1c1c1f; --chrome:#161618;
+  --text:#f1f1f2; --muted:#96969c; --border:#303035; --line:#c8c8cc; --rule:#222226;
+  --blue:#6d84ff; --blue-soft:#222a4f; --ink:#050506; --ink-card:#1d1d20;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding:20px max(20px,env(safe-area-inset-right)) 20px max(20px,env(safe-area-inset-left))}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
+
+/* ---------- window chrome ---------- */
+.window{max-width:1440px;height:100%;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border-top:14px solid #cfcfd2;box-shadow:0 1px 0 rgba(0,0,0,.04),0 24px 60px rgba(0,0,0,.08);position:relative}
+.window::before{content:"";position:absolute;top:-10px;left:10px;width:34px;height:6px;background:radial-gradient(circle,#b3b3b7 2.6px,transparent 3px) 0 0/12px 6px repeat-x}
+.titlebar{display:flex;align-items:flex-end;gap:18px;background:var(--chrome);border-bottom:1px solid var(--border);padding:0 26px;flex-wrap:wrap}
+.dots{display:none}
+.address{align-self:center;display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 560px;margin:18px 0}
+.address svg{width:15px;height:15px;fill:var(--blue);flex:none}
+.address .url{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800;font-size:15px;letter-spacing:.32em;text-transform:uppercase;color:var(--text)}
+.datenav{display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:.12em;flex:none;border:1px solid var(--border)}
+.datenav button{padding:7px 11px;white-space:nowrap}
+.datenav button:hover{color:var(--blue)}
+#dateLabel{border-left:1px solid var(--border);border-right:1px solid var(--border);min-width:120px}
+.tabs{margin-left:auto;display:flex;align-items:flex-end;gap:34px}
+.tab{position:relative;height:52px;font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--muted);padding:0 2px}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--blue)}
+.tab.on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--blue)}
+
+main{flex:1;min-height:0;position:relative}
+.view{display:none;height:100%;padding:30px 32px 24px;min-height:0}
+.view.on{display:grid}
+
+/* ---------- task cards ---------- */
+.side{display:flex;flex-direction:column;min-height:0}
+.side-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 14px;margin-bottom:14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
+.side-head b{color:var(--text);font-size:13px;letter-spacing:.05em}
+.drop-list{display:flex;flex-direction:column;gap:10px;min-height:60px;overflow-y:auto;overscroll-behavior:contain;padding:2px;transition:background .15s}
+/* 항상 보이는 스크롤바 (맥·폰에서도) */
+.side,.quad,#view-flow{position:relative}
+.hasbar{scrollbar-width:none;padding-right:16px}
+.hasbar::-webkit-scrollbar{display:none}
+.sbtrack{position:absolute;z-index:3;width:6px;background:rgba(128,128,128,.2);touch-action:none;cursor:pointer}
+.sbtrack[hidden]{display:none}
+.sbtrack::before{content:"";position:absolute;inset:0 -7px}
+.sbthumb{position:relative;width:100%;min-height:28px;background:currentColor;opacity:.55;cursor:grab;touch-action:none;transition:opacity .15s}
+.sbtrack:hover .sbthumb,.sbthumb.drag{opacity:.9}
+.sbthumb.drag{cursor:grabbing}
+.side > .sbtrack .sbthumb,#view-flow > .sbtrack .sbthumb{background:var(--blue);opacity:.75}
+.q-schedule .sbthumb{background:var(--blue)}
+.side .drop-list{flex:1}
+.drop-list.over{background:var(--blue-soft)}
+.hint{color:inherit;opacity:.6;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:6px 2px}
+.drop-list:has(.ph) .hint{display:none}
+
+.card{display:flex;align-items:center;gap:10px;padding:0 8px 0 14px;min-height:58px;border:1px solid var(--border);background:var(--card);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;flex:none;transition:border-color .15s}
+.card:hover{border-color:var(--text)}
+.card .tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;padding:8px 0}
+.card .note{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .title{min-width:0;font-size:15px;font-weight:600;letter-spacing:-.005em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.card.done .title{text-decoration:line-through;color:var(--muted);font-weight:500}
+.card .grip{display:flex;color:var(--muted)}
+.card .grip svg{width:13px;height:13px}
+.card .num{position:static;padding:0;line-height:inherit;font-size:12px;font-weight:800;color:var(--blue);min-width:14px;margin-left:-4px;letter-spacing:.04em}
+.acts{display:flex;align-items:center}
+.ic{width:36px;height:36px;display:grid;place-items:center;color:var(--muted)}
+.ic:hover{color:var(--blue)}
+.ic svg{width:18px;height:18px}
+.heart{width:28px;margin-left:-6px}
+.heart svg{fill:none;stroke:var(--blue);stroke-width:2}
+.heart.on svg{fill:var(--blue)}
+.card.done [data-act=done]{color:var(--blue)}
+.qdot{width:8px;height:8px;flex:none}
+.qdot.do{background:var(--blue)} .qdot.schedule{background:transparent;box-shadow:inset 0 0 0 1.5px var(--blue)} .qdot.delegate{background:var(--text)} .qdot.pass{background:var(--muted)}
+.card.compact{min-height:48px;padding-left:12px}
+.card.compact .title{font-size:14px}
+.card.compact .ic{width:32px;height:32px}
+.card{gap:12px;padding:0 2px 0 12px}
+.card .chk{flex:none;width:22px;height:22px;border:1.5px solid var(--muted);display:grid;place-items:center;color:transparent;transition:background .15s,border-color .15s}
+.card .chk svg{width:14px;height:14px}
+.card .chk:hover{border-color:var(--blue)}
+.card.done .chk{background:var(--blue);border-color:var(--blue);color:#fff}
+.card .meta{display:flex;align-items:center;gap:8px;min-width:0}
+.card.done .meta{opacity:.6}
+.subj{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--sc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subj::before{content:"";width:7px;height:7px;background:currentColor;flex:none}
+.favmark{display:flex;flex:none}
+.favmark svg{width:11px;height:11px;fill:var(--blue)}
+.card .more{flex:none}
+.cmenu{position:fixed;z-index:1500;min-width:170px;padding:4px 0;background:var(--surface);color:var(--text);border:1px solid var(--text);box-shadow:6px 6px 0 var(--blue);display:flex;flex-direction:column}
+.cmenu button{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;font-size:13px;font-weight:600;text-align:left;white-space:nowrap}
+.cmenu button:hover,.cmenu button:focus-visible{background:var(--blue-soft);outline:none}
+.cmenu .del{color:#d23a3a}
+.cmenu svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.ph{flex:none;border:1.5px dashed var(--blue);background:var(--blue-soft)}
+.ghost{position:fixed;z-index:1000;pointer-events:none;margin:0;border-color:var(--blue)!important;box-shadow:8px 8px 0 var(--blue);transform:rotate(-1.5deg)}
+
+.quick{display:flex;margin-top:16px;border:1px solid var(--text)}
+.quick input{flex:1;min-width:0;height:50px;border:0;padding:0 16px;font-size:14px;background:var(--surface)}
+.quick input::placeholder{color:var(--muted);letter-spacing:.04em}
+.quick button{width:54px;height:50px;background:var(--text);display:grid;place-items:center;color:var(--surface);transition:background .15s}
+.quick button:hover{background:var(--blue);color:#fff}
+.quick button svg{width:20px;height:20px}
+
+/* ---------- matrix ---------- */
+#view-matrix{grid-template-columns:minmax(280px,31%) minmax(0,1fr);gap:44px}
+.quads{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;min-height:0}
+.quad{display:flex;flex-direction:column;min-height:0;padding:22px 20px 18px;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:-8px}
+.quad.over{outline-color:currentColor}
+.quad header{display:flex;align-items:center;gap:6px;margin-bottom:16px}
+.quad h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.quad h3 svg{width:19px;height:19px;flex:none}
+.quad .drop-list{flex:1}
+.q-do{background:var(--blue);color:#fff}
+.q-schedule{background:var(--surface);color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.q-delegate{background:var(--ink);color:#fff}
+.q-pass{background:var(--panel);color:var(--text)}
+.quad .card{color:var(--text)}
+.q-do .card{border-color:transparent}
+.q-delegate .card{background:var(--ink-card);color:#f1f1f2;border-color:#333}
+.q-delegate .card .ic{color:#9a9aa0}
+.q-delegate .card .chk,.slot:nth-child(3) .card .chk{border-color:#77777d}
+.tag{font-size:9.5px;font-weight:700;letter-spacing:.14em;padding:5px 8px;border:1px solid currentColor;white-space:nowrap;opacity:.9}
+.t-nimp,.t-nurg{opacity:.5}
+
+/* ---------- flow ---------- */
+#view-flow{grid-template-columns:1fr 1fr;gap:52px}
+.slots{display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding:2px}
+.slot{background:var(--panel);border-left:4px solid var(--blue);padding:18px 18px 16px;display:flex;flex-direction:column;flex:1 0 190px;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:-6px}
+.slot:nth-child(3){background:var(--ink);color:#fff;border-left-color:var(--blue)}
+.slot:nth-child(3) .card{background:var(--ink-card);color:#f1f1f2;border-color:#333}
+.slot.over{outline-color:var(--blue)}
+.slot header{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.slot h3{margin:0;font-size:20px;color:var(--blue);font-weight:800}
+.slot .time{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.16em;flex:1}
+.slot .cnt{font-weight:800;font-size:15px}
+.slot .drop-list{flex:1;min-height:90px}
+
+/* ---------- calendar ---------- */
+#view-calendar{grid-template-rows:auto auto 1fr}
+.cal-top{display:flex;align-items:center;gap:10px;margin-bottom:18px;min-height:64px}
+.cal-top h2{margin:0;display:flex;align-items:center;gap:16px;font-weight:400}
+.cal-top .script{font-family:var(--script);color:var(--blue);font-size:54px;line-height:1;transform:rotate(-5deg) translateY(-2px);letter-spacing:-.01em}
+.cal-top .yr{font-size:12px;font-weight:700;letter-spacing:.28em;color:var(--text);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
+.cal-top .grow{flex:1}
+.pill-btn{height:38px;padding:0 18px;border:1px solid var(--text);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--surface)}
+.pill-btn:hover{border-color:var(--blue);color:var(--blue)}
+.pill-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.pill-btn.primary:hover{color:#fff;filter:brightness(1.08)}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted);text-align:center;padding-bottom:10px}
+.cal-dow div:first-child{color:var(--blue)}
+.cal-weeks{overflow-y:auto;border-bottom:1px solid var(--line);min-height:0}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--border)}
+.week:first-child{border-top:0}
+.cell{grid-row:1/-1;position:relative;border-left:1px solid var(--border);cursor:pointer;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(var(--row) - 1px),var(--rule) calc(var(--row) - 1px) var(--row))}
+.cell:first-child{border-left:0}
+.cell:hover{background-color:var(--blue-soft)}
+.cell.sel{background-color:var(--blue-soft)}
+.num{position:absolute;top:8px;right:8px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--text);font-variant-numeric:tabular-nums;line-height:20px;padding:0 5px}
+.cell.out .num{color:var(--muted);opacity:.45}
+.cell.today .num{background:var(--blue);color:#fff}
+.ev{position:relative;z-index:1;align-self:center;height:calc(var(--row) - 8px);margin:0 4px;padding:0 9px;display:flex;align-items:center;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.ev{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.evchk{position:relative;flex:none;width:14px;height:14px;margin-right:7px;border:1.5px solid currentColor;display:grid;place-items:center;opacity:.85}
+.evchk::before{content:"";position:absolute;inset:-8px}
+.evchk svg{width:12px;height:12px;stroke-width:3}
+.evchk:hover{opacity:1}
+.evq{flex:none;width:7px;height:7px;margin-right:6px;box-shadow:0 0 0 1.5px rgba(255,255,255,.9)}
+.evq.do{background:var(--blue)} .evq.schedule{background:#fff;box-shadow:inset 0 0 0 1.5px var(--blue),0 0 0 1.5px rgba(255,255,255,.9)} .evq.delegate{background:#161616} .evq.pass{background:#9a9aa0}
+.evghost{position:fixed;z-index:1000;pointer-events:none;margin:0!important;box-shadow:6px 6px 0 var(--blue);transform:rotate(-1.5deg)}
+.cell.drop{background-color:var(--blue-soft);box-shadow:inset 0 0 0 2px var(--blue)}
+.ev span{overflow:hidden;text-overflow:ellipsis}
+.ev.l{margin-left:0} .ev.r{margin-right:0}
+.ev.done span{text-decoration:line-through;opacity:.55}
+.ev.sub{box-shadow:inset 3px 0 0 var(--sc)}
+.evab{flex:none;margin-right:6px;font-size:11px;font-weight:800;letter-spacing:.02em}
+.cal-day{display:none;flex-direction:column;margin-top:20px}
+.cal-day .drop-list{overflow:visible}
+.cal-day .pill-btn{margin-top:14px;align-self:flex-start}
+.srow{display:flex;align-items:center;gap:12px;padding:6px 0}
+.srow .sname{flex:1;min-width:0;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .sab{width:70px;height:34px;padding:0 8px;font-size:13px;flex:none}
+.ev:hover{filter:brightness(.95)}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:2000;background:rgba(10,10,12,.45);display:grid;place-items:center;padding:20px}
+.modal[hidden]{display:none}
+.sheet{width:min(460px,100%);background:var(--surface);border-top:4px solid var(--blue);padding:26px;box-shadow:12px 12px 0 rgba(59,87,224,.25);display:flex;flex-direction:column;gap:14px}
+.sheet h3{margin:0 0 4px;font-weight:800;font-size:19px;color:var(--blue)}
+.sheet label{display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.16em;flex:1;min-width:0}
+.sheet input,.sheet select{height:44px;border:1px solid var(--border);border-radius:0;padding:0 12px;font-size:15px;letter-spacing:0;font-weight:500;color:var(--text);background:var(--surface);width:100%}
+.sheet input:focus,.sheet select:focus{border-color:var(--blue)}
+.sheet .row{display:flex;gap:12px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:32px;height:32px;border:1px solid rgba(128,128,128,.3)}
+.sw.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
+.btns{display:flex;gap:8px;align-items:center;margin-top:6px}
+.btns .grow{flex:1}
+.danger{color:#d23a3a;font-size:11px;font-weight:700;letter-spacing:.16em;padding:8px 2px}
+
+.saved{position:fixed;right:34px;bottom:28px;z-index:50;font-family:var(--script);font-size:30px;color:var(--blue);transform:rotate(-6deg);opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.saved svg{display:none}
+
+/* ---------- 일정 vs 할 일 ---------- */
+.pastebtn{flex:none;height:32px;padding:0 12px;border:1px solid var(--blue);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.12em;white-space:nowrap}
+.pastebtn:hover{background:var(--blue);color:#fff}
+.seg{display:flex;border:1px solid var(--border)}
+.seg button{flex:1;height:38px;padding:0 14px;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted);white-space:nowrap}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button.on{background:var(--blue);color:#fff}
+.dayev{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.dayev:empty{display:none}
+.evchip{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;background:var(--ink);color:#fff;border-left:4px solid var(--blue);font-size:13px;font-weight:600;text-align:left}
+.evchip .tm{flex:none;min-width:38px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#a9b6ff;font-variant-numeric:tabular-nums}
+.evchip .tt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evchip:hover{filter:brightness(1.2)}
+.ev.event{font-weight:700;border-radius:999px}
+.ev.event.l{border-top-left-radius:0;border-bottom-left-radius:0}
+.ev.event.r{border-top-right-radius:0;border-bottom-right-radius:0}
+.evtm{flex:none;margin-right:6px;font-size:11px;font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
+.evdot{flex:none;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px}
+.sheet [hidden]{display:none!important}
+.icbtn{width:32px;padding:0;display:grid;place-items:center}
+.icbtn svg{width:18px;height:18px}
+.sheet .flabel{display:flex;flex-direction:column;gap:6px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.16em}
+.sw{position:relative}
+.sw.auto::after{content:"A";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;letter-spacing:0;color:var(--fg,#fff)}
+.sw.custom{background:conic-gradient(#e5484d,#f5b400,#30a46c,#12a594,#0090ff,#8e4ec6,#d6409f,#e5484d)}
+.sw.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.crow{display:flex;flex-direction:column;gap:10px;padding:14px 0 4px;border-top:1px solid var(--border)}
+.chead{display:flex;align-items:center;gap:12px;font-size:14px}
+.chead b{min-width:44px}
+.cprev{display:inline-flex;align-items:center;height:28px;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.cprev.event{border-radius:999px}
+.btns{flex-wrap:wrap}
+.sheet.tall{max-height:calc(100vh - 40px);overflow-y:auto}
+.csec{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--blue)}
+.swatches.sm{gap:6px}
+.swatches.sm .sw{width:26px;height:26px}
+.sw.auto.q-schedule,.cprev.q-schedule{box-shadow:inset 0 0 0 1px var(--blue)}
+.q-custom .tag{border-color:currentColor}
+
+/* ---------- paste import ---------- */
+.sheet.wide{width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto}
+.psub{margin:-6px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
+.sheet textarea{min-height:180px;border:1px solid var(--border);padding:12px;font:inherit;font-size:14px;line-height:1.5;resize:vertical;background:var(--surface);color:var(--text);width:100%}
+.sheet textarea:focus{outline:none;border-color:var(--blue)}
+.pv-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--blue)}
+.pv-head b{color:var(--text)}
+.pv-row{display:grid;grid-template-columns:20px 58px 138px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.pv-row.off{opacity:.4}
+.pv-row .sheet-in,.sheet .pv-row input{height:34px;font-size:13px;padding:0 8px}
+.sheet .pv-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue)}
+.kbtn{height:30px;font-size:11px;font-weight:700;border:1px solid var(--blue);color:var(--blue)}
+.kbtn.event{background:var(--blue);color:#fff}
+.pv-note{grid-column:4;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-note em{font-style:normal;color:var(--blue);font-weight:700;margin-right:6px}
+.pv-empty{padding:14px 0;font-size:13px;color:var(--muted)}
+
+/* ---------- timer: floating window + tab ---------- */
+.icbtn{position:relative}
+.icbtn.running::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 2px var(--chrome)}
+#view-timer.on{display:block;overflow-y:auto;padding:0}
+#timerSlot{min-height:100%}
+.tnote[hidden]{display:none}
+.tnote{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:30px 32px;padding:18px 20px;border:1px dashed var(--blue);background:var(--blue-soft);font-size:14px;font-weight:600}
+.fwin{position:fixed;z-index:1800;display:flex;padding-bottom:18px;flex-direction:column;min-width:0;background:var(--surface);border:1px solid var(--text);box-shadow:10px 10px 0 rgba(59,87,224,.28)}
+.fwin[hidden]{display:none}
+.fwin-bar{flex:none;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 14px;background:var(--text);color:var(--surface);cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}
+.fwin-bar .ttl{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.22em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fwin-bar button{width:32px;height:30px;display:grid;place-items:center;color:inherit;opacity:.8}
+.fwin-bar button:hover{opacity:1}
+.fwin-bar svg{width:16px;height:16px}
+.fwin-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.fwin-grip{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 0 45%,var(--text) 45% 52%,transparent 52% 64%,var(--text) 64% 71%,transparent 71%)}
+.fwin-grip.l{left:0;right:auto;cursor:nesw-resize;transform:scaleX(-1)}
+body.fwin-moving{user-select:none;-webkit-user-select:none}
+body.fwin-moving .fwin-body{pointer-events:none}
+#qmodal{z-index:2100}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  body{padding:10px}
+  .titlebar{padding:0 14px}
+  .address{flex:1 1 100%;margin:14px 0 4px}
+  .address .url{font-size:12px;letter-spacing:.2em}
+  .tabs{margin-left:0;width:100%;justify-content:space-around;gap:0}
+  .tab{height:42px;font-size:10px}
+  .view{padding:18px 14px 14px;overflow-y:auto}
+  #view-matrix,#view-flow{grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
+  .side .drop-list{max-height:55vh}
+  .quad .drop-list{flex:none;max-height:50vh}
+  .quads{grid-template-columns:1fr;grid-template-rows:none}
+  .quad{min-height:180px}
+  .slots{overflow:visible}
+  :root{--row:12px;--head:28px}
+  #view-calendar.on{display:block}
+  .cal-weeks{overflow:visible}
+  .cell{background-image:none}
+  .ev{height:6px;margin:0 1px;padding:0;font-size:0}
+  .ev > *{display:none}
+  .ev.sub{background:var(--sc)!important;box-shadow:none}
+  .ev.event{height:8px}
+  .cal-day{display:flex}
+  .evchk{width:11px;height:11px;margin-right:4px}
+  .evchk svg{width:9px;height:9px}
+  .evq{width:5px;height:5px;margin-right:4px}
+  .num{font-size:10px;top:5px;right:3px;padding:0 3px}
+  .cal-top .script{font-size:38px}
+  .cal-dow{font-size:9px;letter-spacing:.1em}
+  .cal-top{flex-wrap:wrap}
+  .cal-top .seg button{padding:0 10px}
+  .pastebtn{padding:0 8px;letter-spacing:.04em}
+  .m-hide{display:none}
+  .address{gap:6px}
+  .address .url{display:none}
+  #dateLabel{min-width:0}
+  .pv-row{grid-template-columns:20px 54px 1fr}
+  .pv-row .pv-title{grid-column:2/-1}
+  .pv-note{grid-column:2/-1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="address">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.4-4.5-9.5-9.1C1 8.6 3 5 6.6 5c2.1 0 3.7 1.2 5.4 3.2C13.7 6.2 15.3 5 17.4 5 21 5 23 8.6 21.5 11.9 19.4 16.5 12 21 12 21z"/></svg>
+      <span class="url">dayflow</span>
+      <div class="datenav">
+        <button id="prev" aria-label="이전">&lt;</button>
+        <button id="dateLabel" title="오늘로 이동"></button>
+        <button id="next" aria-label="다음">&gt;</button>
+      </div>
+      <button class="pastebtn icbtn" id="timerOpen" aria-label="타이머 팝업" title="타이머 팝업" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg></button>
+      <button class="pastebtn icbtn" id="colorOpen" aria-label="색상 설정" title="색상 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 005-5c0-3.9-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></button>
+      <button class="pastebtn" id="pasteOpen" title="ChatGPT 계획 붙여넣기"><span class="m-hide">계획 </span>붙여넣기</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" data-view="calendar" role="tab">CALENDAR</button>
+      <button class="tab" data-view="matrix" role="tab">MATRIX</button>
+      <button class="tab" data-view="flow" role="tab">FLOW</button>
+      <button class="tab" data-view="timer" role="tab">TIMER</button>
+    </nav>
+  </div>
+
+  <main>
+    <!-- CALENDAR -->
+    <section class="view" id="view-calendar">
+      <div class="cal-top">
+        <h2 id="calTitle"></h2>
+        <div class="grow"></div>
+        <div class="seg" id="calFilter" role="group" aria-label="보기 필터">
+          <button type="button" data-f="all">전체</button>
+          <button type="button" data-f="event">일정</button>
+          <button type="button" data-f="todo">할 일</button>
+        </div>
+        <button class="pill-btn" id="calToday">오늘</button>
+        <button class="pill-btn primary" id="calAdd">+ 추가</button>
+      </div>
+      <div class="cal-dow"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
+      <div class="cal-weeks" id="calWeeks"></div>
+      <div class="cal-day" id="calDay">
+        <div class="side-head"><span id="cdHead"></span><b id="cdCount">0</b></div>
+        <div class="dayev" id="cdEv"></div>
+        <div class="drop-list" id="cdList"></div>
+        <button class="pill-btn primary" id="cdAdd">+ 이 날에 추가</button>
+      </div>
+    </section>
+
+    <!-- MATRIX -->
+    <section class="view" id="view-matrix">
+      <aside class="side">
+        <div class="side-head"><span id="mHead">오늘 할 일</span><b id="mCount">0</b></div>
+        <div class="dayev" id="mEv"></div>
+        <div class="drop-list" data-drop="q:inbox" id="mList"></div>
+        <form class="quick" data-quick>
+          <input placeholder="빠른 추가" aria-label="빠른 추가" enterkeyhint="done">
+          <button type="submit" aria-label="추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </form>
+      </aside>
+      <div class="quads" id="quads"></div>
+    </section>
+
+    <!-- TIMER -->
+    <section class="view" id="view-timer">
+      <div class="tnote" id="timerNote" hidden>타이머가 팝업으로 떠 있어요.<button class="pill-btn primary" id="twDockHere">여기로 가져오기</button></div>
+      <div id="timerSlot"></div>
+    </section>
+
+    <!-- FLOW -->
+    <section class="view" id="view-flow">
+      <aside class="side">
+        <div class="side-head"><span>ORDER</span><b id="fCount">0</b></div>
+        <div class="dayev" id="fEv"></div>
+        <div class="drop-list" data-drop="s:inbox" id="fList"></div>
+        <form class="quick" data-quick>
+          <input placeholder="빠른 추가" aria-label="빠른 추가" enterkeyhint="done">
+          <button type="submit" aria-label="추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </form>
+      </aside>
+      <div class="slots" id="slots"></div>
+    </section>
+  </main>
+</div>
+
+<div class="fwin" id="timerWin" role="dialog" aria-label="Focus Timer" hidden>
+  <div class="fwin-bar" id="twBar">
+    <span class="ttl">FOCUS TIMER</span>
+    <button id="twToTab" aria-label="TIMER 탭에서 크게 보기" title="TIMER 탭에서 크게 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+    <button id="twClose" aria-label="팝업 닫기" title="팝업 닫기 (타이머는 계속 돌아가요)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="fwin-body" id="twBody"></div>
+  <div class="fwin-grip l" data-grip="l" title="크기 조절"></div>
+  <div class="fwin-grip" data-grip="r" title="크기 조절"></div>
+</div>
+<div id="timerPark" hidden></div>
+
+<div class="modal" id="qmodal" hidden>
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qText">
+    <h3 id="qText"></h3>
+    <div class="btns"><div class="grow"></div><button class="pill-btn" id="qNo">취소</button><button class="pill-btn primary" id="qYes">확인</button></div>
+  </div>
+</div>
+
+<div class="saved" id="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved!</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
+    <h3 id="mdTitle">새 할 일</h3>
+    <div class="seg" id="fKind" role="group" aria-label="종류">
+      <button type="button" data-kind="todo">할 일</button>
+      <button type="button" data-kind="event">일정</button>
+    </div>
+    <label>제목<input id="fTitle" autocomplete="off" enterkeyhint="done"></label>
+    <label>과목 (선택)<input id="fSubj" list="subjList" autocomplete="off" placeholder="예: 임상신경학"></label>
+    <datalist id="subjList"></datalist>
+    <div class="row">
+      <label>시작일<input type="date" id="fStart"></label>
+      <label>종료일<input type="date" id="fEnd"></label>
+    </div>
+    <label id="fTimeWrap">시간 (선택)<input type="time" id="fTime"></label>
+    <label>메모 (완료 기준)<input id="fNote" autocomplete="off" enterkeyhint="done"></label>
+    <div class="flabel">색상 (A = 종류 기본색)<div class="swatches" id="fColors"></div></div>
+    <div class="row" id="fTodoRow">
+      <label>사분면
+        <select id="fQuad">
+          <option value="">미분류</option>
+          <option value="do">일단 이것부터</option>
+          <option value="schedule">시간 빼두기</option>
+          <option value="delegate">얼른 처리하기</option>
+          <option value="pass">패스</option>
+        </select>
+      </label>
+      <label>시간대
+        <select id="fSlot">
+          <option value="">미분류</option>
+          <option value="morning">오전</option>
+          <option value="afternoon">오후</option>
+          <option value="night">밤</option>
+        </select>
+      </label>
+    </div>
+    <div class="btns">
+      <button class="danger" id="fDel">삭제</button>
+      <div class="grow"></div>
+      <button class="pill-btn" id="fCancel">취소</button>
+      <button class="pill-btn primary" id="fSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="cmodal" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+    <h3 id="cTitle">색상 설정</h3>
+    <p class="psub">일정과 할 일의 기본 색이에요. 색을 따로 고르지 않은 항목은 모두 이 색으로 보여요. 무지개 칸을 누르면 원하는 색을 직접 고를 수 있어요.</p>
+    <div class="crow" data-kind="event">
+      <div class="chead"><b>일정</b><span class="cprev event">14:00 순천향 외래</span></div>
+      <div class="swatches"></div>
+    </div>
+    <div class="crow" data-kind="todo">
+      <div class="chead"><b>할 일</b><span class="cprev">☐ Cortex p.2–8 정리</span></div>
+      <div class="swatches"></div>
+    </div>
+    <div class="csec">과목 색 · 줄임말</div>
+    <p class="psub">줄임말은 캘린더 막대 앞에 보여요. 색 칸을 누르면 과목 색을 바꿀 수 있어요.</p>
+    <div id="cSubjs"></div>
+    <div class="csec">매트릭스 사분면</div>
+    <div id="cQuads"></div>
+    <div class="btns">
+      <button class="danger" id="cClear"></button>
+      <div class="grow"></div>
+      <button class="pill-btn" id="cReset">모두 기본값</button>
+      <button class="pill-btn primary" id="cDone">완료</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="pmodal" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <h3 id="pTitle">계획 붙여넣기</h3>
+    <p class="psub">ChatGPT가 짜준 계획을 그대로 붙여넣고 <b>정리하기</b>를 누르세요. 날짜별로 나누고, 약속·시험·병원처럼 시간이 정해진 것은 <b>일정</b>, 나머지는 <b>할 일</b>로 분류해요. 날짜가 없는 줄은 <b id="pBase"></b>에 들어가요.</p>
+    <textarea id="pText" placeholder="예)&#10;## 9/24 (목)&#10;- [일정] 14:00 순천향 외래&#10;- [임상신경학] Cortex p.9–18: Frontal lobe 정리 → 기능·손상 연결&#10;- 오후: [운동치료학] 당일 진도 정리"></textarea>
+    <div class="btns">
+      <button class="pill-btn" id="pPrompt" title="ChatGPT에 붙여넣으면 이 앱이 읽기 좋은 형식으로 계획을 써줘요">GPT 요청문 복사</button>
+      <div class="grow"></div>
+      <button class="pill-btn primary" id="pParse">정리하기</button>
+    </div>
+    <div id="pPreview"></div>
+    <div class="btns">
+      <button class="danger" id="pUndo">최근 붙여넣기 취소</button>
+      <div class="grow"></div>
+      <button class="pill-btn" id="pClose">닫기</button>
+      <button class="pill-btn primary" id="pSave" hidden>등록</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Focus Timer (뽀모도로 · 타임트래킹) ----------
+   dayflow 스타일과 섞이지 않도록 shadow DOM 안에 그려요.
+   팝업과 TIMER 탭은 이 하나의 타이머를 옮겨 다니며 같이 써요. */
+const FOCUS_TIMER_CSS = `
+  :host {
+    display: block;
+    --page: #d9d9d9; --bg: #f2f2f2; --ink: #111111; --muted: #6b6b6b; --line: #111111; --soft-line: #cfcfcf;
+    --screen: #0a0a0a; --digit: #f5f5f5; --digit-dim: #9a9a9a;
+    --arc-on: #f5f5f5; --arc-break: #8c8c8c; --arc-track: #f5f5f5; --arc-off: #1e1e1e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :host(:not([data-theme="light"])) {
+      --page: #000000; --bg: #111111; --ink: #f2f2f2; --muted: #9a9a9a; --line: #f2f2f2; --soft-line: #3a3a3a;
+    }
+  }
+  :host([data-theme="dark"]) {
+    --page: #000000; --bg: #111111; --ink: #f2f2f2; --muted: #9a9a9a; --line: #f2f2f2; --soft-line: #3a3a3a;
+  }
+  * { box-sizing: border-box; }
+  .tcq { container-type: inline-size; container-name: tm; }
+  .tbody {
+    background: var(--page); color: var(--ink);
+    font-family: "Manrope", "Noto Sans KR", system-ui, sans-serif; font-size: 14px;
+    padding: 32px 16px;
+  }
+  :host(.popup) .tbody { padding: 0; }
+  button, select, input { font-family: inherit; }
+  .page { max-width: 1040px; margin: 0 auto; background: var(--bg); box-shadow: 0 30px 60px rgba(0,0,0,.25); }
+  :host(.popup) .page { box-shadow: none; }
+  .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 32px; }
+  .logo { width: 22px; height: 22px; flex: none; }
+  nav { display: flex; gap: 22px; margin-right: auto; margin-left: 28px; }
+  nav button {
+    background: none; border: 0; padding: 4px 0; cursor: pointer; color: var(--muted);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid transparent;
+  }
+  nav button.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .btn-black {
+    background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; text-decoration: none; border-radius: 2px;
+  }
+  .btn-line {
+    background: transparent; color: var(--ink); border: 1px solid var(--ink);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 9px 18px; cursor: pointer; border-radius: 2px;
+  }
+  .btn-black:hover { opacity: .85; }
+  .btn-line:hover { background: var(--ink); color: var(--bg); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  h1 {
+    margin: 0; padding: 4px 24px 14px; text-align: center;
+    font-family: "Manrope", sans-serif; font-weight: 500; letter-spacing: -.02em; line-height: .95;
+    font-size: clamp(34px, 12.5cqi, 132px); text-transform: uppercase; border-bottom: 1px solid var(--line);
+  }
+  .grid { display: grid; grid-template-columns: 1.35fr 1fr; border-bottom: 1px solid var(--line); }
+  .cell { padding: 36px 32px; min-width: 0; }
+  .grid .cell:last-child { display: flex; flex-direction: column; justify-content: center; }
+  .cell + .cell { border-left: 1px solid var(--line); }
+  .device { max-width: 480px; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+  .screen { background: var(--screen); aspect-ratio: 1 / 1; position: relative; overflow: hidden; touch-action: none; border-radius: 5%; }
+  .screen svg { width: 100%; height: 100%; display: block; }
+  .device-cap { display: flex; justify-content: space-between; margin-top: 10px; }
+  .dial-num { font: 300 18px "Manrope", sans-serif; fill: var(--digit); }
+  .dial-dot { fill: var(--digit); }
+  .digits { font-family: "Share Tech Mono", ui-monospace, monospace; fill: var(--digit); }
+  .digits-sub { fill: var(--digit-dim); }
+  .unit { font: 10px "Noto Sans KR", sans-serif; fill: var(--digit-dim); letter-spacing: .06em; }
+  .clickable { cursor: pointer; }
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .15; } }
+  @media (prefers-reduced-motion: reduce) { .blink { animation: none; opacity: .5; } }
+  .glow { filter: drop-shadow(0 0 3px rgba(255,255,255,.3)); }
+  #arc { cursor: grab; }
+  .dragging #arc { cursor: grabbing; }
+  .edit {
+    position: absolute; transform: translate(-50%, -50%);
+    background: #000; color: var(--digit); caret-color: #fff; border: 1px solid #fff; border-radius: 2px; outline: none;
+    font-family: "Share Tech Mono", ui-monospace, monospace; text-align: center; padding: 0 4px;
+  }
+  .edit::placeholder { color: #555; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
+  .controls button { padding: 15px 0; font-size: 12px; }
+  .fold { border-top: 1px solid var(--line); }
+  .fold:last-child { border-bottom: 1px solid var(--line); }
+  .fold summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold summary::after { content: "+"; font-size: 18px; font-weight: 300; line-height: 1; }
+  .fold[open] summary::after { content: "−"; }
+  .fold .ko { font-family: "Noto Sans KR", sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); margin-left: 8px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--soft-line); font-family: "Noto Sans KR", sans-serif;
+  }
+  .row .label { font-size: 13px; font-weight: 500; }
+  .ctrl { display: flex; align-items: center; gap: 8px; }
+  .row select {
+    height: 34px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 13px "Noto Sans KR", sans-serif; padding: 0 8px;
+  }
+  .row .btn-line { padding: 8px 12px; font-family: "Noto Sans KR", sans-serif; letter-spacing: 0; }
+  .vol { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+  .vol input[type=range] { width: 100%; max-width: 150px; accent-color: var(--ink); }
+  .vol output { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .swatches { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .color-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .color-head { display: flex; align-items: center; justify-content: space-between; }
+  .hexwrap { display: flex; align-items: center; gap: 8px; }
+  .preview { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--soft-line); display: block; }
+  .hex {
+    width: 86px; height: 30px; border: 1px solid var(--ink); border-radius: 2px; background: var(--bg); color: var(--ink);
+    font: 400 12px "Share Tech Mono", ui-monospace, monospace; text-transform: uppercase; padding: 0 8px;
+  }
+  .hex.bad { border-color: #d33; }
+  .custom {
+    position: relative; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; overflow: hidden;
+    background: conic-gradient(#f44, #fd4, #4d4, #4dd, #44f, #d4d, #f44); border: 1px solid var(--soft-line);
+  }
+  .custom.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .custom input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+  .swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--soft-line); cursor: pointer; padding: 0; }
+  .swatch.on { outline: 1px solid var(--ink); outline-offset: 2px; }
+  #settingsPanel.track #soundSection { display: none; }
+  #settingsPanel.track .row[data-mode="pomo"], #settingsPanel:not(.track) .row[data-mode="track"] { display: none; }
+  footer { display: flex; justify-content: space-between; padding: 14px 32px; }
+  :host(.popup) footer { display: none; }
+  .hidden { display: none !important; }
+  @container tm (max-width: 760px) {
+    .tbody { padding: 0; }
+    header { padding: 12px 16px; }
+    nav { margin-left: 12px; gap: 14px; }
+    .grid { grid-template-columns: 1fr; }
+    .cell { padding: 28px 16px; }
+    .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
+    footer { padding: 14px 16px; }
+  }
+  @container tm (max-width: 420px) {
+    .cell { padding: 18px 14px; }
+    .controls { margin-bottom: 16px; }
+  }
+`;
+const FOCUS_TIMER_HTML = `
+<div class="tcq"><div class="tbody"><div class="page">
+  <header>
+    <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+      <circle cx="12" cy="13" r="9"/><path d="M12 13V8M12 13l3.5 2M10 2h4"/>
+    </svg>
+    <nav role="tablist">
+      <button id="modePomo" class="active" role="tab">뽀모도로</button>
+      <button id="modeTrack" role="tab">타임트래킹</button>
+    </nav>
+  </header>
+  <h1>Focus Timer</h1>
+  <section class="grid">
+    <div class="cell">
+      <div class="device">
+        <div class="screen" id="screen">
+          <svg id="svg" viewBox="0 0 400 400" aria-label="원형 타이머">
+            <g id="dial"></g>
+            <g id="arc"></g>
+            <g id="soundBtn" class="clickable" transform="translate(356 26)">
+              <rect x="-8" y="-8" width="32" height="32" fill="transparent"/>
+              <path d="M0 5h4l5-5v16l-5-5H0z" fill="var(--digit)"/>
+              <path id="soundWave" d="M12 3.5a6 6 0 0 1 0 9" stroke="var(--digit)" stroke-width="1.6" fill="none"/>
+              <path id="soundMute" d="M11 4l6 8M17 4l-6 8" stroke="var(--digit)" stroke-width="1.6" class="hidden"/>
+            </g>
+            <g id="pomoView" class="glow">
+              <text id="cycleText" class="digits clickable" x="200" y="146" text-anchor="middle" font-size="22"><tspan id="doneText">00</tspan>/<tspan id="targetText">--</tspan></text>
+              <text id="phaseText" class="unit" x="200" y="164" text-anchor="middle">집중</text>
+              <text id="focusText" class="digits clickable" x="200" y="222" text-anchor="middle" font-size="68">25:00</text>
+              <text class="unit" x="185" y="238" text-anchor="middle">M</text>
+              <text class="unit" x="215" y="238" text-anchor="middle">S</text>
+              <text id="breakText" class="digits digits-sub clickable" x="200" y="280" text-anchor="middle" font-size="40">05:00</text>
+            </g>
+            <g id="trackView" class="glow hidden">
+              <text id="goalText" class="digits digits-sub clickable" x="200" y="146" text-anchor="middle" font-size="22">목표 --:--</text>
+              <text class="unit" x="167" y="170" text-anchor="middle" font-size="12">H</text>
+              <text class="unit" x="233" y="170" text-anchor="middle" font-size="12">M</text>
+              <text id="trackText" class="digits" x="200" y="228" text-anchor="middle" font-size="72">00:00</text>
+              <text id="trackSec" class="digits digits-sub" x="200" y="262" text-anchor="middle" font-size="20">00s</text>
+              <text id="trackState" class="unit" x="200" y="284" text-anchor="middle" font-size="12">대기</text>
+            </g>
+          </svg>
+          <input id="editInput" class="edit hidden" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="device-cap"><span class="tag">(Timer)</span><span class="tag" id="modeCap">Pomodoro</span></div>
+      </div>
+    </div>
+    <div class="cell">
+      <div class="controls">
+        <button id="startBtn" class="btn-black">시작</button>
+        <button id="resetBtn" class="btn-line">리셋</button>
+      </div>
+      <div id="settingsPanel">
+        <details id="soundSection" class="fold">
+          <summary><span>Sound<span class="ko">소리</span></span></summary>
+          <div class="row">
+            <span class="label">알림음</span>
+            <div class="ctrl">
+              <select id="soundType">
+                <option value="beep">삐삐</option>
+                <option value="digital">디지털 알람</option>
+                <option value="chime">차임</option>
+                <option value="bell">벨</option>
+                <option value="soft">부드러운 음</option>
+              </select>
+              <button class="btn-line" id="soundTest">미리듣기</button>
+            </div>
+          </div>
+          <div class="row">
+            <span class="label">소리 크기</span>
+            <div class="vol">
+              <input type="range" id="volume" min="0" max="100" step="5">
+              <output id="volumeOut">70%</output>
+            </div>
+          </div>
+        </details>
+        <details id="colorSection" class="fold">
+          <summary><span>Ring<span class="ko">원형 테두리 색</span></span></summary>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">집중</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="집중 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-on" data-key="colorFocus"></div>
+          </div>
+          <div class="row color-row" data-mode="pomo">
+            <div class="color-head">
+              <span class="label">휴식</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="휴식 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-break" data-key="colorBreak"></div>
+          </div>
+          <div class="row color-row" data-mode="track">
+            <div class="color-head">
+              <span class="label">트래킹</span>
+              <span class="hexwrap"><i class="preview"></i><input class="hex" maxlength="7" spellcheck="false" aria-label="트래킹 색 코드"></span>
+            </div>
+            <div class="swatches" data-var="--arc-track" data-key="colorTrack"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+  <footer><span class="tag">Focus Timer</span><span class="tag">Black &amp; White</span></footer>
+</div></div></div>`;
+
+// host: 타이머를 담을 요소, opts.confirm: 확인 창 (Promise<boolean>), opts.isShown: 지금 화면에 보이는지
+function createFocusTimer(host, opts) {
+  const root = host.attachShadow({ mode: "open" });
+  root.innerHTML = `<style>${FOCUS_TIMER_CSS}</style>${FOCUS_TIMER_HTML}`;
+
+  // dayflow의 라이트/다크 설정을 따라가게
+  const syncTheme = () => {
+    const t = document.documentElement.getAttribute("data-theme");
+    if (t) host.setAttribute("data-theme", t); else host.removeAttribute("data-theme");
+  };
+  syncTheme();
+  new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  const NS = "http://www.w3.org/2000/svg";
+  const C = 200;                       // 중심
+  const MAX_TRACK = 12 * 3600 * 1000;  // 12시간
+  const $ = id => root.getElementById(id);
+  const pad = n => String(n).padStart(2, "0");
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  // ---------- 상태 ----------
+  const saved = store.get("pomoSettings", {});
+  const S = {
+    mode: "pomo",
+    sound: store.get("sound", true),
+    pomo: {
+      target: saved.target ? clamp(saved.target, 1, 99) : null,
+      focusSec: clamp(saved.focusSec || (saved.focusMin || 25) * 60, 1, 3600),
+      breakSec: clamp(saved.breakSec || (saved.breakMin || 5) * 60, 1, 3600),
+      done: 0, phase: "focus", remaining: 0, running: false, endAt: 0, finished: false
+    },
+    track: {
+      total: clamp(store.get("trackTotal", 0), 0, MAX_TRACK),
+      running: false, startedAt: 0,
+      goalMin: store.get("trackGoal", null),
+      goalHit: false
+    }
+  };
+  S.pomo.remaining = S.pomo.focusSec * 1000;
+
+  // ---------- 다이얼 그리기 ----------
+  const polar = (r, deg) => {
+    const a = (deg - 90) * Math.PI / 180;
+    return [C + r * Math.cos(a), C + r * Math.sin(a)];
+  };
+  const dial = $("dial");
+  for (let m = 0; m < 60; m += 5) {
+    const deg = m * 6;
+    const [tx, ty] = polar(172, deg);
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", tx); t.setAttribute("y", ty + 7);
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("class", "dial-num");
+    t.textContent = m;
+    dial.appendChild(t);
+    const [dx, dy] = polar(154, deg);
+    const d = document.createElementNS(NS, "circle");
+    d.setAttribute("cx", dx); d.setAttribute("cy", dy); d.setAttribute("r", 1.8);
+    d.setAttribute("class", "dial-dot");
+    dial.appendChild(d);
+  }
+  const R_IN = 116, R_OUT = 142;
+  const arc = $("arc");
+  const segs = [];
+  for (let i = 0; i < 60; i++) {
+    const a0 = i * 6 + 0.7, a1 = (i + 1) * 6 - 0.7;
+    const [x0, y0] = polar(R_OUT, a0), [x1, y1] = polar(R_OUT, a1);
+    const [x2, y2] = polar(R_IN, a1),  [x3, y3] = polar(R_IN, a0);
+    const p = document.createElementNS(NS, "path");
+    p.setAttribute("d", `M${x0} ${y0}A${R_OUT} ${R_OUT} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${R_IN} ${R_IN} 0 0 0 ${x3} ${y3}Z`);
+    p.setAttribute("fill", "var(--arc-off)");
+    arc.appendChild(p);
+    segs.push(p);
+  }
+  let lastArc = "";
+  function drawArc(count, color) {
+    const key = count + color;
+    if (key === lastArc) return;
+    lastArc = key;
+    segs.forEach((p, i) => p.setAttribute("fill", i < count ? color : "var(--arc-off)"));
+  }
+
+  // ---------- 소리 ----------
+  const SND = store.get("soundPrefs", {});
+  S.soundType = SND.type || "beep";
+  S.volume = SND.volume ?? 70;
+  let actx;
+  function audio() {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function tone(out, t, freq, type, dur, peak, attack = 0.01) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(out);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  const SOUNDS = {
+    beep:    { gap: 0.35, play: (o, t) => tone(o, t, 880, "sine", 0.25, 0.6) },
+    digital: { gap: 0.6,  play: (o, t) => { for (let i = 0; i < 4; i++) tone(o, t + i * 0.08, 2000, "square", 0.05, 0.12, 0.003); } },
+    chime:   { gap: 0.7,  play: (o, t) => { tone(o, t, 659, "sine", 0.9, 0.5); tone(o, t + 0.18, 988, "sine", 1.0, 0.45); } },
+    bell:    { gap: 1.1,  play: (o, t) => { tone(o, t, 523, "sine", 1.6, 0.55, 0.005); tone(o, t, 1318, "sine", 0.9, 0.2, 0.005); tone(o, t, 2093, "sine", 0.4, 0.08, 0.005); } },
+    soft:    { gap: 0.8,  play: (o, t) => tone(o, t, 440, "triangle", 0.7, 0.55, 0.12) }
+  };
+  const ALARM_REPEAT = 3;
+  function beep(times = ALARM_REPEAT, force = false) {
+    if ((!S.sound && !force) || S.volume <= 0) return;
+    try {
+      audio();
+      const master = actx.createGain();
+      master.gain.value = (S.volume / 100) ** 2;
+      master.connect(actx.destination);
+      const snd = SOUNDS[S.soundType] || SOUNDS.beep;
+      for (let i = 0; i < times; i++) snd.play(master, actx.currentTime + 0.02 + i * snd.gap);
+    } catch {}
+  }
+  function renderSound() {
+    $("soundWave").classList.toggle("hidden", !S.sound);
+    $("soundMute").classList.toggle("hidden", S.sound);
+  }
+  $("soundBtn").addEventListener("click", () => {
+    S.sound = !S.sound; store.set("sound", S.sound); renderSound();
+    if (S.sound) beep(1);
+  });
+  const saveSound = () => store.set("soundPrefs", { type: S.soundType, volume: S.volume });
+  $("soundType").value = S.soundType;
+  $("volume").value = S.volume;
+  $("volumeOut").textContent = S.volume + "%";
+  $("soundType").addEventListener("change", e => { S.soundType = e.target.value; saveSound(); beep(1, true); });
+  $("volume").addEventListener("input", e => { S.volume = +e.target.value; $("volumeOut").textContent = S.volume + "%"; saveSound(); });
+  $("volume").addEventListener("change", () => beep(1, true));
+  $("soundTest").addEventListener("click", () => beep(ALARM_REPEAT, true));
+
+  // ---------- 테두리 색 ----------
+  const PALETTE = [
+    "#f5f5f5", "#d4d4d4", "#b0b0b0", "#8c8c8c", "#4a4a4a",
+    "#ff5a5a", "#ff9f43", "#ffd43b", "#51cf66", "#20c997", "#4dabf7", "#5c7cfa", "#9775fa", "#f06595"
+  ];
+  const COLORS = store.get("ringColorsBW", {});
+  const HEX = /^#[0-9a-f]{6}$/i;
+  const DEFAULT_RING = { "--arc-on": "#f5f5f5", "--arc-break": "#8c8c8c", "--arc-track": "#f5f5f5" };
+  root.querySelectorAll(".swatches").forEach(box => {
+    const cssVar = box.dataset.var, key = box.dataset.key;
+    const row = box.closest(".row"), hex = row.querySelector(".hex"), preview = row.querySelector(".preview");
+    const def = DEFAULT_RING[cssVar];
+    const chips = PALETTE.map(c => {
+      const b = document.createElement("button");
+      b.className = "swatch"; b.style.background = c; b.title = c; b.dataset.c = c;
+      b.setAttribute("aria-label", c);
+      b.addEventListener("click", () => apply(c));
+      box.appendChild(b);
+      return b;
+    });
+    const custom = document.createElement("label");
+    custom.className = "custom"; custom.title = "직접 고르기";
+    const picker = document.createElement("input");
+    picker.type = "color";
+    picker.setAttribute("aria-label", "직접 고르기");
+    custom.appendChild(picker);
+    box.appendChild(custom);
+    picker.addEventListener("input", () => apply(picker.value));
+    hex.addEventListener("input", () => {
+      let v = hex.value.trim();
+      if (v && v[0] !== "#") v = "#" + v;
+      const ok = HEX.test(v);
+      hex.classList.toggle("bad", !ok && v.length >= 7);
+      if (ok) apply(v, true);
+    });
+    hex.addEventListener("blur", () => { hex.value = current.toUpperCase(); hex.classList.remove("bad"); });
+    hex.addEventListener("keydown", e => { if (e.key === "Enter") hex.blur(); });
+
+    let current = def;
+    function show(c) {
+      current = c.toLowerCase();
+      host.style.setProperty(cssVar, current);
+      const inPalette = PALETTE.includes(current);
+      chips.forEach(b => b.classList.toggle("on", b.dataset.c === current));
+      custom.classList.toggle("on", !inPalette);
+      picker.value = current;
+      preview.style.background = current;
+      if (root.activeElement !== hex) hex.value = current.toUpperCase();
+    }
+    function apply(c, fromHex) {
+      show(c);
+      if (!fromHex) hex.value = current.toUpperCase();
+      COLORS[key] = current; store.set("ringColorsBW", COLORS);
+      lastArc = "";
+      render();
+    }
+    show(COLORS[key] || def);
+  });
+
+  [["soundSection", "soundOpen"], ["colorSection", "colorOpen"]].forEach(([id, key]) => {
+    const el = $(id);
+    el.open = store.get(key, false);
+    el.addEventListener("toggle", () => store.set(key, el.open));
+  });
+
+  // ---------- 뽀모도로 ----------
+  const P = S.pomo;
+  const fmtMS = ms => {
+    const s = Math.ceil(ms / 1000);
+    return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+  };
+  function pomoStep(now) {
+    if (!P.running) return;
+    P.remaining = P.endAt - now;
+    while (P.running && P.remaining <= 0) {
+      const over = -P.remaining;
+      if (P.phase === "focus") {
+        P.done = Math.min(99, P.done + 1);
+        if (P.target && P.done >= P.target) {
+          P.running = false; P.finished = true; P.phase = "focus"; P.remaining = 0;
+          beep(ALARM_REPEAT);
+          break;
+        }
+        P.phase = "break";
+        P.remaining = P.breakSec * 1000 - over;
+      } else {
+        P.phase = "focus";
+        P.remaining = P.focusSec * 1000 - over;
+      }
+      P.endAt = now + P.remaining;
+      beep(ALARM_REPEAT);
+    }
+  }
+  function renderPomo() {
+    const focusMs = P.phase === "focus" ? P.remaining : 0;
+    const breakMs = P.finished ? 0 : P.phase === "break" ? P.remaining : P.breakSec * 1000;
+    $("doneText").textContent = pad(P.done);
+    $("targetText").textContent = P.target ? pad(P.target) : "--";
+    $("focusText").textContent = fmtMS(focusMs);
+    $("breakText").textContent = fmtMS(breakMs);
+    const paused = !P.running && !P.finished && (P.phase === "break" || P.remaining !== P.focusSec * 1000);
+    const phase = P.phase === "focus" ? "집중" : "휴식";
+    $("phaseText").textContent = P.finished ? "완료!" : P.running ? phase : paused ? phase + " · 일시정지" : "대기";
+    $("focusText").style.opacity = P.phase === "focus" && !P.finished ? 1 : 0.45;
+    $("breakText").style.opacity = P.phase === "break" ? 1 : 0.55;
+    $("breakText").setAttribute("font-size", P.phase === "break" ? 44 : 40);
+    $(P.phase === "focus" ? "focusText" : "breakText").classList.toggle("blink", paused);
+    $(P.phase === "focus" ? "breakText" : "focusText").classList.remove("blink");
+    const mins = Math.ceil(Math.max(0, P.remaining) / 60000);
+    drawArc(mins, P.phase === "focus" ? "var(--arc-on)" : "var(--arc-break)");
+  }
+
+  // ---------- 타임트래킹 ----------
+  const T = S.track;
+  const trackElapsed = now => Math.min(MAX_TRACK, T.total + (T.running ? now - T.startedAt : 0));
+  function trackStep(now) {
+    if (T.running && T.goalMin && !T.goalHit && trackElapsed(now) >= T.goalMin * 60000) {
+      T.goalHit = true;
+      beep(ALARM_REPEAT);
+    }
+    if (T.running && trackElapsed(now) >= MAX_TRACK) {
+      T.total = MAX_TRACK; T.running = false;
+      store.set("trackTotal", T.total);
+      beep(ALARM_REPEAT);
+    }
+  }
+  function renderTrack(now) {
+    const ms = trackElapsed(now);
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600), m = Math.floor(totalSec / 60) % 60;
+    $("trackText").textContent = `${pad(h)}:${pad(m)}`;
+    $("trackSec").textContent = `${pad(totalSec % 60)}s`;
+    const hit = T.goalMin && ms >= T.goalMin * 60000;
+    $("trackState").textContent = ms >= MAX_TRACK ? "최대 12시간 도달"
+      : (hit ? "목표 달성! · " : "") + (T.running ? "집중 중" : ms > 0 ? "휴식 중 (기록 제외)" : "대기");
+    $("goalText").textContent = "목표 " + (T.goalMin ? `${pad(Math.floor(T.goalMin / 60))}:${pad(T.goalMin % 60)}` : "--:--");
+    $("goalText").style.fill = hit ? "var(--arc-track)" : "";
+    $("trackText").classList.toggle("blink", !T.running && ms > 0 && ms < MAX_TRACK);
+    const n = T.goalMin ? Math.min(60, Math.floor(ms / (T.goalMin * 60000) * 60)) : (ms >= MAX_TRACK ? 60 : m);
+    drawArc(n, "var(--arc-track)");
+  }
+
+  // ---------- 공통 렌더 ----------
+  function render() {
+    const now = Date.now();
+    const pomo = S.mode === "pomo";
+    $("pomoView").classList.toggle("hidden", !pomo);
+    $("trackView").classList.toggle("hidden", pomo);
+    $("settingsPanel").classList.toggle("track", !pomo);
+    $("modePomo").classList.toggle("active", pomo);
+    $("modeTrack").classList.toggle("active", !pomo);
+    $("modeCap").textContent = pomo ? "Pomodoro" : "Time Tracking";
+    const running = pomo ? P.running : T.running;
+    $("startBtn").textContent = running ? (pomo ? "일시정지" : "휴식 (일시정지)") : "시작";
+    if (pomo) renderPomo(); else renderTrack(now);
+    opts.onTick && opts.onTick(P.running || T.running);
+  }
+  function loop() {
+    const now = Date.now();
+    pomoStep(now);
+    trackStep(now);
+    render();
+  }
+  setInterval(loop, 200);
+  document.addEventListener("visibilitychange", loop);
+
+  // ---------- 버튼 ----------
+  function toggleStart() {
+    const now = Date.now();
+    if (S.mode === "pomo") {
+      if (P.running) {
+        pomoStep(now);
+        P.running = false;
+      } else {
+        if (P.finished || (P.target && P.done >= P.target)) {
+          P.finished = false; P.done = 0; P.phase = "focus"; P.remaining = P.focusSec * 1000;
+        }
+        P.running = true;
+        P.endAt = now + P.remaining;
+      }
+    } else {
+      if (T.running) {
+        T.total = trackElapsed(now); T.running = false;
+        store.set("trackTotal", T.total);
+      } else if (T.total < MAX_TRACK) {
+        T.running = true; T.startedAt = now;
+      }
+    }
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
+    render();
+  }
+  async function reset() {
+    if (S.mode === "pomo") {
+      Object.assign(P, { running: false, finished: false, done: 0, phase: "focus", remaining: P.focusSec * 1000 });
+    } else {
+      if ((T.total > 0 || T.running) && !(await opts.confirm("누적된 집중 시간을 초기화할까요?", "초기화"))) return;
+      Object.assign(T, { running: false, total: 0, goalHit: false });
+      store.set("trackTotal", 0);
+    }
+    render();
+  }
+  $("startBtn").addEventListener("click", toggleStart);
+  $("resetBtn").addEventListener("click", reset);
+  $("modePomo").addEventListener("click", () => { closeEdit(false); S.mode = "pomo"; render(); });
+  $("modeTrack").addEventListener("click", () => { closeEdit(false); S.mode = "track"; render(); });
+  // 스페이스바: 타이머가 보일 때만, 글자를 입력 중이 아닐 때만
+  document.addEventListener("keydown", e => {
+    if (e.code !== "Space" || !opts.isShown()) return;
+    const t = e.composedPath()[0];
+    if (!t || /^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY)$/.test(t.tagName) || t.isContentEditable) return;
+    if (document.querySelector(".modal:not([hidden])")) return;
+    e.preventDefault(); toggleStart();
+  });
+  window.addEventListener("beforeunload", () => {
+    if (T.running) { T.total = trackElapsed(Date.now()); store.set("trackTotal", T.total); }
+  });
+
+  // ---------- 설정 ----------
+  const LIMITS = { target: [1, 99], focusSec: [1, 3600], breakSec: [1, 3600] };
+  function setSetting(key, val) {
+    if (key === "target") {
+      P.target = val ? clamp(Math.round(val), ...LIMITS.target) : null;
+      P.finished = false;
+    } else {
+      if (P.running) return;
+      P[key] = clamp(Math.round(val), ...LIMITS[key]);
+      if (key === "focusSec") {
+        P.finished = false;
+        if (P.phase === "focus") P.remaining = P[key] * 1000;
+      }
+      if (key === "breakSec" && P.phase === "break") P.remaining = P[key] * 1000;
+    }
+    store.set("pomoSettings", { target: P.target, focusSec: P.focusSec, breakSec: P.breakSec });
+    render();
+  }
+  function setGoal(min) {
+    const ms = trackElapsed(Date.now());
+    T.goalMin = min ? clamp(Math.round(min), 1, 720) : null;
+    T.goalHit = !!T.goalMin && ms >= T.goalMin * 60000;
+    store.set("trackGoal", T.goalMin);
+    render();
+  }
+
+  const screen = $("screen"), editInput = $("editInput");
+  let editKey = null;
+  function openEdit(key, anchorEl, fontPx) {
+    if ((key === "trackGoal") !== (S.mode === "track")) return;
+    if ((key === "breakSec" || key === "focusSec") && P.running) return;
+    const sr = screen.getBoundingClientRect(), ar = anchorEl.getBoundingClientRect();
+    const k = sr.width / 400;
+    editKey = key;
+    editInput.style.left = (ar.left + ar.width / 2 - sr.left) + "px";
+    editInput.style.top = (ar.top + ar.height / 2 - sr.top) + "px";
+    editInput.style.fontSize = fontPx * k + "px";
+    editInput.style.width = fontPx * k * (key === "target" ? 2.2 : key === "trackGoal" ? 4 : 3.2) + "px";
+    editInput.style.height = fontPx * k * 1.35 + "px";
+    editInput.placeholder = key === "target" ? "--" : key === "trackGoal" ? "시:분" : "분:초";
+    editInput.maxLength = key === "target" ? 2 : 5;
+    editInput.value = key === "target" ? (P.target || "")
+      : key === "trackGoal" ? (T.goalMin ? fmtSec(T.goalMin) : "")
+      : fmtSec(P[key]);
+    editInput.classList.remove("hidden");
+    editInput.focus();
+    editInput.select();
+  }
+  function closeEdit(commit) {
+    if (!editKey) return;
+    const key = editKey, raw = editInput.value.trim();
+    editKey = null;
+    editInput.classList.add("hidden");
+    if (!commit) return;
+    if (key === "target") {
+      const n = parseInt(raw, 10);
+      setSetting("target", n > 0 ? n : null);
+    } else if (key === "trackGoal") {
+      setGoal(parseMS(raw));
+    } else {
+      const sec = parseMS(raw);
+      if (sec > 0) setSetting(key, sec);
+    }
+  }
+  const fmtSec = sec => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
+  function parseMS(raw) {
+    if (!raw) return 0;
+    let m, sec;
+    if (raw.includes(":")) {
+      const [a, b] = raw.split(":");
+      m = parseInt(a || "0", 10); sec = parseInt(b || "0", 10);
+    } else if (raw.length >= 3) {
+      m = parseInt(raw.slice(0, -2), 10); sec = parseInt(raw.slice(-2), 10);
+    } else {
+      m = parseInt(raw, 10); sec = 0;
+    }
+    if (isNaN(m)) m = 0;
+    if (isNaN(sec)) sec = 0;
+    return m * 60 + Math.min(sec, 59);
+  }
+  editInput.addEventListener("input", () => {
+    const re = editKey === "target" ? /\D/g : /[^\d:]/g;
+    editInput.value = editInput.value.replace(re, "");
+  });
+  editInput.addEventListener("keydown", e => {
+    e.stopPropagation();
+    if (editKey && editKey !== "target" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      const dir = e.key === "ArrowUp" ? 1 : -1;
+      const cur = parseMS(editInput.value.trim());
+      let next;
+      if (editKey === "trackGoal") next = clamp((cur || T.goalMin || 0) + dir, 1, 720);
+      else next = clamp((cur || P[editKey]) + dir, 1, 3600);
+      editInput.value = fmtSec(next);
+      editInput.select();
+    }
+    else if (e.key === "Enter") { e.preventDefault(); closeEdit(true); }
+    else if (e.key === "Escape") { e.preventDefault(); closeEdit(false); }
+  });
+  editInput.addEventListener("blur", () => closeEdit(true));
+  $("cycleText").addEventListener("click", () => openEdit("target", $("targetText"), 22));
+  $("breakText").addEventListener("click", () => openEdit("breakSec", $("breakText"), 40));
+  $("focusText").addEventListener("click", () => openEdit("focusSec", $("focusText"), 68));
+  $("goalText").addEventListener("click", () => openEdit("trackGoal", $("goalText"), 22));
+
+  // 다이얼 드래그 → 집중 시간 설정
+  const svg = $("svg");
+  let dragging = false, lastDial = null;
+  function dialMinutes(e) {
+    const r = svg.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * 400 - C;
+    const y = (e.clientY - r.top) / r.height * 400 - C;
+    const dist = Math.hypot(x, y);
+    let deg = Math.atan2(y, x) * 180 / Math.PI + 90;
+    if (deg < 0) deg += 360;
+    return { dist, min: Math.round(deg / 6) || 60 };
+  }
+  svg.addEventListener("pointerdown", e => {
+    if (S.mode === "pomo" && (P.running || P.phase !== "focus")) return;
+    const { dist, min } = dialMinutes(e);
+    if (dist < R_IN - 8 || dist > 190) return;
+    closeEdit(true);
+    dragging = true;
+    lastDial = null;
+    screen.classList.add("dragging");
+    svg.setPointerCapture(e.pointerId);
+    applyDial(min);
+  });
+  svg.addEventListener("pointermove", e => { if (dragging) applyDial(dialMinutes(e).min); });
+  function applyDial(min) {
+    if (lastDial !== null && lastDial >= 50 && min <= 10) min = 60;
+    else if (lastDial !== null && lastDial <= 10 && min >= 50) min = 1;
+    lastDial = min;
+    if (S.mode === "pomo") setSetting("focusSec", min * 60);
+    else setGoal(Math.max(1, Math.round(min / 5)) * 60);
+  }
+  const endDrag = () => { dragging = false; screen.classList.remove("dragging"); };
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  renderSound();
+  render();
+}
+</script>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+const todayStr = () => ymd(new Date());
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const DOW = '일월화수목금토';
+
+const I = {
+  heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-9-8.6C1.6 8.3 3.5 5 6.8 5c2 0 3.5 1.1 5.2 3 1.7-1.9 3.2-3 5.2-3 3.3 0 5.2 3.3 3.8 6.4-2 4.3-9 8.6-9 8.6z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10h16M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01"/></svg>',
+  up: '<svg viewBox="0 0 24 24"><path d="M12 5.5l7.5 12.5h-15z" fill="currentColor"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>',
+  grip: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>',
+  calq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10h16M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>'
+};
+
+const COLORS = { gray: ['#ececed', '#1a1a1a'], pink: ['#3b57e0', '#ffffff'], yellow: ['#e4e9fc', '#1f2f8a'], blue: ['#b9c5f6', '#12205e'], green: ['#1b1b1b', '#ffffff'], purple: ['#9a9aa0', '#ffffff'] };
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const QUADS = [
+  { key: 'do', title: '일단 이것부터', icon: I.alert, tags: [['중요', 't-imp'], ['긴급', 't-urg']] },
+  { key: 'schedule', title: '시간 빼두기', icon: I.calq, tags: [['중요', 't-imp'], ['긴급X', 't-nurg']] },
+  { key: 'delegate', title: '얼른 처리하기', icon: I.clock, tags: [['중요X', 't-nimp'], ['긴급', 't-urg']] },
+  { key: 'pass', title: '패스', icon: I.arrow, tags: [['중요X', 't-nimp'], ['긴급X', 't-nurg']] }
+];
+const SLOTS = [
+  { key: 'morning', title: '오전', time: '08:00~12:00' },
+  { key: 'afternoon', title: '오후', time: '12:00~18:00' },
+  { key: 'night', title: '밤', time: '18:00~' }
+];
+const QRANK = { do: 0, schedule: 1, delegate: 2, pass: 3 };
+
+/* ---------- storage ---------- */
+const KEY = 'dayflow-v1';
+let memCopy = null;
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {}
+  return memCopy;
+}
+let savedTimer;
+function persist() {
+  const { view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin } = state;
+  const data = JSON.stringify({ view, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin });
+  memCopy = JSON.parse(data);
+  try { localStorage.setItem(KEY, data); } catch (e) {}
+}
+function save() {
+  persist();
+  const el = $('#saved'); el.classList.add('show');
+  clearTimeout(savedTimer); savedTimer = setTimeout(() => el.classList.remove('show'), 1200);
+}
+function makeTask(title, date, extra = {}) {
+  return { id: uid(), kind: 'todo', title, date, end: null, time: null, done: false, fav: false, quad: null, slot: null, order: 0, forder: null, color: 'auto', note: '', calOnly: false, ...extra };
+}
+function seed() {
+  const t = todayStr();
+  return {
+    view: 'matrix',
+    tasks: [
+      makeTask('연휴 학습 계획 세우기', t, { fav: true, order: 1 }),
+      makeTask('[신경물치] PBL 자료 수집', t, { fav: true, order: 2 }),
+      makeTask('이전까지 수업들 GPT에 올리기', t, { fav: true, order: 3 }),
+      makeTask('연휴 강의들 정리', t, { fav: true, order: 4 }),
+      makeTask('드림닥터 팝업', addDays(t, -8), { kind: 'event', end: addDays(t, -4), order: 5 }),
+      makeTask('순천향 외래', addDays(t, 3), { kind: 'event', order: 6 }),
+      makeTask('봉화산 짐 옮기기', addDays(t, 9), { kind: 'event', order: 7 })
+    ]
+  };
+}
+
+let state = load() || seed();
+state.date = todayStr();
+state.month = state.date.slice(0, 7);
+if (!['calendar', 'matrix', 'flow', 'timer'].includes(state.view)) state.view = 'matrix';
+if (!['all', 'event', 'todo'].includes(state.calFilter)) state.calFilter = 'all';
+// 일정/할 일 구분이 생기기 전에 저장된 항목 분류
+const EVENT_IDS = new Set(['p3-phase1', 'p3-phase2', 'p3-1002-3']);
+const EVENT_TITLES = new Set(['드림닥터 팝업', '순천향 외래', '봉화산 짐 옮기기']);
+state.tasks.forEach(t => { if (!t.kind) t.kind = EVENT_IDS.has(t.id) || EVENT_TITLES.has(t.title) ? 'event' : 'todo'; });
+// 종류별 기본색: 예전 기본값(회색 할 일, 파란 일정)으로 남아 있던 항목은 종류 색을 따라가게
+const DEFAULT_KC = { event: '#3b57e0', todo: '#ececed' };
+const isHex = c => /^#[0-9a-f]{6}$/i.test(c || '');
+if (!state.kindColors) {
+  state.kindColors = { ...DEFAULT_KC };
+  state.tasks.forEach(t => { if (!t.color || t.color === 'gray' || (t.kind === 'event' && t.color === 'pink')) t.color = 'auto'; });
+}
+['event', 'todo'].forEach(k => { if (!isHex(state.kindColors[k])) state.kindColors[k] = DEFAULT_KC[k]; });
+// 사분면 색: 값이 없으면 기본 디자인
+state.quadColors = state.quadColors || {};
+Object.keys(state.quadColors).forEach(k => { if (!isHex(state.quadColors[k])) delete state.quadColors[k]; });
+const quadColor = k => state.quadColors[k] || null;
+// 과목: 제목 앞의 [과목]을 따로 저장
+const SUBJ_RE = /^\s*[\[【]\s*([^\]】]{1,20}?)\s*[\]】]\s*/;
+function splitSubject(title) {
+  const m = title.match(SUBJ_RE), rest = m ? title.slice(m[0].length).trim() : '';
+  return m && rest ? { subject: m[1], title: rest } : { subject: '', title: title.trim() };
+}
+const SUBJ_DEF = { '임상신경학': ['#3b57e0', '신경'], '신경물치1': ['#12a594', '물치'], '운동치료학': ['#f76b15', '운치'], '임상운동학': ['#8e4ec6', '운동'], '전기광선': ['#d6409f', '전기'], '전체': ['#9a9aa0', '전체'], '기타과목': ['#9a9aa0', '기타'] };
+const SUBJ_PALETTE = ['#0090ff', '#30a46c', '#e5484d', '#f5b400', '#1b1b1b', '#3b57e0', '#12a594', '#f76b15', '#8e4ec6', '#d6409f'];
+state.subjects = state.subjects || {};
+function ensureSubject(name) {
+  if (!name) return null;
+  if (!state.subjects[name]) {
+    const def = SUBJ_DEF[name];
+    const n = Object.keys(state.subjects).filter(k => !SUBJ_DEF[k]).length;
+    state.subjects[name] = { color: def ? def[0] : SUBJ_PALETTE[n % SUBJ_PALETTE.length], ab: def ? def[1] : name.replace(/[\s\d]/g, '').slice(0, 2) || name.slice(0, 2) };
+  }
+  return state.subjects[name];
+}
+const subjOf = t => t.subject ? ensureSubject(t.subject) : null;
+const fullTitle = t => t.subject ? `[${t.subject}] ${t.title}` : t.title;
+function migrateSubjects() {
+  let changed = false;
+  state.tasks.forEach(t => {
+    if (t.subject !== undefined) return;
+    const x = splitSubject(t.title);
+    t.subject = x.subject; t.title = x.title;
+    // 과목 색이 생겼으니, 과목 표시용으로 칠했던 파란 할 일은 기본색으로
+    if (t.subject && t.kind !== 'event' && t.color === 'pink') t.color = 'auto';
+    ensureSubject(t.subject);
+    changed = true;
+  });
+  if (changed) persist();
+}
+const kindColor = k => state.kindColors[k === 'event' ? 'event' : 'todo'];
+function textOn(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return ((n >> 16) * 299 + (n >> 8 & 255) * 587 + (n & 255) * 114) / 1000 >= 150 ? '#1a1a1a' : '#ffffff';
+}
+function colorOf(t) {
+  const c = !t.color || t.color === 'auto' ? kindColor(t.kind) : t.color;
+  if (COLORS[c]) return COLORS[c];
+  return isHex(c) ? [c, textOn(c)] : COLORS.gray;
+}
+
+const find = id => state.tasks.find(t => t.id === id);
+const endOf = t => t.end || t.date;
+const tasksOn = d => state.tasks.filter(t => t.date <= d && endOf(t) >= d);
+const isEvent = t => t.kind === 'event';
+const todosOn = d => tasksOn(d).filter(t => !isEvent(t));
+const eventsOn = d => tasksOn(d).filter(isEvent).sort((a, b) => (a.time || '').localeCompare(b.time || '') || byOrder(a, b));
+const byOrder = (a, b) => (a.order || 0) - (b.order || 0);
+const flowKey = t => t.forder != null ? t.forder : 1e9 + (t.quad ? QRANK[t.quad] : 4) * 1e6 + (t.order || 0);
+const byFlow = (a, b) => flowKey(a) - flowKey(b);
+const maxOrder = () => Math.max(0, ...state.tasks.map(t => t.order || 0));
+function commit() { save(); render(); }
+
+/* ---------- card ---------- */
+function card(t, o = {}) {
+  const el = document.createElement('div');
+  el.className = 'card' + (o.compact ? ' compact' : '') + (t.done ? ' done' : '');
+  el.dataset.id = t.id;
+  const sj = subjOf(t), qd = o.showQuad && t.quad;
+  let h = '';
+  if (o.num != null) h += `<span class="grip">${I.grip}</span><span class="num">${o.num}</span>`;
+  h += `<button class="chk" data-act="done" aria-label="${t.done ? '완료 취소' : '완료'}">${I.check}</button><div class="tt">`;
+  if (sj || t.fav || qd) {
+    h += '<span class="meta">';
+    if (qd) h += `<i class="qdot ${t.quad}"${quadColor(t.quad) ? ` style="background:${quadColor(t.quad)};box-shadow:none"` : ''}></i>`;
+    if (sj) h += `<span class="subj" style="--sc:${sj.color}">${esc(t.subject)}</span>`;
+    if (t.fav) h += `<span class="favmark" title="즐겨찾기">${I.heart}</span>`;
+    h += '</span>';
+  }
+  h += `<span class="title">${esc(t.title)}</span>`;
+  if (!o.compact && t.note) h += `<span class="note">${esc(t.note)}</span>`;
+  h += `</div><button class="ic more" data-act="more" data-field="${o.unassign || ''}" aria-label="더보기" aria-haspopup="menu">${I.more}</button>`;
+  el.innerHTML = h;
+  return el;
+}
+function hint(text) { const d = document.createElement('div'); d.className = 'hint'; d.textContent = text; return d; }
+
+/* ---------- render ---------- */
+function render() {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === state.view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + state.view));
+  if (state.view === 'calendar') {
+    const [y, m] = state.month.split('-');
+    $('#dateLabel').textContent = `${y}년 ${+m}월`;
+    renderCalendar();
+  } else {
+    const d = parse(state.date);
+    $('#dateLabel').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+    if (state.view === 'matrix') renderMatrix(); else if (state.view === 'flow') renderFlow();
+  }
+  placeTimer();
+}
+
+function renderDayEvents(box) {
+  box.innerHTML = eventsOn(state.date).map(t =>
+    `<button class="evchip" data-evedit="${t.id}" style="border-left-color:${colorOf(t)[0]}"><span class="tm">${t.time || (t.end ? '기간' : '일정')}</span><span class="tt">${esc(t.title)}</span></button>`).join('');
+}
+
+function renderMatrix() {
+  const d = parse(state.date);
+  $('#mHead').textContent = state.date === todayStr() ? '오늘 할 일' : `${d.getMonth() + 1}월 ${d.getDate()}일 할 일`;
+  renderDayEvents($('#mEv'));
+  const list = todosOn(state.date);
+  const inbox = list.filter(t => !t.quad).sort(byOrder);
+  $('#mCount').textContent = inbox.length;
+  const ml = $('#mList');
+  ml.replaceChildren(...inbox.map(t => card(t)));
+  if (!inbox.length) ml.append(hint(list.length ? '모두 분류했어요' : '아래에 할 일을 추가하세요'));
+  attachScrollbar(ml);
+
+  const q = $('#quads');
+  if (!q.children.length) {
+    q.innerHTML = QUADS.map(x => `
+      <div class="quad q-${x.key}" data-drop="q:${x.key}">
+        <header><h3>${x.icon}${x.title}</h3>${x.tags.map(([l, c]) => `<span class="tag ${c}">${l}</span>`).join('')}</header>
+        <div class="drop-list"></div>
+      </div>`).join('');
+  }
+  QUADS.forEach(x => {
+    const box = q.querySelector(`[data-drop="q:${x.key}"]`), c = quadColor(x.key);
+    box.className = 'quad ' + (c ? 'q-custom' : 'q-' + x.key);
+    box.style.cssText = c ? `background:${c};color:${textOn(c)}` : '';
+    const body = box.querySelector('.drop-list');
+    const items = list.filter(t => t.quad === x.key).sort(byOrder);
+    body.replaceChildren(...items.map(t => card(t, { compact: true, unassign: 'quad' })));
+    if (!items.length) body.append(hint('여기로 드롭'));
+    attachScrollbar(body);
+  });
+}
+
+function renderFlow() {
+  renderDayEvents($('#fEv'));
+  const list = todosOn(state.date);
+  const inbox = list.filter(t => !t.slot).sort(byFlow);
+  $('#fCount').textContent = inbox.length;
+  const fl = $('#fList');
+  fl.replaceChildren(...inbox.map((t, i) => card(t, { num: i + 1, showQuad: true })));
+  if (!inbox.length) fl.append(hint(list.length ? '모두 배치했어요' : '아래에 할 일을 추가하세요'));
+  attachScrollbar(fl);
+
+  const s = $('#slots');
+  if (!s.children.length) {
+    s.innerHTML = SLOTS.map(x => `
+      <div class="slot" data-drop="s:${x.key}">
+        <header><h3>${x.title}</h3><span class="time">${x.time}</span><span class="cnt">0</span></header>
+        <div class="drop-list"></div>
+      </div>`).join('');
+  }
+  SLOTS.forEach(x => {
+    const box = s.querySelector(`[data-drop="s:${x.key}"]`);
+    const items = list.filter(t => t.slot === x.key).sort(byFlow);
+    box.querySelector('.cnt').textContent = items.length;
+    box.querySelector('.drop-list').replaceChildren(...items.map(t => card(t, { compact: true, unassign: 'slot', showQuad: true })));
+  });
+  attachScrollbar(s);
+}
+
+/* ---------- 스크롤바: 목록 옆에 항상 보이는 막대 (끌거나 눌러서 이동) ---------- */
+function attachScrollbar(list) {
+  if (list._sb) { list._sb(); return; }
+  const track = document.createElement('div');
+  track.className = 'sbtrack';
+  track.innerHTML = '<div class="sbthumb"></div>';
+  const thumb = track.firstChild;
+  list.parentElement.append(track);
+  list.classList.add('hasbar');
+  const update = () => {
+    const ch = list.clientHeight, sh = list.scrollHeight;
+    const show = sh > ch + 2 && list.offsetParent !== null;
+    track.hidden = !show;
+    if (!show) return;
+    Object.assign(track.style, { top: list.offsetTop + 4 + 'px', height: ch - 8 + 'px', left: list.offsetLeft + list.offsetWidth - 9 + 'px' });
+    const th = Math.max(28, (ch - 8) * ch / sh), max = ch - 8 - th;
+    thumb.style.height = th + 'px';
+    thumb.style.transform = `translateY(${max * list.scrollTop / (sh - ch)}px)`;
+  };
+  list.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(list);
+  new MutationObserver(update).observe(list, { childList: true, subtree: true });
+  thumb.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    thumb.setPointerCapture(e.pointerId);
+    thumb.classList.add('drag');
+    const sy = e.clientY, st = list.scrollTop;
+    const ratio = (list.scrollHeight - list.clientHeight) / Math.max(1, track.clientHeight - thumb.offsetHeight);
+    const mv = ev => { list.scrollTop = st + (ev.clientY - sy) * ratio; };
+    const up = () => {
+      thumb.classList.remove('drag');
+      ['pointermove', 'pointerup', 'pointercancel'].forEach((n, i) => thumb.removeEventListener(n, i ? up : mv));
+    };
+    thumb.addEventListener('pointermove', mv);
+    thumb.addEventListener('pointerup', up);
+    thumb.addEventListener('pointercancel', up);
+  });
+  // 막대 빈 곳을 누르면 한 화면씩 이동
+  track.addEventListener('pointerdown', e => {
+    if (e.target !== track) return;
+    const r = thumb.getBoundingClientRect();
+    list.scrollBy({ top: (e.clientY < r.top ? -1 : 1) * list.clientHeight * 0.85, behavior: 'smooth' });
+  });
+  list._sb = update;
+  update();
+}
+
+function renderCalendar() {
+  const [y, m] = state.month.split('-').map(Number);
+  $('#calTitle').innerHTML = `<span class="script">${MONTHS[m - 1]}</span><span class="yr">${y} / ${pad(m)}</span>`;
+  const first = new Date(y, m - 1, 1), last = new Date(y, m, 0);
+  let ws = ymd(new Date(y, m - 1, 1 - first.getDay()));
+  const endS = ymd(new Date(y, m - 1, last.getDate() + (6 - last.getDay())));
+  const today = todayStr();
+  document.querySelectorAll('#calFilter [data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === state.calFilter));
+  const shown = t => state.calFilter === 'all' || (state.calFilter === 'event') === isEvent(t);
+  const wrap = $('#calWeeks');
+  wrap.innerHTML = '';
+  while (ws <= endS) {
+    const we = addDays(ws, 6);
+    const evs = state.tasks
+      .filter(t => t.date <= we && endOf(t) >= ws && shown(t))
+      .sort((a, b) => a.date.localeCompare(b.date) || isEvent(b) - isEvent(a) || (a.time || '').localeCompare(b.time || '') || diffDays(b.date, endOf(b)) - diffDays(a.date, endOf(a)) || byOrder(a, b));
+    const lanes = [];
+    const placed = evs.map(t => {
+      const s = t.date < ws ? ws : t.date, e = endOf(t) > we ? we : endOf(t);
+      const cs = diffDays(ws, s), ce = diffDays(ws, e);
+      let lane = lanes.findIndex(end => end < cs);
+      if (lane < 0) { lane = lanes.length; lanes.push(ce); } else lanes[lane] = ce;
+      return { t, cs, ce, lane, l: t.date < ws, r: endOf(t) > we };
+    });
+    const week = document.createElement('div');
+    week.className = 'week';
+    const filler = Math.max(1, 3 - lanes.length);
+    week.style.gridTemplateRows = `var(--head) repeat(${lanes.length + filler}, var(--row))`;
+    let h = '';
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(ws, i);
+      const cls = ['cell'];
+      if (d.slice(0, 7) !== state.month) cls.push('out');
+      if (d === today) cls.push('today');
+      if (d === state.date && d !== today) cls.push('sel');
+      h += `<div class="${cls.join(' ')}" data-date="${d}" style="grid-column:${i + 1}"><span class="num">${pad(+d.slice(8))}</span></div>`;
+    }
+    placed.forEach(p => {
+      const ev = isEvent(p.t);
+      const cls = ['ev']; if (p.l) cls.push('l'); if (p.r) cls.push('r'); if (ev) cls.push('event'); else if (p.t.done) cls.push('done');
+      const [bg, fg] = colorOf(p.t), sj = subjOf(p.t);
+      if (sj) cls.push('sub');
+      const tip = [fullTitle(p.t), ev ? '일정' + (p.t.time ? ' ' + p.t.time : '') : '할 일', p.t.note, p.t.quad && QUADS.find(q => q.key === p.t.quad).title, p.t.slot && SLOTS.find(x => x.key === p.t.slot).title].filter(Boolean).join(' / ');
+      h += `<div class="${cls.join(' ')}" data-ev="${p.t.id}" title="${esc(tip)}" style="grid-row:${p.lane + 2};grid-column:${p.cs + 1}/${p.ce + 2};background:${bg};color:${fg}${sj ? `;--sc:${sj.color}` : ''}">`
+        + (p.l ? '' : ev ? (p.t.time ? `<span class="evtm">${p.t.time}</span>` : '<i class="evdot"></i>')
+          : `<button class="evchk" data-evdone="${p.t.id}" aria-label="${p.t.done ? '완료 취소' : '완료'}">${p.t.done ? I.check : ''}</button>`)
+        + (!ev && p.t.quad ? `<i class="evq ${p.t.quad}"${quadColor(p.t.quad) ? ` style="background:${quadColor(p.t.quad)};box-shadow:0 0 0 1.5px rgba(255,255,255,.9)"` : ''}></i>` : '')
+        + (sj ? `<b class="evab" style="color:${textOn(bg) === '#1a1a1a' ? sj.color : fg}">${esc(sj.ab)}</b>` : '')
+        + `<span>${esc(p.t.title)}</span></div>`;
+    });
+    week.innerHTML = h;
+    wrap.append(week);
+    ws = addDays(ws, 7);
+  }
+  renderCalDay();
+}
+// 폰: 캘린더 아래에 고른 날짜의 목록
+function renderCalDay() {
+  const d = parse(state.date);
+  $('#cdHead').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+  renderDayEvents($('#cdEv'));
+  const list = todosOn(state.date).sort(byOrder);
+  $('#cdCount').textContent = list.length;
+  $('#cdList').replaceChildren(...list.map(t => card(t, { showQuad: true })));
+  if (!list.length) $('#cdList').append(hint('할 일이 없어요'));
+}
+const isPhone = () => matchMedia('(max-width:900px)').matches;
+$('#cdAdd').onclick = () => openModal({ date: state.date, kind: 'todo' });
+
+/* ---------- navigation ---------- */
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  state.view = b.dataset.view;
+  if (state.view === 'calendar') state.month = state.date.slice(0, 7);
+  save(); render();
+}));
+function shift(n) {
+  if (state.view === 'calendar') {
+    const [y, m] = state.month.split('-').map(Number);
+    state.month = ymd(new Date(y, m - 1 + n, 1)).slice(0, 7);
+  } else {
+    state.date = addDays(state.date, n);
+  }
+  render();
+}
+$('#prev').onclick = () => shift(-1);
+$('#next').onclick = () => shift(1);
+$('#dateLabel').onclick = () => { state.date = todayStr(); state.month = state.date.slice(0, 7); render(); };
+$('#calToday').onclick = $('#dateLabel').onclick;
+$('#calAdd').onclick = () => openModal({ date: state.date, kind: 'event' });
+$('#calFilter').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if (!b) return;
+  state.calFilter = b.dataset.f; save(); renderCalendar();
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-evedit]');
+  if (b) { const t = find(b.dataset.evedit); if (t) openModal({ task: t }); }
+});
+
+$('#calWeeks').addEventListener('click', e => {
+  const chk = e.target.closest('[data-evdone]');
+  if (chk) { const t = find(chk.dataset.evdone); if (t) { t.done = !t.done; commit(); } return; }
+  if (isPhone()) {
+    // 폰에서는 날짜를 누르면 아래 목록만 바꿔요
+    const c = e.target.closest('.cell') || cellAt(e.clientX, e.clientY);
+    if (c) { state.date = c.dataset.date; renderCalendar(); }
+    return;
+  }
+  const ev = e.target.closest('[data-ev]');
+  if (ev) { const t = find(ev.dataset.ev); if (t) openModal({ task: t }); return; }
+  const cell = e.target.closest('.cell');
+  if (cell) { state.date = cell.dataset.date; renderCalendar(); openModal({ date: cell.dataset.date, kind: 'event' }); }
+});
+
+document.querySelectorAll('[data-quick]').forEach(f => f.addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = f.querySelector('input'); const v = inp.value.trim();
+  if (!v) return;
+  const x = splitSubject(v); ensureSubject(x.subject);
+  state.tasks.push(makeTask(x.title, state.date, { subject: x.subject, order: maxOrder() + 1 }));
+  inp.value = ''; commit();
+}));
+
+/* ---------- card actions ---------- */
+let justDragged = false, menuEl = null, menuCard = null;
+function closeMenu() { if (menuEl) { menuEl.remove(); menuEl = null; menuCard = null; } }
+function openMenu(btn, t) {
+  closeMenu();
+  const field = btn.dataset.field;
+  const items = [['edit', I.cal, '편집'], field ? ['unassign', I.back, '목록으로 되돌리기'] : ['up', I.up, '위로 올리기'],
+    ['fav', I.heart, t.fav ? '즐겨찾기 해제' : '즐겨찾기'], ['del', I.x, '삭제']];
+  menuEl = document.createElement('div');
+  menuEl.className = 'cmenu';
+  menuEl.setAttribute('role', 'menu');
+  menuEl.innerHTML = items.map(([a, ic, l]) => `<button role="menuitem" data-mact="${a}"${a === 'del' ? ' class="del"' : ''}>${ic}${l}</button>`).join('');
+  menuEl.dataset.id = t.id; menuEl.dataset.field = field;
+  menuCard = btn.closest('.card');
+  document.body.append(menuEl);
+  const r = btn.getBoundingClientRect(), mw = menuEl.offsetWidth, mh = menuEl.offsetHeight;
+  let top = r.bottom + 4;
+  if (top + mh > innerHeight - 8) top = r.top - mh - 4;
+  menuEl.style.left = Math.max(8, Math.min(r.right - mw, innerWidth - mw - 8)) + 'px';
+  menuEl.style.top = Math.max(8, top) + 'px';
+  menuEl.querySelector('button').focus();
+}
+function cardAct(a, t, cardEl, field) {
+  switch (a) {
+    case 'fav': t.fav = !t.fav; commit(); break;
+    case 'done': t.done = !t.done; commit(); break;
+    case 'edit': openModal({ task: t }); break;
+    case 'unassign': t[field] = null; commit(); break;
+    case 'del': state.tasks = state.tasks.filter(x => x !== t); commit(); break;
+    case 'up': {
+      if (!cardEl) break;
+      const ids = [...cardEl.parentElement.querySelectorAll(':scope > .card')].map(c => c.dataset.id);
+      const i = ids.indexOf(t.id);
+      if (i > 0) { [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]]; applyOrder(ids); }
+      break;
+    }
+  }
+}
+document.addEventListener('click', e => {
+  if (justDragged) { e.stopPropagation(); e.preventDefault(); return; }
+  const mb = e.target.closest('.cmenu [data-mact]');
+  if (mb) {
+    const t = find(menuEl.dataset.id), field = menuEl.dataset.field, cardEl = menuCard;
+    closeMenu();
+    if (t) cardAct(mb.dataset.mact, t, cardEl, field);
+    return;
+  }
+  if (menuEl && !e.target.closest('.cmenu')) {
+    // 메뉴 밖을 누르면 닫기만
+    closeMenu(); e.stopPropagation(); e.preventDefault(); return;
+  }
+  const cardEl = e.target.closest('.card');
+  if (!cardEl || cardEl.classList.contains('ghost')) return;
+  const t = find(cardEl.dataset.id); if (!t) return;
+  const b = e.target.closest('[data-act]');
+  if (!b) { openModal({ task: t }); return; }
+  if (b.dataset.act === 'more') openMenu(b, t);
+  else cardAct(b.dataset.act, t, cardEl, b.dataset.field);
+}, true);
+window.addEventListener('scroll', closeMenu, true);
+window.addEventListener('resize', closeMenu);
+
+function applyOrder(ids) {
+  const f = state.view === 'flow' ? 'forder' : 'order';
+  ids.forEach((id, i) => { const x = find(id); if (x) x[f] = i + 1; });
+  commit();
+}
+
+/* ---------- drag & drop (mouse + touch) ---------- */
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  const c = e.target.closest('.card');
+  if (!c || e.target.closest('button') || c.classList.contains('ghost')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  drag = { el: c, id: c.dataset.id, sx: e.clientX, sy: e.clientY, pid: e.pointerId, started: false, target: null };
+});
+window.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.pid) return;
+  if (!drag.started) {
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) return;
+    startDrag();
+  }
+  e.preventDefault();
+  moveDrag(e.clientX, e.clientY);
+}, { passive: false });
+window.addEventListener('pointerup', e => { if (drag && e.pointerId === drag.pid) endDrag(true); });
+window.addEventListener('pointercancel', e => { if (drag && e.pointerId === drag.pid) endDrag(false); });
+
+function startDrag() {
+  const r = drag.el.getBoundingClientRect();
+  drag.ox = drag.sx - r.left; drag.oy = drag.sy - r.top;
+  const g = drag.el.cloneNode(true);
+  g.classList.add('ghost');
+  g.style.width = r.width + 'px'; g.style.left = r.left + 'px'; g.style.top = r.top + 'px';
+  document.body.append(g);
+  drag.ghost = g;
+  drag.ph = document.createElement('div');
+  drag.ph.className = 'ph'; drag.ph.style.height = r.height + 'px';
+  drag.el.after(drag.ph);
+  drag.el.style.display = 'none';
+  drag.started = true;
+  document.body.classList.add('dragging');
+}
+function moveDrag(x, y) {
+  drag.ghost.style.left = (x - drag.ox) + 'px';
+  drag.ghost.style.top = (y - drag.oy) + 'px';
+  const under = document.elementFromPoint(x, y);
+  const target = under && under.closest('[data-drop]');
+  if (drag.target && drag.target !== target) drag.target.classList.remove('over');
+  drag.target = target;
+  if (!target) return;
+  target.classList.add('over');
+  const list = target.classList.contains('drop-list') ? target : target.querySelector('.drop-list');
+  // 목록 위·아래 끝으로 끌면 그쪽으로 스크롤
+  const lr = list.getBoundingClientRect();
+  if (list.scrollHeight > list.clientHeight) {
+    if (y < lr.top + 40) list.scrollTop -= 14; else if (y > lr.bottom - 40) list.scrollTop += 14;
+  }
+  const cards = [...list.querySelectorAll(':scope > .card')].filter(c => c !== drag.el);
+  const before = cards.find(c => { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2; });
+  if (before) { if (drag.ph.nextSibling !== before) list.insertBefore(drag.ph, before); }
+  else { const hintEl = list.querySelector(':scope > .hint'); if (drag.ph.parentElement !== list || drag.ph.nextSibling) list.insertBefore(drag.ph, hintEl && !cards.length ? hintEl : null); }
+}
+function endDrag(drop) {
+  const d = drag; drag = null;
+  if (!d.started) return;
+  document.body.classList.remove('dragging');
+  d.ghost.remove();
+  if (d.target) d.target.classList.remove('over');
+  justDragged = true; setTimeout(() => justDragged = false, 60);
+  if (drop && d.target && d.ph.parentElement) {
+    const list = d.ph.parentElement;
+    const ids = [...list.children].filter(c => c === d.ph || (c.classList.contains('card') && c !== d.el)).map(c => c === d.ph ? d.id : c.dataset.id);
+    const t = find(d.id);
+    const [kind, val] = d.target.dataset.drop.split(':');
+    const v = val === 'inbox' ? null : val;
+    if (kind === 'q') t.quad = v; else t.slot = v;
+    d.ph.remove();
+    applyOrder(ids);
+  } else {
+    d.ph.remove(); d.el.style.display = '';
+  }
+}
+
+/* ---------- modal ---------- */
+let editing = null, selColor = 'gray', selKind = 'todo';
+function setKind(k) {
+  selKind = k;
+  document.querySelectorAll('#fKind [data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === k));
+  $('#fTimeWrap').hidden = k !== 'event';
+  $('#fTodoRow').hidden = k === 'event';
+  $('#mdTitle').textContent = (editing ? '' : '새 ') + (k === 'event' ? '일정' : '할 일') + (editing ? ' 편집' : '');
+  renderSwatches();
+}
+$('#fKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (b) setKind(b.dataset.kind); });
+const COLOR_NAMES = { gray: '회색', pink: '파랑', yellow: '연파랑', blue: '하늘', green: '검정', purple: '진회색' };
+function renderSwatches() {
+  const kc = kindColor(selKind);
+  $('#fColors').innerHTML =
+    `<button type="button" class="sw auto" data-color="auto" style="background:${kc};--fg:${textOn(kc)}" aria-label="자동 (종류 기본색)" title="자동: 종류 기본색 따라가기"></button>`
+    + Object.entries(COLORS).map(([k, c]) => `<button type="button" class="sw" data-color="${k}" style="background:${c[0]}" aria-label="${COLOR_NAMES[k]}"></button>`).join('')
+    + `<span class="sw custom" title="직접 고르기"><input type="color" id="fCustom" value="${isHex(selColor) ? selColor : kc}" aria-label="직접 고르기"></span>`;
+  markSwatches();
+}
+function markSwatches() {
+  document.querySelectorAll('#fColors [data-color]').forEach(b => b.classList.toggle('on', b.dataset.color === selColor));
+  const c = $('#fColors .custom');
+  c.classList.toggle('on', isHex(selColor));
+  c.style.background = isHex(selColor) ? selColor : '';
+}
+$('#fColors').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b) { selColor = b.dataset.color; markSwatches(); } });
+$('#fColors').addEventListener('input', e => { if (e.target.id === 'fCustom') { selColor = e.target.value; markSwatches(); } });
+function openModal({ task, date, kind }) {
+  editing = task || null;
+  $('#fTitle').value = task ? task.title : '';
+  $('#fSubj').value = task?.subject || '';
+  $('#subjList').innerHTML = Object.keys(state.subjects).map(n => `<option value="${esc(n)}">`).join('');
+  $('#fNote').value = task ? (task.note || '') : '';
+  $('#fStart').value = task ? task.date : date;
+  $('#fEnd').value = task ? endOf(task) : date;
+  $('#fQuad').value = task?.quad || '';
+  $('#fSlot').value = task?.slot || '';
+  $('#fTime').value = task?.time || '';
+  setKind(task ? (task.kind || 'todo') : (kind || 'todo'));
+  selColor = task ? task.color || 'auto' : 'auto';
+  $('#fDel').hidden = !task;
+  renderSwatches();
+  $('#modal').hidden = false;
+  setTimeout(() => $('#fTitle').focus(), 30);
+}
+function closeModal() { $('#modal').hidden = true; editing = null; }
+function saveModal() {
+  let title = $('#fTitle').value.trim(), subject = $('#fSubj').value.trim().replace(/^[\[【]|[\]】]$/g, '');
+  if (!title) { $('#fTitle').focus(); return; }
+  const x = splitSubject(title);
+  if (!subject && x.subject) { subject = x.subject; title = x.title; }
+  ensureSubject(subject);
+  const start = $('#fStart').value || state.date;
+  let end = $('#fEnd').value || start;
+  if (end < start) end = start;
+  const ev = selKind === 'event';
+  const data = { kind: selKind, subject, note: $('#fNote').value.trim(), title, date: start, end: end === start ? null : end, color: selColor,
+    time: ev ? $('#fTime').value || null : null, quad: ev ? null : $('#fQuad').value || null, slot: ev ? null : $('#fSlot').value || null };
+  if (editing) Object.assign(editing, data);
+  else state.tasks.push(makeTask(title, start, { ...data, order: maxOrder() + 1 }));
+  closeModal(); commit();
+}
+$('#fSave').onclick = saveModal;
+$('#fCancel').onclick = closeModal;
+$('#fDel').onclick = () => { if (editing) { state.tasks = state.tasks.filter(t => t !== editing); closeModal(); commit(); } };
+$('#fTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) saveModal(); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('#qmodal').hidden) $('#qNo').click(); else if (menuEl) closeMenu(); else if (!$('#cmodal').hidden) closeColors(); else if (!$('#pmodal').hidden) closePaste(); else if (!$('#modal').hidden) closeModal();
+});
+
+
+/* ---------- 9/23~10/2 공부 계획 (한 번만 가져오기) ---------- */
+const PLAN_ID = 'study-2026-0923-1002-v3';
+const PLAN = [
+  { id: 'p3-phase1', kind: 'event', date: '2026-09-23', title: '1단계 누적 진도 단권화', note: '9/27까지 밀린 범위 최대한 정리', color: 'yellow', end: '2026-09-27' },
+  { id: 'p3-phase2', kind: 'event', date: '2026-09-28', title: '2단계 Cortex Dysfunction 시험 집중', note: 'Cortex를 가장 큰 공부 블록으로 고정', color: 'blue', end: '2026-10-01' },
+  { id: 'p3-0923-1', date: '2026-09-23', title: '[전기광선] 당일 새 진도', note: '수업 필기 정리 + 교수 강조점 표시 → 당일 수업 내용 정리 완료', color: 'gray' },
+  { id: 'p3-0923-2', date: '2026-09-23', title: '[임상신경학] Cortex p.2–8', note: 'Hemisphere·gyri/sulci·6 lobes·cortical layers·hemispheric dominance → 구조와 우세반구 개념 설명 가능', color: 'pink' },
+  { id: 'p3-0923-3', date: '2026-09-23', title: '[신경물치1] Adult Neuro Exam p.3–17', note: 'Brainstem localization·CN I·CN II·pupillary light reflex → CN I–II와 reflex 설명 가능', color: 'gray' },
+  { id: 'p3-0924-1', date: '2026-09-24', title: '[운동치료학] 당일 새 진도', note: '수업 필기 정리 → 당일 진도 정리 완료', color: 'gray' },
+  { id: 'p3-0924-2', date: '2026-09-24', title: '[임상신경학] Cortex p.9–18', note: 'Frontal lobe function/dysfunction → Precentral·SMA·Premotor·Broca·Prefrontal·FEF 기능→손상 연결', color: 'pink' },
+  { id: 'p3-0924-3', date: '2026-09-24', title: '[임상운동학] Ch.2 p.3–18', note: 'Joint classification + synovial joint mechanical types → 7가지 joint type 비교 가능', color: 'gray' },
+  { id: 'p3-0925-1', date: '2026-09-25', title: '[임상신경학] Cortex p.22–25', note: 'Parietal function/dysfunction·dominant/non-dominant·Gerstmann → 반구별 dysfunction 구분 가능', color: 'pink' },
+  { id: 'p3-0925-2', date: '2026-09-25', title: '[신경물치1] Adult Neuro Exam p.18–40', note: 'CN III/IV/VI·versions·ductions·supranuclear gaze → 안구운동 검사 흐름 설명 가능', color: 'gray' },
+  { id: 'p3-0925-3', date: '2026-09-25', title: '[전기광선] Ch.2 p.2–11', note: 'History·rehabilitation·ICIDH·Nagi·ICF 복습 → 모델별 차이 자료 없이 설명', color: 'gray' },
+  { id: 'p3-0925-4', date: '2026-09-25', title: '[전기광선] Ch.2 p.12–16', note: 'Professional role·EBP·PICO·documentation → EBP/PICO 핵심 흐름 정리', color: 'gray' },
+  { id: 'p3-0926-1', date: '2026-09-26', title: '[임상신경학] Cortex p.29–38', note: 'Visual radiation 일부 + Temporal/Limbic function/dysfunction → 핵심 증상 정리', color: 'pink' },
+  { id: 'p3-0926-2', date: '2026-09-26', title: '[임상신경학] Cortex p.40–45', note: 'Occipital·cortical blindness·Balint·Anton·visual agnosia → 증상→병변 위치 추론 가능', color: 'pink' },
+  { id: 'p3-0926-3', date: '2026-09-26', title: '[임상운동학] Ch.2 p.19–30', note: 'Connective tissue·cartilage·bone·Wolff’s law → 조직별 특징 + Wolff’s law 정리', color: 'gray' },
+  { id: 'p3-0926-4', date: '2026-09-26', title: '[임상운동학] Ch.3 p.2–7', note: 'Posture/movement·muscle fiber·sarcomere·contractile/noncontractile protein → 근육 구조 흐름 설명', color: 'gray' },
+  { id: 'p3-0926-5', date: '2026-09-26', title: '[전체] Catch-up', note: '밀린 파트 1~2개 처리 → 이월 최소화', color: 'gray' },
+  { id: 'p3-0927-1', date: '2026-09-27', title: '[임상신경학] Cortex p.47', note: 'Apraxia 종류 정리 → 종류별 병변 위치 구분', color: 'pink' },
+  { id: 'p3-0927-2', date: '2026-09-27', title: '[신경물치1] Adult Neuro Exam p.41–64', note: 'CN V–XII 기능·검사법·이상소견 정리', color: 'gray' },
+  { id: 'p3-0927-3', date: '2026-09-27', title: '[운동치료학] Week 1 p.5–11', note: 'Patient vs Client·physical function·therapeutic exercise·safety → 정의·목적·안전성 정리', color: 'gray' },
+  { id: 'p3-0927-4', date: '2026-09-27', title: '[운동치료학] Week 1 p.12–30', note: 'Disablement models·ICF·impairment/activity/participation → WHO/Nagi/NCMRR/ICF 비교', color: 'gray' },
+  { id: 'p3-0927-5', date: '2026-09-27', title: '[운동치료학] Week 2 p.2–20', note: 'Patient Management model → Examination~Outcomes 백지 인출', color: 'gray' },
+  { id: 'p3-0927-6', date: '2026-09-27', title: '[운동치료학] Week 2 p.21–35', note: 'Exercise prescription·instruction·adherence·motor learning → 처방 변수 + motor learning 단계 정리', color: 'gray' },
+  { id: 'p3-0927-7', date: '2026-09-27', title: '[임상운동학] Ch.3 p.8–14', note: 'Structural protein + epimysium/perimysium/endomysium → 3층 구조와 역할 설명', color: 'gray' },
+  { id: 'p3-0927-8', date: '2026-09-27', title: '[전체] 주간 마감', note: '미완료 확인 + 9/28부터 Cortex 시험 대비 모드 전환', color: 'gray' },
+  { id: 'p3-0928-1', date: '2026-09-28', title: '[임상신경학] Cortex p.2–18', note: 'Frontal lobe 중심 2회독 + 백지회상 → 영역→기능→dysfunction 90% 이상 인출', color: 'pink' },
+  { id: 'p3-0928-2', date: '2026-09-28', title: '[신경물치1] 팀과제 Objective', note: '케이스 관련 평가도구 조사 → 검사 리스트 + 출처 정리', color: 'gray' },
+  { id: 'p3-0928-3', date: '2026-09-28', title: '[신경물치1] 팀과제 Assessment', note: '판단 근거 조사 → Assessment 근거 + 출처 정리', color: 'gray' },
+  { id: 'p3-0929-1', date: '2026-09-29', title: '[임상신경학] Cortex p.22–25', note: 'Parietal lobe + Gerstmann 2회독 → dominant/non-dominant 차이 즉시 설명', color: 'pink' },
+  { id: 'p3-0929-2', date: '2026-09-29', title: '[임상신경학] Cortex p.9–25 Language', note: 'Broca/Wernicke 비교 → expressive/receptive 차이 인출', color: 'pink' },
+  { id: 'p3-0929-3', date: '2026-09-29', title: '[기타과목] 가장 밀린 파트 1개', note: '20~30분 유지복습 → 추가 학습부채 방지', color: 'gray' },
+  { id: 'p3-0930-1', date: '2026-09-30', title: '[임상신경학] Cortex p.29–38', note: 'Temporal/Limbic + visual radiation 2회독 → 기능·병변 연결', color: 'pink' },
+  { id: 'p3-0930-2', date: '2026-09-30', title: '[임상신경학] Cortex p.40–47', note: 'Occipital/Visual/Apraxia 2회독 → 혼합 사례형 병변 추론', color: 'pink' },
+  { id: 'p3-0930-3', date: '2026-09-30', title: '[전기광선] 당일 새 진도', note: '필기만 정리, 추가복습은 보류', color: 'gray' },
+  { id: 'p3-1001-1', date: '2026-10-01', title: '[임상신경학] Cortex p.2–25', note: 'Frontal + Parietal 3회독 → 노트 없이 기능·증상·병변 설명', color: 'pink' },
+  { id: 'p3-1001-2', date: '2026-10-01', title: '[임상신경학] Cortex p.29–47', note: 'Temporal + Occipital + Visual + Apraxia 3회독 → 혼합 사례형 전 범위 회수', color: 'pink' },
+  { id: 'p3-1001-3', date: '2026-10-01', title: '[임상신경학] 전체 오답', note: '취약 개념 최종 압축 → 1장 오답노트 완성', color: 'pink' },
+  { id: 'p3-1001-4', date: '2026-10-01', title: '[기타과목] 최소 유지', note: '당일 수업 필수 정리만 → 시험 집중 유지', color: 'gray' },
+  { id: 'p3-1002-1', date: '2026-10-02', title: '[임상신경학] Cortex p.2–25', note: 'Frontal/Parietal 핵심표 빠른 인출 (15~20분)', color: 'pink' },
+  { id: 'p3-1002-2', date: '2026-10-02', title: '[임상신경학] Cortex p.29–47', note: 'Language/Neglect/Gerstmann/Visual/Apraxia 오답 중심 인출 (15~20분)', color: 'pink' },
+  { id: 'p3-1002-3', kind: 'event', date: '2026-10-02', title: 'Cortex Dysfunction 시험', note: '임상신경학 Cortex Dysfunction 시험 응시', color: 'green' }
+];
+function importPlan() {
+  state.imported = state.imported || [];
+  if (state.imported.includes(PLAN_ID)) return false;
+  const keep = new Set(PLAN.map(p => p.id));
+  // 이전 계획본으로 들어온 항목 제거
+  state.tasks = state.tasks.filter(t => !(/^p3?-/.test(t.id) && !keep.has(t.id)));
+  const map = new Map(state.tasks.map(t => [t.id, t]));
+  let o = maxOrder();
+  PLAN.forEach(p => {
+    const t = map.get(p.id);
+    if (t) Object.assign(t, { title: p.title, note: p.note, color: p.color, date: p.date, end: p.end || null, calOnly: false });
+    else state.tasks.push(makeTask(p.title, p.date, { ...p, order: ++o }));
+  });
+  state.imported.push(PLAN_ID);
+  return true;
+}
+if (importPlan()) save();
+
+
+/* ---------- calendar: drag a pill to another date ---------- */
+let evDrag = null;
+function cellAt(x, y) {
+  const under = document.elementFromPoint(x, y);
+  const week = under && under.closest('.week');
+  if (!week) return null;
+  return [...week.querySelectorAll('.cell')].find(c => { const r = c.getBoundingClientRect(); return x >= r.left && x < r.right; }) || null;
+}
+$('#calWeeks').addEventListener('pointerdown', e => {
+  const ev = e.target.closest('.ev');
+  if (!ev || e.target.closest('button')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const from = [...ev.parentElement.querySelectorAll('.cell')].find(c => { const r = c.getBoundingClientRect(); return e.clientX >= r.left && e.clientX < r.right; });
+  evDrag = { el: ev, id: ev.dataset.ev, sx: e.clientX, sy: e.clientY, pid: e.pointerId, from: from && from.dataset.date, started: false, over: null };
+});
+window.addEventListener('pointermove', e => {
+  if (!evDrag || e.pointerId !== evDrag.pid) return;
+  if (!evDrag.started) {
+    if (Math.hypot(e.clientX - evDrag.sx, e.clientY - evDrag.sy) < 6) return;
+    const r = evDrag.el.getBoundingClientRect();
+    const w = Math.min(r.width, 240);
+    const g = evDrag.el.cloneNode(true);
+    g.classList.add('evghost');
+    Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: w + 'px', height: r.height + 'px' });
+    document.body.append(g);
+    evDrag.g = g;
+    evDrag.ox = Math.min(evDrag.sx - r.left, w - 16);
+    evDrag.oy = evDrag.sy - r.top;
+    evDrag.el.style.opacity = '.3';
+    evDrag.started = true;
+    document.body.classList.add('dragging');
+  }
+  e.preventDefault();
+  evDrag.g.style.left = (e.clientX - evDrag.ox) + 'px';
+  evDrag.g.style.top = (e.clientY - evDrag.oy) + 'px';
+  const cell = cellAt(e.clientX, e.clientY);
+  if (evDrag.over && evDrag.over !== cell) evDrag.over.classList.remove('drop');
+  evDrag.over = cell;
+  if (cell) cell.classList.add('drop');
+}, { passive: false });
+function endEvDrag(ok) {
+  const d = evDrag; evDrag = null;
+  if (!d.started) return;
+  d.g.remove(); d.el.style.opacity = '';
+  document.body.classList.remove('dragging');
+  if (d.over) d.over.classList.remove('drop');
+  justDragged = true; setTimeout(() => justDragged = false, 60);
+  if (ok && d.over && d.from) {
+    const shift = diffDays(d.from, d.over.dataset.date);
+    const t = find(d.id);
+    if (t && shift) {
+      t.date = addDays(t.date, shift);
+      if (t.end) t.end = addDays(t.end, shift);
+      commit();
+    }
+  }
+}
+window.addEventListener('pointerup', e => { if (evDrag && e.pointerId === evDrag.pid) endEvDrag(true); });
+window.addEventListener('pointercancel', e => { if (evDrag && e.pointerId === evDrag.pid) endEvDrag(false); });
+
+/* ---------- ChatGPT 계획 붙여넣기 ---------- */
+const DAY_MS = 864e5;
+function mkDate(y, m, d) {
+  m = +m; d = +d;
+  if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return null;
+  if (!y) {
+    const now = parse(todayStr());
+    y = now.getFullYear();
+    const diff = new Date(y, m - 1, d) - now;
+    if (diff < -183 * DAY_MS) y++; else if (diff > 183 * DAY_MS) y--;
+  }
+  const dt = new Date(+y, m - 1, d);
+  return dt.getMonth() === m - 1 ? ymd(dt) : null;
+}
+const DATE_PATS = [
+  [/(?<![\d.])(20\d{2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})(?!\d)/, m => mkDate(m[1], m[2], m[3])],
+  [/(?:(20\d{2})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/, m => mkDate(m[1], m[2], m[3])],
+  [/(?<![\w.\/])(\d{1,2})\s*\/\s*(\d{1,2})(?![\d\/])/, m => mkDate(null, m[1], m[2])],
+  [/(?<![\w.])(\d{1,2})\.(\d{1,2})\.?(?=\s*\(?\s*[일월화수목금토])/, m => mkDate(null, m[1], m[2])]
+];
+const WDAY_RE = /^\s*(?:\(\s*(?:[일월화수목금토](?:요일)?|(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?)\s*\)|[일월화수목금토]요일)?/i;
+function firstDate(s) {
+  let best = null;
+  for (const [re, fn] of DATE_PATS) {
+    const m = re.exec(s);
+    if (m && (!best || m.index < best.index)) { const d = fn(m); if (d) best = { date: d, index: m.index, len: m[0].length }; }
+  }
+  return best;
+}
+// "9/23", "9월 23일 (화)", "9/23~9/27", "9/23–27" → { date, end, index, len }
+function findRange(s) {
+  const a = firstDate(s); if (!a) return null;
+  let end = a.index + a.len;
+  end += s.slice(end).match(WDAY_RE)[0].length;
+  const r = { date: a.date, end: null, index: a.index, len: end - a.index };
+  const sep = s.slice(end).match(/^\s*(?:~|〜|–|—|-|부터)\s*/);
+  if (sep) {
+    const rest = s.slice(end + sep[0].length);
+    const b = firstDate(rest);
+    let e2 = null, blen = 0;
+    if (b && b.index === 0) { e2 = b.date; blen = b.len; }
+    else {
+      const m = rest.match(/^(\d{1,2})(?:\s*일)?(?![\d:\/.가-힣A-Za-z])/);
+      if (m) { const [y, mo] = a.date.split('-'); e2 = mkDate(y, mo, m[1]); blen = m[0].length; }
+    }
+    if (e2 && e2 > a.date && diffDays(a.date, e2) <= 62) {
+      let tot = end + sep[0].length + blen;
+      tot += s.slice(tot).match(WDAY_RE)[0].length;
+      r.end = e2; r.len = tot - a.index;
+    }
+  }
+  return r;
+}
+const TIME_RE = /(?:(오전|오후|am|pm)\s*)?(?<![\d.:])(\d{1,2})(?::(\d{2})|\s*시(?!간)(?:\s*(\d{1,2})\s*분|\s*(반))?)(?:\s*[~\-–]\s*(?:(?:오전|오후)\s*)?\d{1,2}(?::\d{2}|\s*시(?!간)(?:\s*\d{1,2}\s*분|\s*반)?))?/i;
+function parseTime(s) {
+  const m = TIME_RE.exec(s); if (!m) return null;
+  let h = +m[2];
+  const min = m[3] != null ? +m[3] : m[4] != null ? +m[4] : m[5] ? 30 : 0;
+  if (/오후|pm/i.test(m[1] || '') && h < 12) h += 12;
+  else if (/오전|am/i.test(m[1] || '') && h === 12) h = 0;
+  else if (!m[1] && m[3] == null && h >= 1 && h <= 7) h += 12; // "3시 병원" → 15:00
+  if (h > 23 || min > 59) return null;
+  return { time: `${pad(h)}:${pad(min)}`, rest: (s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)).replace(/\s+/g, ' ').trim() };
+}
+const slotOf = w => /오전|아침|morning/i.test(w) ? 'morning' : /오후|점심|afternoon/i.test(w) ? 'afternoon' : /저녁|밤|night|evening/i.test(w) ? 'night' : null;
+function slotHeader(s) {
+  const t = s.replace(new RegExp(TIME_RE.source, 'gi'), '').replace(/[()\[\]{}:：\-–—~·|\s]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/gu, '');
+  return /^(오전|아침|오후|점심|저녁|밤|morning|afternoon|evening|night)(시간|시간대|블록|block)?$/i.test(t) ? slotOf(t) : null;
+}
+const EVENT_RE = /시험|외래|진료|병원|치과|약속|미팅|회의|모임|면접|예약|발표|행사|여행|생일|결혼식|공연|세미나|팝업|마감|출발|도착|휴강|보강|특강|학회|오리엔테이션|설명회|축제|알바|아르바이트|\bOT\b|\bMT\b/i;
+const TODO_RE = /주간\s*마감|대비|준비|공부|복습|정리|집중|회독|인출|오답|읽기|암기|풀기|작성|조사|예습|하기$/;
+const NOTE_RE = /^(목표|완료\s*기준|기준|메모|노트|note|tip|팁|결과물|체크|포인트|방법|분량|산출물|참고)\s*[:：]/i;
+const BULLET_RE = /^\s*(?:[-*+](?=\s)|[•·▪◦●○■□▶▷➤✓✔☐☑✅⬜🔲]\uFE0F?|\d{1,2}[.)](?=\s)|\(\d{1,2}\)|[①-⑳])\s*/;
+const FLUFF_RE = /(요|다|죠|니다|세요|께요|게요|까요)[.!?~\s]*$|[?？]$/;
+function stripMd(x) {
+  let s = x.replace(/<br\s*\/?>/gi, ' / ').replace(/^\s*>+\s*/, '').replace(/^\s*#{1,6}\s*/, '');
+  for (let i = 0; i < 2; i++) s = s.replace(BULLET_RE, '').replace(/^\s*\[[ xX✓]?\]\s*/, '');
+  return s.replace(/\*\*|__|`|~~/g, '').replace(/^\*(.+)\*$/, '$1').replace(/\s+/g, ' ').trim();
+}
+function makeItem(text, ctx) {
+  let s = text.trim(), kind = null, slot = ctx.slot || null, time = null, note = '';
+  const tag = s.match(/^[\[【(]\s*(일정|약속|event|schedule|할\s*일|todo|투두|task)\s*[\]】)]\s*[:：]?\s*/i) || s.match(/^(일정|할\s*일)\s*[:：]\s*/);
+  if (tag) { kind = /일정|약속|event|schedule/i.test(tag[1]) ? 'event' : 'todo'; s = s.slice(tag[0].length); }
+  const tm = parseTime(s);
+  if (tm) { time = tm.time; s = tm.rest; }
+  const sp = s.match(/^(오전|아침|오후|점심|저녁|밤)\s*[:：\-–)]\s*/);
+  if (sp) { slot = slotOf(sp[1]); s = s.slice(sp[0].length); }
+  if (!slot && time) { const h = +time.slice(0, 2); slot = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night'; }
+  const paren = s.match(/\s*\((?:목표|완료\s*기준|메모)\s*[:：]\s*([^)]*)\)\s*$/);
+  if (paren) { note = paren[1].trim(); s = s.slice(0, paren.index); }
+  s = s.replace(/^[\s:：\-–—·,|/]+|[\s:：\-–—·,|/]+$/g, '');
+  let cut = null;
+  for (const re of [/\s*[:：]\s+|[:：](?=\S)/, /\s+[-–—]\s+/, /\s*(?:→|⇒|->|=>)\s*/, /\s+\|\s+/]) {
+    const m = re.exec(s);
+    if (m && m.index >= 2 && (!cut || m.index < cut.index)) cut = { index: m.index, len: m[0].length };
+  }
+  let title = s;
+  if (cut) { title = s.slice(0, cut.index); note = [s.slice(cut.index + cut.len), note].filter(Boolean).join(' / '); }
+  title = title.trim().replace(/[.。]$/, '');
+  if (!title) { title = note; note = ''; }
+  kind = kind || ctx.kind || (ctx.end ? 'event' : EVENT_RE.test(title) && !TODO_RE.test(title) ? 'event' : 'todo');
+  if (kind === 'todo' && time) note = [time, note].filter(Boolean).join(' · ');
+  return {
+    inc: true, kind, title, note: note.trim(), date: ctx.date, end: ctx.end || null,
+    time: kind === 'event' ? time : null, slot, color: 'auto'
+  };
+}
+function tableHeader(cells) {
+  const at = re => cells.findIndex(c => re.test(c));
+  const h = {
+    date: at(/날짜|일자|date|요일|^day$/i), time: at(/^(시간|time|시각)$/i), slot: at(/시간대|slot/i),
+    subj: at(/과목|subject|분류|카테고리|구분/i), title: at(/할\s*일|내용|과제|task|항목|계획|범위|일정|todo/i),
+    note: at(/목표|메모|완료|기준|비고|note|goal|포인트|체크/i)
+  };
+  return h.date >= 0 || (h.title >= 0 && (h.subj >= 0 || h.note >= 0)) ? h : null;
+}
+function parsePlan(text, base) {
+  const lines = text.replace(/\r/g, '').split('\n');
+  const hasDate = lines.some(l => findRange(stripMd(l)));
+  const items = [];
+  let cur = null, slot = null, hint = null, last = null, lastIndent = 0, seenDate = false, table = null;
+  const add = (txt, ctx, indent) => {
+    const it = makeItem(txt, ctx);
+    if (!it.title || it.title.length < 2) return;
+    items.push(it); last = it; lastIndent = indent;
+  };
+  const setDay = d => { cur = d; seenDate = true; slot = null; hint = null; last = null; };
+  for (let raw of lines) {
+    if (!raw.trim()) continue;
+    if (/^\s*\|.*\|\s*$/.test(raw)) {
+      const cells = raw.trim().slice(1, -1).split('|').map(stripMd);
+      if (cells.every(c => !c || /^:?-{2,}:?$/.test(c))) continue;
+      if (!table) { table = tableHeader(cells); if (table) continue; }
+      if (table) {
+        const get = i => i >= 0 ? cells[i] || '' : '';
+        const ctx = { date: cur || base, end: null, slot: null, kind: hint };
+        const r = get(table.date) && findRange(get(table.date));
+        if (r) { setDay(r.date); ctx.date = r.date; ctx.end = r.end; }
+        const used = new Set([table.date, table.time, table.slot, table.subj, table.note]);
+        const main = get(table.title) || cells.filter((c, i) => c && !used.has(i)).join(' · ');
+        const subj = get(table.subj), tcell = get(table.time), note = get(table.note);
+        ctx.slot = slotOf(get(table.slot)) || (tcell && slotHeader(tcell)) || null;
+        main.split(/\s+\/\s+|•|;/).map(x => x.trim()).filter(Boolean).forEach(part => {
+          const title = subj && !part.includes(subj) ? `[${subj}] ${part}` : part;
+          add((tcell && !ctx.slot ? tcell + ' ' : '') + title, ctx, 0);
+          if (last && note && last.date === ctx.date) last.note = [last.note, note].filter(Boolean).join(' / ');
+        });
+        continue;
+      }
+      raw = cells.filter(Boolean).join(' - ');
+    } else table = null;
+
+    const indent = raw.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
+    const bullet = BULLET_RE.test(raw.replace(/^\s*>\s*/, ''));
+    const s = stripMd(raw);
+    if (!s || /^[-=_*~·.]{3,}$/.test(s)) continue;
+    const heading = /^\s*#{1,6}\s/.test(raw) || /^\s*\*\*[^*]+\*\*\s*[:：]?\s*$/.test(raw) || /^\s*【.*】\s*$/.test(raw)
+      || (!bullet && /[:：]$/.test(s) && s.length <= 30);
+
+    const r = findRange(s);
+    if (r) {
+      const rest = (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim();
+      const bare = rest.replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').replace(/\s+/g, ' ').trim();
+      if (!bullet && !heading && FLUFF_RE.test(s) && !/[\[\]→]/.test(s)) continue; // "아래는 9/24~9/27 계획이에요" 같은 안내 문장
+      if (!bare || /^(계획|일정|할\s*일|todo|to-do|plan|스케줄|schedule)$/i.test(bare) || (heading && !r.end)) { setDay(r.date); continue; }
+      if (heading) setDay(r.date);
+      add(rest, { date: r.date, end: r.end, slot: heading ? null : slot, kind: hint }, indent);
+      continue;
+    }
+    const sh = slotHeader(s);
+    if (sh) { slot = sh; last = null; continue; }
+    if (heading) {
+      hint = /할\s*일|todo|투두|공부|과제/i.test(s) ? 'todo' : /일정|약속|스케줄|schedule|event|캘린더/i.test(s) ? 'event' : null;
+      last = null;
+      continue;
+    }
+    if (last && (NOTE_RE.test(s) || /^(→|⇒|->|=>)/.test(s) || indent > lastIndent + 1)) {
+      last.note = [last.note, s.replace(/^(→|⇒|->|=>)\s*/, '')].filter(Boolean).join(' / ');
+      continue;
+    }
+    if (NOTE_RE.test(s)) continue;
+    if (!bullet && ((hasDate && !seenDate) || (FLUFF_RE.test(s) && !/[\[\]→:：]/.test(s)))) continue;
+    add(s, { date: cur || base, end: null, slot, kind: hint }, indent);
+  }
+  items.forEach(it => { if (state.tasks.some(t => fullTitle(t) === it.title && t.date === it.date)) { it.dup = true; it.inc = false; } });
+  return items;
+}
+
+const GPT_PROMPT = `위 계획을 아래 형식으로만 다시 정리해줘. 인사말이나 설명 없이 목록만 써줘.
+
+## 9/24 (목)
+- [일정] 14:00 순천향 외래
+- [과목] 할 일 제목: 세부 내용 → 완료 기준
+- 오후: [과목] 할 일 제목: 세부 내용 → 완료 기준
+
+## 9/25 (금)
+- ...
+
+규칙
+1. 날짜마다 "## 월/일 (요일)" 제목을 붙여줘.
+2. 시험·병원·약속·수업처럼 날짜나 시간이 정해진 건 맨 앞에 [일정]을 붙이고, 시간이 있으면 HH:MM으로 써줘.
+3. 내가 해야 할 공부·과제는 "[과목] 제목: 내용 → 완료 기준" 형식으로 한 줄에 써줘.
+4. 오전/오후/밤 시간대가 정해져 있으면 "오전:", "오후:", "밤:"을 앞에 붙여줘.
+5. 여러 날에 걸친 기간은 "- [일정] 9/23~9/27 기간 이름" 한 줄로 써줘.`;
+
+let pItems = [], pParsed = false;
+function renderPreview() {
+  const box = $('#pPreview');
+  if (!pItems.length) {
+    box.innerHTML = pParsed ? '<div class="pv-empty">알아볼 수 있는 항목이 없어요. 날짜(예: 9/24)나 목록(-) 형식이 들어 있는지 확인해 주세요.</div>' : '';
+    $('#pSave').hidden = true; return;
+  }
+  const on = pItems.filter(x => x.inc), ne = on.filter(x => x.kind === 'event').length;
+  box.innerHTML = `<div class="pv-head"><span>미리보기 · 일정 ${ne} · 할 일 ${on.length - ne}</span><b>${on.length} / ${pItems.length}</b></div>` + pItems.map((it, i) => {
+    const tags = [
+      it.dup ? '<em>이미 있음</em>' : '',
+      it.end ? `<em>~ ${+it.end.slice(5, 7)}/${+it.end.slice(8)}</em>` : '',
+      it.kind === 'event' && it.time ? `<em>${it.time}</em>` : '',
+      it.kind === 'todo' && it.slot ? `<em>${SLOTS.find(x => x.key === it.slot).title}</em>` : ''
+    ].join('');
+    return `<div class="pv-row ${it.inc ? '' : 'off'}" data-i="${i}">
+      <input type="checkbox" data-f="inc" ${it.inc ? 'checked' : ''} aria-label="포함">
+      <button type="button" class="kbtn ${it.kind}" data-f="kind" title="눌러서 일정/할 일 바꾸기">${it.kind === 'event' ? '일정' : '할 일'}</button>
+      <input type="date" data-f="date" value="${it.date}" aria-label="날짜">
+      <input type="text" class="pv-title" data-f="title" value="${esc(it.title)}" aria-label="제목">
+      ${tags || it.note ? `<div class="pv-note">${tags}${esc(it.note)}</div>` : ''}
+    </div>`;
+  }).join('');
+  $('#pSave').hidden = !on.length;
+  $('#pSave').textContent = `${on.length}개 등록`;
+}
+const pItemOf = el => pItems[el.closest('[data-i]').dataset.i];
+$('#pPreview').addEventListener('input', e => { if (e.target.dataset.f === 'title') pItemOf(e.target).title = e.target.value.trim(); });
+$('#pPreview').addEventListener('change', e => {
+  const f = e.target.dataset.f; if (!f || f === 'title') return;
+  const it = pItemOf(e.target);
+  if (f === 'inc') it.inc = e.target.checked;
+  if (f === 'date' && e.target.value) {
+    if (it.end) it.end = addDays(it.end, diffDays(it.date, e.target.value));
+    it.date = e.target.value;
+  }
+  renderPreview();
+});
+$('#pPreview').addEventListener('click', e => {
+  const b = e.target.closest('[data-f="kind"]'); if (!b) return;
+  const it = pItemOf(b);
+  it.kind = it.kind === 'event' ? 'todo' : 'event';
+  renderPreview();
+});
+function updUndo() { $('#pUndo').hidden = !state.lastBatch || !state.tasks.some(t => t.batch === state.lastBatch); }
+function openPaste() {
+  const d = parse(state.date);
+  $('#pBase').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  updUndo(); renderPreview();
+  $('#pmodal').hidden = false;
+  setTimeout(() => $('#pText').focus(), 30);
+}
+function closePaste() { $('#pmodal').hidden = true; }
+function runParse() { pItems = parsePlan($('#pText').value, state.date); pParsed = true; renderPreview(); }
+$('#pasteOpen').onclick = openPaste;
+$('#pClose').onclick = closePaste;
+$('#pParse').onclick = runParse;
+$('#pText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runParse(); });
+$('#pmodal').addEventListener('click', e => { if (e.target.id === 'pmodal') closePaste(); });
+$('#pPrompt').onclick = async () => {
+  try { await navigator.clipboard.writeText(GPT_PROMPT); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = GPT_PROMPT; $('#pmodal .sheet').append(ta);
+    ta.select(); try { document.execCommand('copy'); } catch (_) {} ta.remove();
+  }
+  const b = $('#pPrompt'); b.textContent = '복사됨! ChatGPT에 붙여넣기';
+  setTimeout(() => { b.textContent = 'GPT 요청문 복사'; }, 1800);
+};
+$('#pSave').onclick = () => {
+  const list = pItems.filter(x => x.inc && x.title);
+  if (!list.length) return;
+  const batch = 'b' + uid();
+  let o = maxOrder();
+  list.forEach(it => {
+    const x = splitSubject(it.title);
+    ensureSubject(x.subject);
+    state.tasks.push(makeTask(x.title, it.date, {
+      subject: x.subject, kind: it.kind, end: it.end, note: it.note, color: it.color, order: ++o, batch,
+      time: it.kind === 'event' ? it.time : null, slot: it.kind === 'todo' ? it.slot : null
+    }));
+  });
+  state.lastBatch = batch;
+  state.date = list.map(x => x.date).sort()[0];
+  state.month = state.date.slice(0, 7);
+  $('#pText').value = ''; pItems = []; pParsed = false;
+  closePaste(); commit();
+};
+$('#pUndo').onclick = () => {
+  const n = state.tasks.filter(t => t.batch === state.lastBatch).length;
+  if (!n) return;
+  askConfirm(`최근 붙여넣기로 등록한 ${n}개를 삭제할까요?`, '삭제').then(ok => {
+    if (!ok) return;
+    state.tasks = state.tasks.filter(t => t.batch !== state.lastBatch);
+    state.lastBatch = null; updUndo(); commit();
+  });
+};
+
+/* ---------- 색상 설정 (일정 / 할 일 기본색) ---------- */
+const PALETTE = ['#3b57e0', '#0090ff', '#12a594', '#30a46c', '#f5b400', '#f76b15', '#e5484d', '#d6409f', '#8e4ec6', '#1b1b1b', '#9a9aa0', '#ececed', '#e4e9fc', '#dff3e4', '#fff1c2', '#ffe0e0'];
+function buildColorRows() {
+  ['event', 'todo'].forEach(k => {
+    const c = kindColor(k);
+    $(`#cmodal [data-kind="${k}"] .swatches`).innerHTML =
+      PALETTE.map(p => `<button type="button" class="sw" data-hex="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')
+      + `<span class="sw custom" title="직접 고르기"><input type="color" value="${c}" aria-label="직접 고르기"></span>`;
+    markColorRow(k);
+  });
+  $('#cQuads').innerHTML = QUADS.map(x => `
+    <div class="crow" data-quad="${x.key}">
+      <div class="chead"><span class="cprev">${x.title}</span></div>
+      <div class="swatches sm">
+        <button type="button" class="sw auto q-${x.key}" data-qhex="" style="--fg:currentColor" title="기본 디자인" aria-label="기본 디자인"></button>
+        ${PALETTE.map(p => `<button type="button" class="sw" data-qhex="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}
+        <span class="sw custom" title="직접 고르기"><input type="color" value="${quadColor(x.key) || '#3b57e0'}" aria-label="직접 고르기"></span>
+      </div>
+    </div>`).join('');
+  QUADS.forEach(x => markQuadRow(x.key));
+  const names = Object.keys(state.subjects).filter(n => state.tasks.some(t => t.subject === n));
+  $('#cSubjs').innerHTML = names.length ? names.map(n => {
+    const sj = state.subjects[n];
+    return `<div class="srow" data-subj="${esc(n)}">
+      <span class="sw custom" style="background:${sj.color}"><input type="color" value="${sj.color}" aria-label="${esc(n)} 색"></span>
+      <span class="sname" style="color:${sj.color}">${esc(n)}</span>
+      <input class="sab" value="${esc(sj.ab)}" maxlength="3" aria-label="${esc(n)} 줄임말">
+    </div>`;
+  }).join('') : '<p class="psub">과목이 붙은 할 일이 아직 없어요.</p>';
+  const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
+  $('#cClear').hidden = !n;
+  $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
+}
+function markColorRow(k) {
+  const row = $(`#cmodal [data-kind="${k}"]`), c = kindColor(k), inPal = PALETTE.includes(c);
+  row.querySelector('.cprev').style.cssText = `background:${c};color:${textOn(c)}`;
+  row.querySelectorAll('[data-hex]').forEach(b => b.classList.toggle('on', b.dataset.hex === c));
+  const cu = row.querySelector('.custom');
+  cu.classList.toggle('on', !inPal);
+  cu.style.background = inPal ? '' : c;
+}
+function markQuadRow(k) {
+  const row = $(`#cQuads [data-quad="${k}"]`), c = quadColor(k), inPal = !c || PALETTE.includes(c);
+  const pv = row.querySelector('.cprev');
+  pv.className = 'cprev' + (c ? '' : ' q-' + k);
+  pv.style.cssText = c ? `background:${c};color:${textOn(c)}` : '';
+  row.querySelectorAll('[data-qhex]').forEach(b => b.classList.toggle('on', b.dataset.qhex === (c || '')));
+  const cu = row.querySelector('.custom');
+  cu.classList.toggle('on', !inPal);
+  cu.style.background = inPal ? '' : c;
+}
+function setQuadColor(k, hex) {
+  if (hex) state.quadColors[k] = hex.toLowerCase(); else delete state.quadColors[k];
+  markQuadRow(k); save(); render();
+}
+function setKindColor(k, hex) {
+  state.kindColors[k] = hex.toLowerCase();
+  markColorRow(k); save(); render();
+}
+$('#cmodal').addEventListener('click', e => {
+  if (e.target.id === 'cmodal') { closeColors(); return; }
+  const b = e.target.closest('[data-hex]');
+  if (b) setKindColor(b.closest('[data-kind]').dataset.kind, b.dataset.hex);
+  const qb = e.target.closest('[data-qhex]');
+  if (qb) setQuadColor(qb.closest('[data-quad]').dataset.quad, qb.dataset.qhex);
+});
+$('#cmodal').addEventListener('input', e => {
+  const sr = e.target.closest('[data-subj]');
+  if (sr) {
+    const sj = state.subjects[sr.dataset.subj]; if (!sj) return;
+    if (e.target.type === 'color') {
+      sj.color = e.target.value;
+      sr.querySelector('.custom').style.background = sj.color;
+      sr.querySelector('.sname').style.color = sj.color;
+    } else sj.ab = e.target.value.trim() || sr.dataset.subj.slice(0, 2);
+    save(); render(); return;
+  }
+  if (e.target.type !== 'color') return;
+  const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]');
+  if (kr) setKindColor(kr.dataset.kind, e.target.value);
+  else if (qr) setQuadColor(qr.dataset.quad, e.target.value);
+});
+function openColors() { buildColorRows(); $('#cmodal').hidden = false; }
+function closeColors() { $('#cmodal').hidden = true; }
+$('#colorOpen').onclick = openColors;
+$('#cDone').onclick = closeColors;
+$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; state.quadColors = {}; buildColorRows(); commit(); };
+$('#cClear').onclick = () => {
+  const list = state.tasks.filter(t => t.color && t.color !== 'auto');
+  askConfirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`, '바꾸기').then(ok => {
+    if (!ok) return;
+    list.forEach(t => { t.color = 'auto'; });
+    buildColorRows(); commit();
+  });
+};
+
+/* ---------- 확인 창 (브라우저 confirm 대신) ---------- */
+function askConfirm(msg, yes = '확인') {
+  return new Promise(res => {
+    $('#qText').textContent = msg;
+    $('#qYes').textContent = yes;
+    $('#qmodal').hidden = false;
+    const done = v => { $('#qmodal').hidden = true; $('#qYes').onclick = $('#qNo').onclick = null; res(v); };
+    $('#qYes').onclick = () => done(true);
+    $('#qNo').onclick = () => done(false);
+    setTimeout(() => $('#qYes').focus(), 30);
+  });
+}
+$('#qmodal').addEventListener('click', e => { if (e.target.id === 'qmodal') $('#qNo').click(); });
+
+/* ---------- 타이머: 팝업 창 + TIMER 탭 ---------- */
+const timerHost = document.createElement('div');
+timerHost.id = 'focusTimer';
+$('#timerPark').append(timerHost);
+const twOpen = () => !$('#timerWin').hidden;
+function placeTimer() {
+  const target = twOpen() ? $('#twBody') : state.view === 'timer' ? $('#timerSlot') : $('#timerPark');
+  if (timerHost.parentElement !== target) target.append(timerHost);
+  timerHost.classList.toggle('popup', twOpen());
+  $('#timerNote').hidden = !(twOpen() && state.view === 'timer');
+  $('#timerOpen').setAttribute('aria-pressed', twOpen());
+}
+createFocusTimer(timerHost, {
+  confirm: askConfirm,
+  isShown: () => twOpen() || state.view === 'timer',
+  onTick: running => $('#timerOpen').classList.toggle('running', running)
+});
+
+const TW_MIN_W = 260, TW_MIN_H = 220;
+function twFit() {
+  const vw = innerWidth, vh = innerHeight;
+  let r = state.timerWin;
+  if (!r || !(r.w > 0)) {
+    const w = Math.min(400, vw - 16), h = Math.min(620, vh - 16);
+    r = state.timerWin = { w, h, x: vw - w - 16, y: vh - h - 16 };
+  }
+  r.w = Math.max(Math.min(TW_MIN_W, vw - 16), Math.min(r.w, vw - 16));
+  r.h = Math.max(Math.min(TW_MIN_H, vh - 16), Math.min(r.h, vh - 16));
+  r.x = Math.min(Math.max(8, r.x), vw - r.w - 8);
+  r.y = Math.min(Math.max(8, r.y), vh - r.h - 8);
+  Object.assign($('#timerWin').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+}
+function setTimerWin(open) {
+  $('#timerWin').hidden = !open;
+  if (open) twFit();
+  placeTimer();
+}
+$('#timerOpen').onclick = () => setTimerWin(!twOpen());
+$('#twClose').onclick = () => setTimerWin(false);
+$('#twToTab').onclick = () => { $('#timerWin').hidden = true; state.view = 'timer'; save(); render(); };
+$('#twDockHere').onclick = () => setTimerWin(false);
+window.addEventListener('resize', () => { if (twOpen()) twFit(); });
+
+// 제목줄을 끌어서 옮기고, 아래 모서리를 끌어서 크기 조절
+let twDrag = null;
+$('#timerWin').addEventListener('pointerdown', e => {
+  const grip = e.target.closest('[data-grip]');
+  const bar = !grip && e.target.closest('#twBar');
+  if (!grip && !bar) return;
+  if (bar && e.target.closest('button')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault();
+  const r = state.timerWin;
+  twDrag = { mode: grip ? grip.dataset.grip : 'move', sx: e.clientX, sy: e.clientY, x: r.x, y: r.y, w: r.w, h: r.h, pid: e.pointerId };
+  e.target.setPointerCapture(e.pointerId);
+  document.body.classList.add('fwin-moving');
+});
+$('#timerWin').addEventListener('pointermove', e => {
+  if (!twDrag || e.pointerId !== twDrag.pid) return;
+  const d = twDrag, dx = e.clientX - d.sx, dy = e.clientY - d.sy, r = state.timerWin;
+  if (d.mode === 'move') { r.x = d.x + dx; r.y = d.y + dy; }
+  else {
+    r.h = Math.max(TW_MIN_H, d.h + dy);
+    if (d.mode === 'r') r.w = Math.max(TW_MIN_W, d.w + dx);
+    else { r.w = Math.max(TW_MIN_W, d.w - dx); r.x = d.x + d.w - r.w; }
+  }
+  twFit();
+});
+const twEnd = e => {
+  if (!twDrag || e.pointerId !== twDrag.pid) return;
+  twDrag = null;
+  document.body.classList.remove('fwin-moving');
+  persist();
+};
+$('#timerWin').addEventListener('pointerup', twEnd);
+$('#timerWin').addEventListener('pointercancel', twEnd);
+// 제목줄 더블클릭: 크게 ↔ 원래 크기
+$('#twBar').addEventListener('dblclick', e => {
+  if (e.target.closest('button')) return;
+  const r = state.timerWin;
+  if (r.prev) { Object.assign(r, r.prev); delete r.prev; }
+  else { r.prev = { x: r.x, y: r.y, w: r.w, h: r.h }; Object.assign(r, { x: 8, y: 8, w: innerWidth - 16, h: innerHeight - 16 }); }
+  twFit(); persist();
+});
+
+migrateSubjects();
+render();
+</script>
+</body>
+</html>
