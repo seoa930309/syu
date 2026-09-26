@@ -3766,27 +3766,28 @@ function mkDate(y, m, d) {
 const DATE_PATS = [
   [/(?<![\d.])(20\d{2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})(?!\d)/, m => mkDate(m[1], m[2], m[3])],
   [/(?:(20\d{2})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/, m => mkDate(m[1], m[2], m[3])],
-  [/(?<![\w.\/])(\d{1,2})\s*\/\s*(\d{1,2})(?![\d\/])/, m => mkDate(null, m[1], m[2])],
+  [/(?<![\w.\/+])(\d{1,2})\s*\/\s*(\d{1,2})(?![\d\/+]|\s*(?:을|를|씩|개|번|회|권|장|쪽|문제|강|챕터|단원|p\b))/, m => mkDate(null, m[1], m[2])],
   [/(?<![\w.])(\d{1,2})\.\s*(\d{1,2})\.?(?=\s*\(?\s*[일월화수목금토])/, m => mkDate(null, m[1], m[2])],
   // "9-28 (월)" 처럼 요일이 붙은 월-일
   [/(?<![\d\-\/.:])(\d{1,2})-(\d{1,2})(?=\s*\(\s*[일월화수목금토]|\s+[일월화수목금토](?:요일)?(?![가-힣]))/, m => mkDate(null, m[1], m[2])]
 ];
 const WDAY_RE = /^\s*(?:\(\s*(?:[일월화수목금토](?:요일)?|(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?)\s*\)|[일월화수목금토]요일)?/i;
 // ref가 있으면 "CN 1/2 복습"처럼 요일 없는 숫자/숫자가 그날에서 멀면 날짜로 보지 않아요 (분수 · 범위)
-function firstDate(s, ref) {
+function firstDate(s, ref, strict) {
   let best = null;
   DATE_PATS.forEach(([re, fn], k) => {
     const m = re.exec(s);
     if (m && (!best || m.index < best.index)) {
       const d = fn(m);
-      if (d && !(ref && k === 2 && Math.abs(diffDays(ref, d)) > 45)) best = { date: d, index: m.index, len: m[0].length };
+      // 요일 없는 숫자/숫자가 줄 중간에 있거나(strict면 어디든) 기준 날짜에서 45일 넘게 떨어지면 분수 · 분량으로 봐요
+      if (d && !(ref && k === 2 && (strict || m.index > 0) && Math.abs(diffDays(ref, d)) > 45)) best = { date: d, index: m.index, len: m[0].length };
     }
   });
   return best;
 }
 // "9/23", "9월 23일 (화)", "9/23~9/27", "9/23–27" → { date, end, index, len }
-function findRange(s, ref) {
-  const a = firstDate(s, ref); if (!a) return null;
+function findRange(s, ref, strict) {
+  const a = firstDate(s, ref, strict); if (!a) return null;
   let end = a.index + a.len;
   const wm = s.slice(end).match(WDAY_RE)[0];
   end += wm.length;
@@ -3916,7 +3917,7 @@ function tableHeader(cells) {
 }
 function parsePlan(text, base) {
   const lines = text.replace(/\r/g, '').split('\n');
-  const hasDate = lines.some(l => findRange(stripMd(l)));
+  const hasDate = lines.some(l => findRange(stripMd(l), base));
   const items = [];
   let cur = null, slot = null, hint = null, last = null, lastIndent = 0, seenDate = false, table = null, week = null;
   const lead = x => leadDay(x, { today: todayStr(), base, last: cur, week });
@@ -3962,9 +3963,15 @@ function parsePlan(text, base) {
       || (!bullet && /[:：]$/.test(s) && s.length <= 30);
 
     // 날짜 아래 목록의 "- 내일 준비물"은 날짜가 아니에요 (주간 계획 아래 "- 월: …"만 요일로 읽어요)
-    const r = findRange(s, bullet && !heading && cur ? cur : null) || (bullet && cur && !week ? null : lead(s));
+    const r = findRange(s, heading ? null : cur || base, !heading && !!cur) || (bullet && cur && !week ? null : lead(s));
+    // 앞 할 일 아래 들여 쓴 설명 줄은 그 할 일의 메모예요 (줄이 날짜로 시작할 때만 새 항목)
+    if (last && !heading && !bullet && indent > lastIndent + 1 && !(r && r.index === 0)) {
+      last.note = [last.note, s.replace(/^(→|⇒|->|=>)\s*/, '')].filter(Boolean).join(' / ');
+      continue;
+    }
     if (r) {
-      const rest = (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim();
+      const rest = (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim()
+        .replace(/^(?:에는|에|엔|까지|부터)(?=\s|$)\s*/, '').replace(/\s+(?:까지|에)$/, '');
       const bare = rest.replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|(?:이번|다음)?\s*[일월화수목금토]요일|\b(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)\b\.?|^[일월화수목금토]$|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').replace(/\s+/g, ' ').trim();
       if (!bullet && !heading && FLUFF_RE.test(s) && !/[\[\]→]/.test(s)) continue; // "아래는 9/24~9/27 계획이에요" 같은 안내 문장
       if (r.end && WEEK_HEAD.test(bare)) { setDay(r.date); week = r.date; continue; }   // 주간 계획 제목
