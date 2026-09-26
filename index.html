@@ -980,6 +980,7 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
   .quad{min-height:150px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.pv-note em.wdwarn{color:#c2410c;border-color:currentColor}
 .pill-btn.icon-only{aspect-ratio:1/1;width:auto;padding:0!important;display:inline-flex;align-items:center;justify-content:center;gap:0}
 .pill-btn.icon-only svg{width:17px;height:17px;flex:none}
 .wipebtn svg{width:15px;height:15px;flex:none}
@@ -3766,23 +3767,33 @@ const DATE_PATS = [
   [/(?<![\d.])(20\d{2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})(?!\d)/, m => mkDate(m[1], m[2], m[3])],
   [/(?:(20\d{2})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/, m => mkDate(m[1], m[2], m[3])],
   [/(?<![\w.\/])(\d{1,2})\s*\/\s*(\d{1,2})(?![\d\/])/, m => mkDate(null, m[1], m[2])],
-  [/(?<![\w.])(\d{1,2})\.(\d{1,2})\.?(?=\s*\(?\s*[일월화수목금토])/, m => mkDate(null, m[1], m[2])]
+  [/(?<![\w.])(\d{1,2})\.\s*(\d{1,2})\.?(?=\s*\(?\s*[일월화수목금토])/, m => mkDate(null, m[1], m[2])],
+  // "9-28 (월)" 처럼 요일이 붙은 월-일
+  [/(?<![\d\-\/.:])(\d{1,2})-(\d{1,2})(?=\s*\(\s*[일월화수목금토]|\s+[일월화수목금토](?:요일)?(?![가-힣]))/, m => mkDate(null, m[1], m[2])]
 ];
 const WDAY_RE = /^\s*(?:\(\s*(?:[일월화수목금토](?:요일)?|(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?)\s*\)|[일월화수목금토]요일)?/i;
-function firstDate(s) {
+// ref가 있으면 "CN 1/2 복습"처럼 요일 없는 숫자/숫자가 그날에서 멀면 날짜로 보지 않아요 (분수 · 범위)
+function firstDate(s, ref) {
   let best = null;
-  for (const [re, fn] of DATE_PATS) {
+  DATE_PATS.forEach(([re, fn], k) => {
     const m = re.exec(s);
-    if (m && (!best || m.index < best.index)) { const d = fn(m); if (d) best = { date: d, index: m.index, len: m[0].length }; }
-  }
+    if (m && (!best || m.index < best.index)) {
+      const d = fn(m);
+      if (d && !(ref && k === 2 && Math.abs(diffDays(ref, d)) > 45)) best = { date: d, index: m.index, len: m[0].length };
+    }
+  });
   return best;
 }
 // "9/23", "9월 23일 (화)", "9/23~9/27", "9/23–27" → { date, end, index, len }
-function findRange(s) {
-  const a = firstDate(s); if (!a) return null;
+function findRange(s, ref) {
+  const a = firstDate(s, ref); if (!a) return null;
   let end = a.index + a.len;
-  end += s.slice(end).match(WDAY_RE)[0].length;
+  const wm = s.slice(end).match(WDAY_RE)[0];
+  end += wm.length;
   const r = { date: a.date, end: null, index: a.index, len: end - a.index };
+  // 적힌 요일이 실제 날짜의 요일과 다르면 미리보기에서 알려요
+  const ww = (wm.match(/[일월화수목금토]|sun|mon|tue|wed|thu|fri|sat/i) || [])[0];
+  if (ww && wdIdx(ww) !== parse(a.date).getDay()) r.wd = ww;
   const sep = s.slice(end).match(/^\s*(?:~|〜|–|—|-|부터)\s*/);
   if (sep) {
     const rest = s.slice(end + sep[0].length);
@@ -3801,6 +3812,45 @@ function findRange(s) {
   }
   return r;
 }
+// 줄 맨 앞의 요일 · 오늘/내일 · "28일(월)" → 날짜
+const WD_EN = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const wdIdx = w => /^[일월화수목금토]/.test(w) ? '일월화수목금토'.indexOf(w[0]) : WD_EN.indexOf(w.slice(0, 3).toLowerCase());
+const LEAD_PRE = /^(?:[\s#>*\-•·|]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?)*/u;
+const LEAD_RE = /^[\[(【]?\s*(?:(오늘|내일|모레|글피)(?![가-힣])|(이번\s*주|금주|다음\s*주|담주|차주)?\s*([일월화수목금토])요일(?![가-힣])|([일월화수목금토])(?=\s*(?:[:：)\]】.,]|$))|(sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)\.?(?![a-z])|(\d{1,2})\s*일(?![차간째]|\s*(?:동안|마다))(?:\s*\(?\s*([일월화수목금토])(?:요일)?\s*\)?)?)\s*[\])】]?/i;
+function leadDay(s, c) {
+  const pre = s.match(LEAD_PRE)[0].length, m = LEAD_RE.exec(s.slice(pre));
+  if (!m || !m[0].trim()) return null;
+  const rest = s.slice(pre + m[0].length).replace(/^[\s:：\-–—)\]】,.]+/, '');
+  let date = null;
+  if (m[1]) date = addDays(c.today, { 오늘: 0, 내일: 1, 모레: 2, 글피: 3 }[m[1]]);
+  else if (m[6]) {
+    if (!m[7] && rest) return null;               // "1일 1회독" 같은 건 날짜가 아니에요
+    const d = +m[6], ref = parse(c.last || c.base), wd = m[7] ? wdIdx(m[7]) : -1;
+    let best = null;
+    [-1, 0, 1].forEach(k => {
+      const dt = new Date(ref.getFullYear(), ref.getMonth() + k, d);
+      if (dt.getDate() !== d || (wd >= 0 && dt.getDay() !== wd)) return;
+      const gap = Math.abs(dt - ref);
+      if (!best || gap < best.gap) best = { gap, v: ymd(dt) };
+    });
+    if (!best) return null;
+    date = best.v;
+  } else {
+    const wd = wdIdx(m[3] || m[4] || m[5]);
+    if (wd < 0) return null;
+    if (m[2]) {                                   // 이번 주 / 다음 주 (월요일 시작)
+      const t = parse(c.today), mon = addDays(c.today, -((t.getDay() + 6) % 7));
+      date = addDays(mon, (/다음|담|차/.test(m[2]) ? 7 : 0) + (wd + 6) % 7);
+    } else if (c.week) {                          // "9/28 ~ 10/4 주간 계획" 아래의 "월:", "화:"
+      for (let i = 0; i < 7; i++) { const d = addDays(c.week, i); if (parse(d).getDay() === wd) { date = d; break; } }
+    } else {                                      // 앞 날짜 다음에 오는 그 요일 (처음이면 기준 날짜부터)
+      const from = c.last ? addDays(c.last, 1) : c.base;
+      for (let i = 0; i < 7; i++) { const d = addDays(from, i); if (parse(d).getDay() === wd) { date = d; break; } }
+    }
+  }
+  return date ? { date, end: null, index: 0, len: pre + m[0].length } : null;
+}
+const WEEK_HEAD = /^(?:(?:이번|다음|금|차)\s*주|주간|\d+\s*주\s*차|week\s*\d*)?\s*(?:계획|일정|할\s*일|todo|to-do|plan|스케줄|schedule|플랜|목표|정리)?$/i;
 const TIME_RE = /(?:(오전|오후|am|pm)\s*)?(?<![\d.:])(\d{1,2})(?::(\d{2})|\s*시(?!간)(?:\s*(\d{1,2})\s*분|\s*(반))?)(?:\s*[~\-–]\s*(?:(?:오전|오후)\s*)?\d{1,2}(?::\d{2}|\s*시(?!간)(?:\s*\d{1,2}\s*분|\s*반)?))?/i;
 function parseTime(s) {
   const m = TIME_RE.exec(s); if (!m) return null;
@@ -3820,7 +3870,7 @@ function slotHeader(s) {
 const EVENT_RE = /시험|외래|진료|병원|치과|약속|미팅|회의|모임|면접|예약|발표|행사|여행|생일|결혼식|공연|세미나|팝업|마감|출발|도착|휴강|보강|특강|학회|오리엔테이션|설명회|축제|알바|아르바이트|\bOT\b|\bMT\b/i;
 const TODO_RE = /주간\s*마감|대비|준비|공부|복습|정리|집중|회독|인출|오답|읽기|암기|풀기|작성|조사|예습|하기$/;
 const NOTE_RE = /^(목표|완료\s*기준|기준|메모|노트|note|tip|팁|결과물|체크|포인트|방법|분량|산출물|참고)\s*[:：]/i;
-const BULLET_RE = /^\s*(?:[-*+](?=\s)|[•·▪◦●○■□▶▷➤✓✔☐☑✅⬜🔲]\uFE0F?|\d{1,2}[.)](?=\s)|\(\d{1,2}\)|[①-⑳])\s*/;
+const BULLET_RE = /^\s*(?:[-*+](?=\s)|[•·▪◦●○■□▶▷➤✓✔☐☑✅⬜🔲]\uFE0F?|\d{1,2}[.)](?=\s)(?!\s*\d{1,2}\.?\s*\(?\s*[일월화수목금토])|\(\d{1,2}\)|[①-⑳])\s*/u;
 const FLUFF_RE = /(요|다|죠|니다|세요|께요|게요|까요)[.!?~\s]*$|[?？]$/;
 function stripMd(x) {
   let s = x.replace(/<br\s*\/?>/gi, ' / ').replace(/^\s*>+\s*/, '').replace(/^\s*#{1,6}\s*/, '');
@@ -3868,13 +3918,17 @@ function parsePlan(text, base) {
   const lines = text.replace(/\r/g, '').split('\n');
   const hasDate = lines.some(l => findRange(stripMd(l)));
   const items = [];
-  let cur = null, slot = null, hint = null, last = null, lastIndent = 0, seenDate = false, table = null;
+  let cur = null, slot = null, hint = null, last = null, lastIndent = 0, seenDate = false, table = null, week = null;
+  const lead = x => leadDay(x, { today: todayStr(), base, last: cur, week });
   const add = (txt, ctx, indent) => {
     const it = makeItem(txt, ctx);
     if (!it.title || it.title.length < 2) return;
+    const wd = ctx.wd || (ctx.date === cur ? curWd : null);
+    if (wd) it.wd = wd;
     items.push(it); last = it; lastIndent = indent;
   };
-  const setDay = d => { cur = d; seenDate = true; slot = null; hint = null; last = null; };
+  let curWd = null;
+  const setDay = (d, wd) => { cur = d; curWd = wd || null; seenDate = true; slot = null; hint = null; last = null; };
   for (let raw of lines) {
     if (!raw.trim()) continue;
     if (/^\s*\|.*\|\s*$/.test(raw)) {
@@ -3884,8 +3938,8 @@ function parsePlan(text, base) {
       if (table) {
         const get = i => i >= 0 ? cells[i] || '' : '';
         const ctx = { date: cur || base, end: null, slot: null, kind: hint };
-        const r = get(table.date) && findRange(get(table.date));
-        if (r) { setDay(r.date); ctx.date = r.date; ctx.end = r.end; }
+        const r = get(table.date) && (findRange(get(table.date)) || lead(get(table.date)));
+        if (r) { setDay(r.date, r.wd); ctx.date = r.date; ctx.end = r.end; ctx.wd = r.wd; }
         const used = new Set([table.date, table.time, table.slot, table.subj, table.note]);
         const main = get(table.title) || cells.filter((c, i) => c && !used.has(i)).join(' · ');
         const subj = get(table.subj), tcell = get(table.time), note = get(table.note);
@@ -3907,14 +3961,16 @@ function parsePlan(text, base) {
     const heading = /^\s*#{1,6}\s/.test(raw) || /^\s*\*\*[^*]+\*\*\s*[:：]?\s*$/.test(raw) || /^\s*【.*】\s*$/.test(raw)
       || (!bullet && /[:：]$/.test(s) && s.length <= 30);
 
-    const r = findRange(s);
+    // 날짜 아래 목록의 "- 내일 준비물"은 날짜가 아니에요 (주간 계획 아래 "- 월: …"만 요일로 읽어요)
+    const r = findRange(s, bullet && !heading && cur ? cur : null) || (bullet && cur && !week ? null : lead(s));
     if (r) {
       const rest = (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim();
-      const bare = rest.replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').replace(/\s+/g, ' ').trim();
+      const bare = rest.replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|(?:이번|다음)?\s*[일월화수목금토]요일|\b(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)\b\.?|^[일월화수목금토]$|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').replace(/\s+/g, ' ').trim();
       if (!bullet && !heading && FLUFF_RE.test(s) && !/[\[\]→]/.test(s)) continue; // "아래는 9/24~9/27 계획이에요" 같은 안내 문장
-      if (!bare || /^(계획|일정|할\s*일|todo|to-do|plan|스케줄|schedule)$/i.test(bare) || (heading && !r.end)) { setDay(r.date); continue; }
-      if (heading) setDay(r.date);
-      add(rest, { date: r.date, end: r.end, slot: heading ? null : slot, kind: hint }, indent);
+      if (r.end && WEEK_HEAD.test(bare)) { setDay(r.date); week = r.date; continue; }   // 주간 계획 제목
+      if (!bare || /^(계획|일정|할\s*일|todo|to-do|plan|스케줄|schedule)$/i.test(bare) || (heading && !r.end)) { if (!r.end) week = null; setDay(r.date, r.wd); continue; }
+      if (heading) setDay(r.date, r.wd);
+      add(rest, { date: r.date, end: r.end, slot: heading ? null : slot, kind: hint, wd: r.wd }, indent);
       continue;
     }
     const sh = slotHeader(s);
@@ -3964,6 +4020,7 @@ function renderPreview() {
   box.innerHTML = `<div class="pv-head"><span>미리보기 · 일정 ${ne} · 할 일 ${on.length - ne}</span><b>${on.length} / ${pItems.length}</b></div>` + pItems.map((it, i) => {
     const tags = [
       it.dup ? '<em>이미 있음</em>' : '',
+      it.wd ? `<em class="wdwarn" title="붙여넣은 글에는 ‘${it.wd}’요일로 적혀 있어요. 날짜를 확인해 주세요">‘${it.wd}’로 적혀 있지만 ${+it.date.slice(5, 7)}/${+it.date.slice(8)}은 ${DOW[parse(it.date).getDay()]}요일</em>` : '',
       it.end ? `<em>~ ${+it.end.slice(5, 7)}/${+it.end.slice(8)}</em>` : '',
       it.kind === 'event' && it.time ? `<em>${it.time}</em>` : '',
       it.kind === 'todo' && it.slot ? `<em>${SLOTS.find(x => x.key === it.slot).title}</em>` : ''
@@ -3987,7 +4044,7 @@ $('#pPreview').addEventListener('change', e => {
   if (f === 'inc') it.inc = e.target.checked;
   if (f === 'date' && e.target.value) {
     if (it.end) it.end = addDays(it.end, diffDays(it.date, e.target.value));
-    it.date = e.target.value;
+    it.date = e.target.value; it.wd = null;
   }
   renderPreview();
 });
