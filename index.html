@@ -3899,7 +3899,8 @@ function makeItem(text, ctx) {
   if (cut) { title = s.slice(0, cut.index); note = [s.slice(cut.index + cut.len), note].filter(Boolean).join(' / '); }
   title = title.trim().replace(/[.。]$/, '');
   if (!title) { title = note; note = ''; }
-  kind = kind || ctx.kind || (ctx.end ? 'event' : EVENT_RE.test(title) && !TODO_RE.test(title) ? 'event' : 'todo');
+  // "[과목] …"처럼 과목이 붙은 줄은 할 일 (일정은 [일정]으로 표시)
+  kind = kind || ctx.kind || (ctx.end ? 'event' : /^\s*[\[【][^\]】]+[\]】]/.test(title) ? 'todo' : EVENT_RE.test(title) && !TODO_RE.test(title) ? 'event' : 'todo');
   if (kind === 'todo' && time) note = [time, note].filter(Boolean).join(' · ');
   return {
     inc: true, kind, title, note: note.trim(), date: ctx.date, end: ctx.end || null,
@@ -3963,7 +3964,12 @@ function parsePlan(text, base) {
       || (!bullet && /[:：]$/.test(s) && s.length <= 30);
 
     // 날짜 아래 목록의 "- 내일 준비물"은 날짜가 아니에요 (주간 계획 아래 "- 월: …"만 요일로 읽어요)
-    const r = findRange(s, heading ? null : cur || base, !heading && !!cur) || (bullet && cur && !week ? null : lead(s));
+    let r = findRange(s, heading ? null : cur || base, !heading && !!cur) || (bullet && cur && !week ? null : lead(s));
+    // 날짜 제목 아래의 줄: 문장 중간의 날짜("→ 9/28 제출", "10/1에 만든")는 그 할 일의 날짜가 아니에요.
+    // 맨 앞(또는 [일정] · [과목] 같은 표시 바로 뒤)에 있을 때만 새 날짜로 봐요.
+    // (날짜만 있는 제목 줄 "Day 2 (9/29)", "화 9/29"는 그대로 새 날짜)
+    if (r && cur && !heading && !/^\s*(?:[\[【(][^\]】)]*[\]】)]\s*)*$/.test(s.slice(0, r.index))
+      && (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim().replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|(?:이번|다음)?\s*[일월화수목금토]요일|\b(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)\b\.?|^[일월화수목금토]$|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').trim()) r = null;
     // 앞 할 일 아래 들여 쓴 설명 줄은 그 할 일의 메모예요 (줄이 날짜로 시작할 때만 새 항목)
     if (last && !heading && !bullet && indent > lastIndent + 1 && !(r && r.index === 0)) {
       last.note = [last.note, s.replace(/^(→|⇒|->|=>)\s*/, '')].filter(Boolean).join(' / ');
