@@ -1264,6 +1264,18 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
         <button class="danger" type="button" id="yDisconnect">이 기기 연동 끊기</button>
       </div>
       <p class="psub ysub">바뀐 내용은 몇 초 안에 올라가고, 앱을 다시 열거나 화면으로 돌아올 때 다른 기기의 변경을 받아와요.</p>
+      <div class="csec">아이패드 · 아이폰 위젯 (Scriptable)</div>
+      <ol class="ysteps">
+        <li>App Store에서 무료 앱 <b>Scriptable</b>을 설치해요.</li>
+        <li>아래 <b>위젯 스크립트 복사</b>를 누르고, Scriptable에서 <b>+</b>로 새 스크립트를 만들어 붙여넣은 뒤 이름을 <b>dayflow</b>로 저장해요.</li>
+        <li><b>연결 코드 복사</b>를 누르고 Scriptable에서 dayflow를 한 번 실행해 붙여넣어요.</li>
+        <li>홈 화면을 길게 눌러 <b>+ → Scriptable</b> 위젯을 추가하고, 위젯 편집에서 Script는 <b>dayflow</b>, Parameter는 <b>today</b> · <b>slots</b> · <b>matrix</b> 중 하나로 정해요.</li>
+      </ol>
+      <div class="btns" style="margin-top:0">
+        <button class="pill-btn" type="button" id="yScript">위젯 스크립트 복사</button>
+        <button class="pill-btn primary" type="button" id="yCode">연결 코드 복사</button>
+      </div>
+      <p class="psub" id="yCodeMsg" aria-live="polite" style="margin-top:10px"></p>
     </div>
     <p class="serr" id="yErr" hidden></p>
     <p class="psub ynote">토큰은 이 기기 안에만 저장되고, 비공개 메모(Gist) 읽기·쓰기에만 쓰여요. 토큰은 비밀번호처럼 다른 사람에게 알려주지 마세요.</p>
@@ -4935,6 +4947,45 @@ function widgetOpenView() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { widgetOpenView(); widgetPush(true); }
 });
+
+/* ---------- 아이패드 위젯 (Scriptable) 연결 ---------- */
+const SCRIPT_URL = 'scriptable/dayflow-widget.js';
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.append(ta); ta.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove(); return ok;
+}
+const yMsg = m => { $('#yCodeMsg').textContent = m; };
+$('#yCode').onclick = async () => {
+  if (!syncCfg.token || !syncCfg.gistId) { yMsg('먼저 기기 연동을 연결해 주세요.'); return; }
+  const code = 'dayflow:' + btoa(JSON.stringify({ t: syncCfg.token, g: syncCfg.gistId }));
+  yMsg(await copyText(code) ? '연결 코드를 복사했어요. Scriptable에서 dayflow를 실행해 붙여넣어 주세요. (토큰이 들어 있으니 다른 사람에게 보내지 마세요)' : '복사하지 못했어요. 다시 눌러 주세요.');
+};
+$('#yScript').onclick = async () => {
+  yMsg('스크립트를 불러오는 중…');
+  try {
+    const r = await fetch(SCRIPT_URL, { cache: 'no-store' });
+    if (!r.ok) throw new Error();
+    yMsg(await copyText(await r.text()) ? '위젯 스크립트를 복사했어요. Scriptable의 새 스크립트에 붙여넣어 주세요.' : '복사하지 못했어요. 다시 눌러 주세요.');
+  } catch (e) {
+    window.open('https://seoa930309.github.io/syu/' + SCRIPT_URL, '_blank');
+    yMsg('새 창에서 스크립트를 열었어요. 전체 선택해 복사해 주세요.');
+  }
+};
+
+/* ---------- 주소로 화면 열기 (?view=matrix 등: 위젯에서 "앱에서 열기") ---------- */
+(() => {
+  let v = null;
+  try { v = new URLSearchParams(location.search).get('view'); } catch (e) {}
+  if (!['calendar', 'week', 'matrix', 'flow', 'timer'].includes(v)) return;
+  state.view = v; state.date = todayStr();
+  if (v === 'calendar') state.month = state.date.slice(0, 7);
+  save(); render();
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+})();
 
 /* ---------- 모든 일정·할 일 지우기 ---------- */
 function wipeTasks() {
