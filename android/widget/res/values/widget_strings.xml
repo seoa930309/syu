@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="w_today_label">dayflow 오늘 할 일</string>
+    <string name="w_slots_label">dayflow 오전·오후·밤</string>
+    <string name="w_matrix_label">dayflow 매트릭스</string>
+    <string name="w_today_desc">오늘 일정과 할 일</string>
+    <string name="w_slots_desc">오늘 할 일을 오전 · 오후 · 밤으로</string>
+    <string name="w_matrix_desc">오늘 할 일을 네 칸 매트릭스로</string>
+</resources>
