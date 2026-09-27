@@ -987,6 +987,10 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
 .sheet .pv-row textarea.pv-title{min-height:34px;height:auto;padding:6px 8px;font:inherit;font-size:calc(13px * var(--fs));line-height:1.45;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);resize:none;overflow:hidden;width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
 .sheet .pv-row textarea.pv-title:focus{outline:none;border-color:var(--accent)}
 .card .title{word-break:keep-all;overflow-wrap:break-word}
+/* 위젯 사분면: 기본(회색) 견본 */
+#cWQuads .sw.wq-def{background:#f3f4f6;box-shadow:inset 0 0 0 1px var(--border)}
+#cWQuads .cprev{background:#f3f4f6;color:#1c1e22}
+#cWQuads .sw.wq-def.on{box-shadow:inset 0 0 0 1px var(--border),0 0 0 2px var(--surface),0 0 0 3.5px var(--accent)}
 .pv-note em.wdwarn{color:#c2410c;border-color:currentColor}
 .pill-btn.icon-only{aspect-ratio:1/1;width:auto;padding:0!important;display:inline-flex;align-items:center;justify-content:center;gap:0}
 .pill-btn.icon-only svg{width:17px;height:17px;flex:none}
@@ -1224,6 +1228,9 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
     <button class="pill-btn" id="cSubjOpen" type="button" style="align-self:flex-start">과목 관리 열기</button>
     <div class="csec">매트릭스 사분면</div>
     <div id="cQuads"></div>
+    <div class="csec">위젯 사분면 (갤럭시 홈 화면)</div>
+    <p class="psub">갤럭시 홈 화면의 매트릭스 위젯 칸 색이에요. 앱 매트릭스 색과 따로 정해요.</p>
+    <div id="cWQuads"></div>
     <div class="btns">
       <button class="danger" id="cClear"></button>
       <button class="danger" id="wipeAll" type="button">모든 일정·할 일 지우기</button>
@@ -2180,8 +2187,8 @@ function load() {
 let savedTimer;
 function persist() {
   const changed = syncStamp();
-  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
+  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   if (changed) syncSchedule();
@@ -2213,7 +2220,7 @@ state.tomb = state.tomb && typeof state.tomb === 'object' ? state.tomb : {};
 state.tomb.tasks = state.tomb.tasks || {};
 state.tomb.dump = state.tomb.dump || {};
 const SYNC_COLS = ['tasks', 'dump'];
-const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null]);
+const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null]);
 let syncSnap = null, syncTimer = null, syncBusy = false, syncAgain = false;
 function syncRebuildSnap() {
   syncSnap = { settings: settingsJSON(), planner: JSON.stringify(state.planner || null) };
@@ -2265,6 +2272,9 @@ if (state.kindColors.todo === '#ececed') state.kindColors.todo = DEFAULT_KC.todo
 state.quadColors = state.quadColors || {};
 Object.keys(state.quadColors).forEach(k => { if (!isHex(state.quadColors[k])) delete state.quadColors[k]; });
 const quadColor = k => state.quadColors[k] || null;
+// 갤럭시 홈 화면 위젯의 사분면 색 (앱 매트릭스 색과 따로)
+state.wq = state.wq || {};
+Object.keys(state.wq).forEach(k => { if (!isHex(state.wq[k])) delete state.wq[k]; });
 // 과목: 제목 앞의 [과목]을 따로 저장
 const SUBJ_RE = /^\s*[\[【]\s*([^\]】]{1,20}?)\s*[\]】]\s*/;
 function splitSubject(title) {
@@ -4160,6 +4170,16 @@ function buildColorRows() {
       </div>
     </div>`).join('');
   QUADS.forEach(x => markQuadRow(x.key));
+  $('#cWQuads').innerHTML = QUADS.map(x => `
+    <div class="crow" data-wquad="${x.key}">
+      <div class="chead"><span class="cprev">${x.title}</span></div>
+      <div class="swatches sm">
+        <button type="button" class="sw wq-def" data-wqhex="" title="기본 (회색)" aria-label="기본 (회색)"></button>
+        ${PALETTE.map(p => `<button type="button" class="sw" data-wqhex="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}
+        <span class="sw custom" title="직접 고르기"><input type="color" value="${state.wq[x.key] || '#111113'}" aria-label="직접 고르기"></span>
+      </div>
+    </div>`).join('');
+  QUADS.forEach(x => markWQuadRow(x.key));
   const n = state.tasks.filter(t => t.color && t.color !== 'auto').length;
   $('#cClear').hidden = !n;
   $('#cClear').textContent = `개별로 정한 색 지우기 (${n}개)`;
@@ -4182,6 +4202,18 @@ function markQuadRow(k) {
   cu.classList.toggle('on', !inPal);
   cu.style.background = inPal ? '' : c;
 }
+function markWQuadRow(k) {
+  const row = $(`#cWQuads [data-wquad="${k}"]`), c = state.wq[k] || null, inPal = !c || PALETTE.includes(c);
+  row.querySelector('.cprev').style.cssText = c ? `background:${c};color:${textOn(c)}` : '';
+  row.querySelectorAll('[data-wqhex]').forEach(b => b.classList.toggle('on', b.dataset.wqhex === (c || '')));
+  const cu = row.querySelector('.custom');
+  cu.classList.toggle('on', !inPal);
+  cu.style.background = inPal ? '' : c;
+}
+function setWQuadColor(k, hex) {
+  if (hex) state.wq[k] = hex.toLowerCase(); else delete state.wq[k];
+  markWQuadRow(k); save();
+}
 function setQuadColor(k, hex) {
   if (hex) state.quadColors[k] = hex.toLowerCase(); else delete state.quadColors[k];
   markQuadRow(k); save(); render();
@@ -4196,18 +4228,21 @@ $('#cmodal').addEventListener('click', e => {
   if (b) setKindColor(b.closest('[data-kind]').dataset.kind, b.dataset.hex);
   const qb = e.target.closest('[data-qhex]');
   if (qb) setQuadColor(qb.closest('[data-quad]').dataset.quad, qb.dataset.qhex);
+  const wb = e.target.closest('[data-wqhex]');
+  if (wb) setWQuadColor(wb.closest('[data-wquad]').dataset.wquad, wb.dataset.wqhex);
 });
 $('#cmodal').addEventListener('input', e => {
   if (e.target.type !== 'color') return;
-  const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]');
+  const kr = e.target.closest('[data-kind]'), qr = e.target.closest('[data-quad]'), wr = e.target.closest('[data-wquad]');
   if (kr) setKindColor(kr.dataset.kind, e.target.value);
   else if (qr) setQuadColor(qr.dataset.quad, e.target.value);
+  else if (wr) setWQuadColor(wr.dataset.wquad, e.target.value);
 });
 function openColors() { buildColorRows(); $('#cmodal').hidden = false; }
 function closeColors() { $('#cmodal').hidden = true; }
 $('#colorOpen').onclick = openColors;
 $('#cDone').onclick = closeColors;
-$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; state.quadColors = {}; buildColorRows(); commit(); };
+$('#cReset').onclick = () => { state.kindColors = { ...DEFAULT_KC }; state.quadColors = {}; state.wq = {}; buildColorRows(); commit(); };
 $('#cClear').onclick = () => {
   const list = state.tasks.filter(t => t.color && t.color !== 'auto');
   askConfirm(`개별로 색을 정한 ${list.length}개 항목을 모두 종류 기본색으로 바꿀까요?`, '바꾸기').then(ok => {
@@ -4723,7 +4758,7 @@ async function gh(method, path, body) {
 }
 function syncDoc() {
   return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, tomb: state.tomb, settingsU: state.settingsU || 0,
-    settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects },
+    settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects, wq: state.wq },
     planner: state.planner || null, plannerU: state.plannerU || 0 };
 }
 // 다른 기기에서 받은 내용과 합치기: 항목마다 더 나중에 바뀐 쪽, 지운 기록이 더 나중이면 지움
@@ -4740,7 +4775,7 @@ function syncMerge(remote) {
     state.tomb[k] = tomb;
   });
   if ((remote.settingsU || 0) > (state.settingsU || 0) && remote.settings) {
-    ['kindColors', 'quadColors', 'subjects'].forEach(key => { if (remote.settings[key]) state[key] = remote.settings[key]; });
+    ['kindColors', 'quadColors', 'subjects', 'wq'].forEach(key => { if (remote.settings[key]) state[key] = remote.settings[key]; });
     state.settingsU = remote.settingsU;
   }
   if ((remote.plannerU || 0) > (state.plannerU || 0) && remote.planner) {
@@ -4766,8 +4801,8 @@ async function syncNow(force) {
     syncRebuildSnap();
     const out = JSON.stringify(syncDoc());
     if (out !== text) await gh('PATCH', '/gists/' + syncCfg.gistId, { files: { [SYNC_FILE]: { content: out } } });
-    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
+    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
     if (JSON.stringify([state.tasks, state.dump, settingsJSON()]) !== before) { render(); renderDump(); }
     if (JSON.stringify(state.planner || null) !== beforePl && planner) { planner.reload(); if (state.view === 'week') weekLabel(); }
     syncCfg.last = Date.now(); syncSaveCfg();
@@ -4867,7 +4902,7 @@ function widgetSnapshot() {
       td: todosOn(d).sort(byFlow).map(todo)
     };
   }
-  return { v: 1, days, slots: SLOTS.map(x => [x.key, x.title]), quads: QUADS.map(x => [x.key, x.title, quadColor(x.key) || '']) };
+  return { v: 1, days, slots: SLOTS.map(x => [x.key, x.title]), quads: QUADS.map(x => [x.key, x.title, state.wq[x.key] || '']) };
 }
 var widgetTimer = null, widgetLast = '';   // var: 시작할 때 저장하면서 먼저 불릴 수 있어요
 function widgetPush(now) {
