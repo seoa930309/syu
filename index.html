@@ -991,6 +991,7 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
 #cWQuads .sw.wq-def{background:#f3f4f6;box-shadow:inset 0 0 0 1px var(--border)}
 #cWQuads .cprev{background:#f3f4f6;color:#1c1e22}
 #cWQuads .sw.wq-def.on{box-shadow:inset 0 0 0 1px var(--border),0 0 0 2px var(--surface),0 0 0 3.5px var(--accent)}
+.ywbtns{flex-wrap:wrap;gap:8px}
 .pv-note em.wdwarn{color:#c2410c;border-color:currentColor}
 .pill-btn.icon-only{aspect-ratio:1/1;width:auto;padding:0!important;display:inline-flex;align-items:center;justify-content:center;gap:0}
 .pill-btn.icon-only svg{width:17px;height:17px;flex:none}
@@ -1267,12 +1268,14 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
       <div class="csec">아이패드 · 아이폰 위젯 (Scriptable)</div>
       <ol class="ysteps">
         <li>App Store에서 무료 앱 <b>Scriptable</b>을 설치해요.</li>
-        <li>아래 <b>위젯 스크립트 복사</b>를 누르고, Scriptable에서 <b>+</b>로 새 스크립트를 만들어 붙여넣은 뒤 이름을 <b>dayflow</b>로 저장해요.</li>
-        <li><b>연결 코드 복사</b>를 누르고 Scriptable에서 dayflow를 한 번 실행해 붙여넣어요.</li>
-        <li>홈 화면을 길게 눌러 <b>+ → Scriptable</b> 위젯을 추가하고, 위젯 편집에서 Script는 <b>dayflow</b>, Parameter에 <b>오늘</b> · <b>저녁</b>(오전·오후·밤) · <b>매트릭스</b> 중 하나를 적어요. 세 가지를 다 쓰려면 위젯을 세 개 추가해요.</li>
+        <li>원하는 위젯의 <b>스크립트 복사</b>를 누르고, Scriptable에서 <b>+</b>로 새 스크립트를 만들어 붙여넣은 뒤 저장해요. 이름은 복사한 뒤 아래에 나오는 이름으로 하면 찾기 쉬워요.</li>
+        <li><b>연결 코드 복사</b>를 누르고 Scriptable에서 스크립트를 한 번 실행해 붙여넣어요. (한 번만 하면 세 스크립트 모두 연결돼요)</li>
+        <li>홈 화면을 길게 눌러 <b>+ → Scriptable</b> 위젯을 추가하고, 위젯 편집에서 <b>Script</b>만 그 스크립트로 골라요. (Parameter는 비워 둬요)</li>
       </ol>
-      <div class="btns" style="margin-top:0">
-        <button class="pill-btn" type="button" id="yScript">위젯 스크립트 복사</button>
+      <div class="btns ywbtns" style="margin-top:0">
+        <button class="pill-btn" type="button" data-yscript="dayflow-todo.js" data-yname="dayflow 할 일 확인">할 일 확인 스크립트 복사</button>
+        <button class="pill-btn" type="button" data-yscript="dayflow-slots.js" data-yname="dayflow 오전오후밤">오전·오후·밤 스크립트 복사</button>
+        <button class="pill-btn" type="button" data-yscript="dayflow-matrix.js" data-yname="dayflow 매트릭스">매트릭스 스크립트 복사</button>
         <button class="pill-btn primary" type="button" id="yCode">연결 코드 복사</button>
       </div>
       <p class="psub" id="yCodeMsg" aria-live="polite" style="margin-top:10px"></p>
@@ -4949,7 +4952,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------- 아이패드 위젯 (Scriptable) 연결 ---------- */
-const SCRIPT_URL = 'scriptable/dayflow-widget.js';
+const SCRIPT_DIR = 'scriptable/';
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
   const ta = document.createElement('textarea');
@@ -4964,17 +4967,18 @@ $('#yCode').onclick = async () => {
   const code = 'dayflow:' + btoa(JSON.stringify({ t: syncCfg.token, g: syncCfg.gistId }));
   yMsg(await copyText(code) ? '연결 코드를 복사했어요. Scriptable에서 dayflow를 실행해 붙여넣어 주세요. (토큰이 들어 있으니 다른 사람에게 보내지 마세요)' : '복사하지 못했어요. 다시 눌러 주세요.');
 };
-$('#yScript').onclick = async () => {
+document.querySelectorAll('[data-yscript]').forEach(b => b.addEventListener('click', async () => {
+  const file = SCRIPT_DIR + b.dataset.yscript, name = b.dataset.yname;
   yMsg('스크립트를 불러오는 중…');
   try {
-    const r = await fetch(SCRIPT_URL, { cache: 'no-store' });
+    const r = await fetch(file, { cache: 'no-store' });
     if (!r.ok) throw new Error();
-    yMsg(await copyText(await r.text()) ? '위젯 스크립트를 복사했어요. Scriptable의 새 스크립트에 붙여넣어 주세요.' : '복사하지 못했어요. 다시 눌러 주세요.');
+    yMsg(await copyText(await r.text()) ? `복사했어요. Scriptable의 새 스크립트에 붙여넣고 이름을 ‘${name}’(으)로 저장해 주세요.` : '복사하지 못했어요. 다시 눌러 주세요.');
   } catch (e) {
-    window.open('https://seoa930309.github.io/syu/' + SCRIPT_URL, '_blank');
+    window.open('https://seoa930309.github.io/syu/' + file, '_blank');
     yMsg('새 창에서 스크립트를 열었어요. 전체 선택해 복사해 주세요.');
   }
-};
+}));
 
 /* ---------- 주소로 화면 열기 (?view=matrix 등: 위젯에서 "앱에서 열기") ---------- */
 (() => {

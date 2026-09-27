@@ -1,8 +1,9 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: deep-gray; icon-glyph: calendar-check;
+// icon-color: blue; icon-glyph: check-circle;
 
-// dayflow 위젯 (Scriptable) — 아이패드 · 아이폰 홈 화면
+// dayflow 할 일 확인 위젯 (Scriptable) — 아이패드 · 아이폰 홈 화면
+// 이 스크립트는 "할 일 확인" 전용이에요. 위젯 편집에서 Script만 이 스크립트로 고르면 돼요 (Parameter는 비워 둬요).
 //
 // 처음 한 번: Scriptable 앱에서 이 스크립트를 실행 → dayflow 앱의 "아이패드 위젯 연결 코드"를 붙여넣기
 // 위젯 추가: 홈 화면 길게 누르기 → + → Scriptable → 크기 고르기 → 위젯 길게 눌러 "위젯 편집"
@@ -22,7 +23,7 @@ const TITLES = { today: '오늘 할 일', slots: '오전 · 오후 · 밤', matr
 const APP_VIEW = { today: 'calendar', slots: 'flow', matrix: 'matrix' };
 const DOW = '일월화수목금토';
 // 나눈 스크립트(할 일 확인 · 오전오후밤 · 매트릭스)는 여기에 종류가 정해져 있어요. null이면 위젯 Parameter로 골라요.
-const FORCE = null;
+const FORCE = 'today';
 
 const fm = FileManager.local();
 const CACHE = fm.joinPath(fm.documentsDirectory(), 'dayflow-widget-cache.json');
