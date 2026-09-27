@@ -992,13 +992,13 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
 #cWQuads .cprev{background:#f3f4f6;color:#1c1e22}
 #cWQuads .sw.wq-def.on{box-shadow:inset 0 0 0 1px var(--border),0 0 0 2px var(--surface),0 0 0 3.5px var(--accent)}
 .ywbtns{flex-wrap:wrap;gap:8px}
-/* 캘린더: 넓은 화면에서는 왼쪽에 고른 날의 할 일 창 (할 일 3 : 캘린더 7) */
+/* 캘린더: 넓은 화면에서는 오른쪽에 고른 날의 할 일 창 (캘린더 7 : 할 일 3) */
 @media (min-width:901px){
-  #view-calendar.on{grid-template-columns:minmax(230px,3fr) minmax(0,7fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:20px}
-  #view-calendar > .cal-top{grid-column:2;grid-row:1;flex-wrap:wrap;row-gap:8px}
-  #view-calendar > .cal-dow{grid-column:2;grid-row:2}
-  #view-calendar > .cal-weeks{grid-column:2;grid-row:3}
-  #view-calendar > .cal-day{display:flex;grid-column:1;grid-row:1 / 4;margin-top:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  #view-calendar.on{grid-template-columns:minmax(0,7fr) minmax(230px,3fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:20px}
+  #view-calendar > .cal-top{grid-column:1;grid-row:1;flex-wrap:wrap;row-gap:8px}
+  #view-calendar > .cal-dow{grid-column:1;grid-row:2}
+  #view-calendar > .cal-weeks{grid-column:1;grid-row:3}
+  #view-calendar > .cal-day{display:flex;grid-column:2;grid-row:1 / 4;margin-top:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 14px}
   #view-calendar > .cal-day .side-head{margin-top:0}
   #view-calendar > .cal-day .drop-list{overflow:visible}
@@ -3507,7 +3507,7 @@ $('#calWeeks').addEventListener('click', e => {
   if (more) { if (dayPop) closeDayPop(); else openDayPop(more.dataset.more, more); return; }
   const ev = e.target.closest('[data-ev]');
   if (ev) { const t = find(ev.dataset.ev); if (t) openModal({ task: t }); return; }
-  // 날짜를 한 번 누르면 왼쪽 할 일 창이 그날로, 같은 날을 곧바로 한 번 더 누르면 일정 추가
+  // 날짜를 한 번 누르면 오른쪽 할 일 창이 그날로, 같은 날을 곧바로 한 번 더 누르면 일정 추가
   const cell = e.target.closest('.cell');
   if (!cell) return;
   const d = cell.dataset.date, now = Date.now();
