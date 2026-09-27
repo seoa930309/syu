@@ -23,6 +23,29 @@ RES="$BUILD/android/app/src/main/res"
 find "$RES" -name 'splash.png' -delete
 cp -r "$ROOT/android/res/." "$RES/"
 
+# 3-1) 홈 화면 위젯 (오늘 할 일 · 오전/오후/밤 · 매트릭스)
+JAVA="$BUILD/android/app/src/main/java/com/seoa930309/dayflow"
+mkdir -p "$JAVA"
+cp "$ROOT"/android/widget/java/*.java "$JAVA/"
+cp -r "$ROOT/android/widget/res/." "$RES/"
+python3 - "$BUILD/android/app/src/main/AndroidManifest.xml" <<'PY'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+def rcv(cls, label, info):
+    return f'''
+        <receiver android:name=".{cls}" android:exported="false" android:label="@string/{label}">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/{info}" />
+        </receiver>'''
+add = rcv('TodayWidget', 'w_today_label', 'widget_today_info') + rcv('SlotsWidget', 'w_slots_label', 'widget_slots_info') + rcv('MatrixWidget', 'w_matrix_label', 'widget_matrix_info')
+assert s.count('</application>') == 1
+s = s.replace('</application>', add + '\n    </application>')
+open(p, 'w', encoding='utf-8').write(s)
+print('위젯 등록 완료')
+PY
+
 # 4) 서명(항상 같은 열쇠 → 새 버전을 덮어 설치해도 데이터 유지) + 버전 번호
 cp "$ROOT/android/dayflow.keystore" "$BUILD/android/app/dayflow.keystore"
 cat >> "$BUILD/android/app/build.gradle" <<GRADLE

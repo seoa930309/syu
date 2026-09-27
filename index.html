@@ -2185,6 +2185,7 @@ function persist() {
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   if (changed) syncSchedule();
+  widgetPush();
 }
 function save() {
   persist();
@@ -4840,6 +4841,60 @@ mountWeek();
 render();
 renderDump();
 syncNow();
+widgetPush(true); widgetOpenView();
+/* ---------- 갤럭시 홈 화면 위젯 ----------
+   안드로이드 앱 안에서만: 할 일이 바뀌면 어제~7일 뒤 요약을 위젯으로 넘겨요.
+   위젯을 누르면 앱이 그 위젯의 화면(캘린더 · 플로우 · 매트릭스)으로 열려요. */
+function widgetNative() {
+  const C = window.Capacitor;
+  if (!C) return null;
+  const native = C.isNativePlatform ? C.isNativePlatform() : !!window.androidBridge;
+  if (!native) return null;
+  return (method, data) => {
+    const P = C.Plugins && C.Plugins.DayflowWidget;
+    if (P && P[method]) return P[method](data || {});
+    if (C.nativePromise) return C.nativePromise('DayflowWidget', method, data || {});
+    return Promise.reject(new Error('no bridge'));
+  };
+}
+function widgetSnapshot() {
+  const today = todayStr(), days = {};
+  const todo = t => { const sj = subjOf(t); return { n: t.title, s: sj ? sj.ab || '' : '', c: sj ? sj.color || '' : '', d: !!t.done, sl: t.slot || '', q: t.quad || '' }; };
+  for (let i = -1; i <= 7; i++) {
+    const d = addDays(today, i);
+    days[d] = {
+      ev: eventsOn(d).map(t => ({ t: t.time || (t.end ? '기간' : ''), n: fullTitle(t) })),
+      td: todosOn(d).sort(byFlow).map(todo)
+    };
+  }
+  return { v: 1, days, slots: SLOTS.map(x => [x.key, x.title]), quads: QUADS.map(x => [x.key, x.title]) };
+}
+var widgetTimer = null, widgetLast = '';   // var: 시작할 때 저장하면서 먼저 불릴 수 있어요
+function widgetPush(now) {
+  const call = widgetNative(); if (!call) return;
+  clearTimeout(widgetTimer);
+  widgetTimer = setTimeout(() => {
+    try {
+      const json = JSON.stringify(widgetSnapshot());
+      if (json === widgetLast) return;
+      Promise.resolve(call('save', { json })).then(() => { widgetLast = json; }, () => {});
+    } catch (e) {}
+  }, now ? 0 : 500);
+}
+function widgetOpenView() {
+  const call = widgetNative(); if (!call) return;
+  Promise.resolve(call('takeView')).then(r => {
+    const v = r && r.view;
+    if (!['calendar', 'flow', 'matrix'].includes(v)) return;
+    state.view = v; state.date = todayStr();
+    if (v === 'calendar') state.month = state.date.slice(0, 7);
+    save(); render();
+  }, () => {});
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') { widgetOpenView(); widgetPush(true); }
+});
+
 /* ---------- 모든 일정·할 일 지우기 ---------- */
 function wipeTasks() {
   state.tasks = [];

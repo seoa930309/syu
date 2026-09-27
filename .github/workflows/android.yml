@@ -10,13 +10,19 @@ on:
       - 'manifest.webmanifest'
       - 'android/**'
       - '.github/workflows/android.yml'
+  # PR에서는 APK가 만들어지는지만 확인해요 (다운로드 페이지에는 올리지 않아요)
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'android/**'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: android-apk
+  group: android-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -55,6 +61,7 @@ jobs:
           path: dayflow.apk
 
       - name: 다운로드 페이지(릴리스)에 올리기
+        if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
