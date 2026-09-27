@@ -4859,7 +4859,7 @@ function widgetNative() {
 }
 function widgetSnapshot() {
   const today = todayStr(), days = {};
-  const todo = t => { const sj = subjOf(t); return { n: t.title, s: sj ? sj.ab || '' : '', c: sj ? sj.color || '' : '', d: !!t.done, sl: t.slot || '', q: t.quad || '' }; };
+  const todo = t => { const sj = subjOf(t); return { id: t.id, n: t.title, s: sj ? sj.ab || '' : '', c: sj ? sj.color || '' : '', d: !!t.done, sl: t.slot || '', q: t.quad || '' }; };
   for (let i = -1; i <= 7; i++) {
     const d = addDays(today, i);
     days[d] = {
@@ -4867,7 +4867,7 @@ function widgetSnapshot() {
       td: todosOn(d).sort(byFlow).map(todo)
     };
   }
-  return { v: 1, days, slots: SLOTS.map(x => [x.key, x.title]), quads: QUADS.map(x => [x.key, x.title]) };
+  return { v: 1, days, slots: SLOTS.map(x => [x.key, x.title]), quads: QUADS.map(x => [x.key, x.title, quadColor(x.key) || '']) };
 }
 var widgetTimer = null, widgetLast = '';   // var: 시작할 때 저장하면서 먼저 불릴 수 있어요
 function widgetPush(now) {
@@ -4883,7 +4883,13 @@ function widgetPush(now) {
 }
 function widgetOpenView() {
   const call = widgetNative(); if (!call) return;
-  Promise.resolve(call('takeView')).then(r => {
+  // 위젯에서 체크한 것 먼저 반영
+  Promise.resolve(call('takePending')).then(r => {
+    const items = r && Array.isArray(r.items) ? r.items : [];
+    let changed = false;
+    items.forEach(p => { const t = find(p.id); if (t && !isEvent(t) && t.done !== !!p.d) { t.done = !!p.d; changed = true; } });
+    if (changed) { save(); render(); }
+  }, () => {}).then(() => call('takeView')).then(r => {
     const v = r && r.view;
     if (!['calendar', 'flow', 'matrix'].includes(v)) return;
     state.view = v; state.date = todayStr();

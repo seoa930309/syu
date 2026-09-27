@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.widget.RemoteViews;
 
 import org.json.JSONArray;
@@ -15,11 +16,26 @@ import java.util.List;
 
 /** 세 위젯이 함께 쓰는 틀: 제목 · 날짜 · 누르면 앱 열기 */
 public abstract class BaseWidget extends AppWidgetProvider {
+    static final String ACTION_TOGGLE = "com.seoa930309.dayflow.TOGGLE";
+
     abstract String title();
     /** 누르면 열 앱 화면: calendar · flow · matrix */
     abstract String view();
     int layout() { return R.layout.dayflow_widget; }
     abstract void fill(Context c, RemoteViews v, JSONObject root, JSONObject day, int muted);
+
+    @Override
+    public void onReceive(Context c, Intent i) {
+        if (ACTION_TOGGLE.equals(i.getAction())) {
+            String id = i.getStringExtra("id");
+            if (id != null) {
+                WidgetData.toggle(c, id);
+                WidgetData.updateAll(c);
+            }
+            return;
+        }
+        super.onReceive(c, i);
+    }
 
     @Override
     public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -82,15 +98,39 @@ public abstract class BaseWidget extends AppWidgetProvider {
         return n;
     }
 
+    /** 할 일 한 줄: 누르면 완료 ↔ 안 함 (fg가 0이 아니면 그 글자색) */
+    RemoteViews todoRow(Context c, JSONObject t, int muted, int fg) {
+        RemoteViews r = row(c, WidgetData.todoLine(t, muted));
+        if (fg != 0) r.setTextColor(R.id.w_text, fg);
+        String id = t.optString("id", "");
+        if (id.length() > 0) {
+            Intent i = new Intent(c, getClass());
+            i.setAction(ACTION_TOGGLE);
+            i.setData(Uri.parse("dayflow://toggle/" + Uri.encode(id)));
+            i.putExtra("id", id);
+            PendingIntent pi = PendingIntent.getBroadcast(c, id.hashCode(), i,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            r.setOnClickPendingIntent(R.id.w_text, pi);
+        }
+        return r;
+    }
+
     /** 목록을 max개까지 넣고, 넘치면 "+N개 더" */
-    static void addTodos(Context c, RemoteViews v, int body, List<JSONObject> list, int max, int muted) {
+    void addTodos(Context c, RemoteViews v, int body, List<JSONObject> list, int max, int muted) {
+        addTodos(c, v, body, list, max, muted, 0);
+    }
+
+    void addTodos(Context c, RemoteViews v, int body, List<JSONObject> list, int max, int muted, int fg) {
         int shown = 0;
         for (JSONObject t : list) {
             if (shown >= max) break;
-            v.addView(body, row(c, WidgetData.todoLine(t, muted)));
+            v.addView(body, todoRow(c, t, muted, fg));
             shown++;
         }
-        if (list.size() > shown) v.addView(body, row(c, WidgetData.muted("+" + (list.size() - shown) + "개 더", muted)));
+        if (list.size() > shown) {
+            RemoteViews more = row(c, WidgetData.muted("+" + (list.size() - shown) + "개 더", muted));
+            v.addView(body, more);
+        }
     }
 
     static boolean noData(Context c, RemoteViews v, int body, JSONObject root, int muted) {
