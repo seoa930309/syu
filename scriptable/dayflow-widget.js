@@ -7,7 +7,7 @@
 // 처음 한 번: Scriptable 앱에서 이 스크립트를 실행 → dayflow 앱의 "아이패드 위젯 연결 코드"를 붙여넣기
 // 위젯 추가: 홈 화면 길게 누르기 → + → Scriptable → 크기 고르기 → 위젯 길게 눌러 "위젯 편집"
 //   Script: 이 스크립트 / When Interacting: Run Script
-//   Parameter: today (오늘 할 일) · slots (오전·오후·밤) · matrix (매트릭스)
+//   Parameter: today 또는 오늘 · slots 또는 오전오후저녁 · matrix 또는 매트릭스
 // 위젯을 누르면 체크 목록이 열리고, 누른 할 일은 바로 기기 연동에 저장돼요.
 
 const SITE = 'https://seoa930309.github.io/syu/';
@@ -335,7 +335,10 @@ async function checklist(c, kind) {
 
 /* ---------- 시작 ---------- */
 const PARAM = String(args.widgetParameter || (args.queryParameters && args.queryParameters.view) || 'today').trim().toLowerCase();
-const KIND = ['today', 'slots', 'matrix'].includes(PARAM) ? PARAM : 'today';
+// 한글로 적어도 돼요: 매트릭스 · 오전/오후/저녁(밤) · 오늘
+const KIND = /matrix|매트릭스|사분면|^m$|^3$/.test(PARAM) ? 'matrix'
+  : /slot|flow|오전|오후|저녁|밤|시간대|플로우|^s$|^2$/.test(PARAM) ? 'slots'
+  : 'today';
 
 if (config.runsInWidget) {
   Script.setWidget(await buildWidget(KIND, config.widgetFamily || 'medium'));
