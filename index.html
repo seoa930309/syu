@@ -4028,9 +4028,10 @@ function parsePlan(text, base) {
     // 날짜 아래 목록의 "- 내일 준비물"은 날짜가 아니에요 (주간 계획 아래 "- 월: …"만 요일로 읽어요)
     let r = findRange(s, heading ? null : cur || base, !heading && !!cur) || (bullet && cur && !week ? null : lead(s));
     // 날짜 제목 아래의 줄: 문장 중간의 날짜("→ 9/28 제출", "10/1에 만든")는 그 할 일의 날짜가 아니에요.
-    // 맨 앞(또는 [일정] · [과목] 같은 표시 바로 뒤)에 있을 때만 새 날짜로 봐요.
+    // 맨 앞(또는 [일정] 표시 바로 뒤)에 있을 때만 새 날짜로 봐요.
     // (날짜만 있는 제목 줄 "Day 2 (9/29)", "화 9/29"는 그대로 새 날짜)
-    if (r && cur && !heading && !/^\s*(?:[\[【(][^\]】)]*[\]】)]\s*)*$/.test(s.slice(0, r.index))
+    // [과목] 뒤의 날짜("[임상운동학] 9/10 수업 정리")는 제목의 일부 — [일정] 뒤("[일정] 9/28~9/30 학회")만 새 날짜
+    if (r && cur && !heading && !/^\s*(?:[\[【(]\s*(?:일정|약속|event|schedule)\s*[\]】)]\s*)?$/i.test(s.slice(0, r.index))
       && (s.slice(0, r.index) + ' ' + s.slice(r.index + r.len)).replace(/\s+/g, ' ').trim().replace(/day\s*\d+|d[-+]\d+|\d+\s*일차|(?:이번|다음)?\s*[일월화수목금토]요일|\b(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues?|wed|thu(?:rs?)?|fri|sat)\b\.?|^[일월화수목금토]$|[|:：\-–—~,·()\[\]{}]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/giu, '').trim()) r = null;
     // 앞 할 일 아래 들여 쓴 설명 줄은 그 할 일의 메모예요 (줄이 날짜로 시작할 때만 새 항목)
     if (last && !heading && !bullet && indent > lastIndent + 1 && !(r && r.index === 0)) {
