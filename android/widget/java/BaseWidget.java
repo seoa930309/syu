@@ -66,7 +66,7 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
             lists(c, v, id, root, toggle);
             m.updateAppWidget(id, v);
-            m.notifyAppWidgetViewDataChanged(id, listIds());
+            for (int list : listIds()) m.notifyAppWidgetViewDataChanged(id, list);
         }
     }
 
