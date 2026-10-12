@@ -5,16 +5,12 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.os.Build;
 import android.widget.RemoteViews;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/** 세 위젯이 함께 쓰는 틀: 제목 · 날짜 · 누르면 앱 열기 */
+/** 세 위젯이 함께 쓰는 틀: 제목 · 날짜 · 스크롤 목록 · 누르면 체크 / 앱 열기 */
 public abstract class BaseWidget extends AppWidgetProvider {
     static final String ACTION_TOGGLE = "com.seoa930309.dayflow.TOGGLE";
 
@@ -22,13 +18,17 @@ public abstract class BaseWidget extends AppWidgetProvider {
     /** 누르면 열 앱 화면: calendar · flow · matrix */
     abstract String view();
     int layout() { return R.layout.dayflow_widget; }
-    abstract void fill(Context c, RemoteViews v, JSONObject root, JSONObject day, int muted);
+    /** 날짜 옆에 붙일 말 (완료 개수 등) */
+    String dateExtra(JSONObject root, JSONObject day) { return ""; }
+    /** 목록 연결 */
+    abstract void lists(Context c, RemoteViews v, int widgetId, JSONObject root, PendingIntent toggle);
+    abstract int[] listIds();
 
     @Override
     public void onReceive(Context c, Intent i) {
         if (ACTION_TOGGLE.equals(i.getAction())) {
             String id = i.getStringExtra("id");
-            if (id != null) {
+            if (id != null && id.length() > 0) {
                 WidgetData.toggle(c, id);
                 WidgetData.updateAll(c);
             }
@@ -41,101 +41,39 @@ public abstract class BaseWidget extends AppWidgetProvider {
     public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
         JSONObject root = WidgetData.root(c);
         JSONObject day = WidgetData.today(root);
-        @SuppressWarnings("deprecation")
-        int muted = c.getResources().getColor(R.color.w_muted);
         for (int id : ids) {
             RemoteViews v = new RemoteViews(c.getPackageName(), layout());
             v.setTextViewText(R.id.w_title, title());
-            v.setTextViewText(R.id.w_date, WidgetData.todayLabel());
-            try {
-                fill(c, v, root, day, muted);
-            } catch (Exception e) {
-                v.removeAllViews(R.id.w_body);
-                v.addView(R.id.w_body, row(c, "앱을 열어 다시 불러와 주세요"));
-            }
+            String extra = "";
+            try { extra = dateExtra(root, day); } catch (Exception ignored) { }
+            v.setTextViewText(R.id.w_date, WidgetData.todayLabel() + extra);
+
+            // 머리(제목 · 날짜)를 누르면 앱 열기
             Intent open = new Intent(c, MainActivity.class);
             open.setAction("com.seoa930309.dayflow.OPEN_" + view());
             open.putExtra(WidgetData.EXTRA_VIEW, view());
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent pi = PendingIntent.getActivity(c, view().hashCode(), open,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            v.setOnClickPendingIntent(R.id.w_root, pi);
+            v.setOnClickPendingIntent(R.id.w_head, pi);
+
+            // 목록의 할 일을 누르면 체크 (각 줄이 id를 채워 넣어요 → 바뀔 수 있어야 해서 MUTABLE)
+            Intent t = new Intent(c, getClass());
+            t.setAction(ACTION_TOGGLE);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 31) flags |= PendingIntent.FLAG_MUTABLE;
+            PendingIntent toggle = PendingIntent.getBroadcast(c, (view() + "-toggle-" + id).hashCode(), t, flags);
+
+            lists(c, v, id, root, toggle);
             m.updateAppWidget(id, v);
+            for (int list : listIds()) m.notifyAppWidgetViewDataChanged(id, list);
         }
     }
 
-    static RemoteViews row(Context c, CharSequence text) {
-        RemoteViews r = new RemoteViews(c.getPackageName(), R.layout.widget_row);
-        r.setTextViewText(R.id.w_text, text);
-        return r;
-    }
-
-    static RemoteViews head(Context c, CharSequence text) {
-        RemoteViews r = new RemoteViews(c.getPackageName(), R.layout.widget_head);
-        r.setTextViewText(R.id.w_text, text);
-        return r;
-    }
-
-    /** 안 한 것 먼저, 한 것은 뒤로 */
-    static List<JSONObject> todos(JSONObject day, String slot, String quad) {
-        List<JSONObject> open = new ArrayList<>(), done = new ArrayList<>();
-        JSONArray a = day == null ? null : day.optJSONArray("td");
-        if (a == null) return open;
-        for (int i = 0; i < a.length(); i++) {
-            JSONObject t = a.optJSONObject(i);
-            if (t == null) continue;
-            if (slot != null && !slot.equals(t.optString("sl", ""))) continue;
-            if (quad != null && !quad.equals(t.optString("q", ""))) continue;
-            (t.optBoolean("d") ? done : open).add(t);
-        }
-        open.addAll(done);
-        return open;
-    }
-
-    static int openCount(List<JSONObject> list) {
-        int n = 0;
-        for (JSONObject t : list) if (!t.optBoolean("d")) n++;
-        return n;
-    }
-
-    /** 할 일 한 줄: 누르면 완료 ↔ 안 함 (fg가 0이 아니면 그 글자색) */
-    RemoteViews todoRow(Context c, JSONObject t, int muted, int fg) {
-        RemoteViews r = row(c, WidgetData.todoLine(t, muted));
-        if (fg != 0) r.setTextColor(R.id.w_text, fg);
-        String id = t.optString("id", "");
-        if (id.length() > 0) {
-            Intent i = new Intent(c, getClass());
-            i.setAction(ACTION_TOGGLE);
-            i.setData(Uri.parse("dayflow://toggle/" + Uri.encode(id)));
-            i.putExtra("id", id);
-            PendingIntent pi = PendingIntent.getBroadcast(c, id.hashCode(), i,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            r.setOnClickPendingIntent(R.id.w_text, pi);
-        }
-        return r;
-    }
-
-    /** 목록을 max개까지 넣고, 넘치면 "+N개 더" */
-    void addTodos(Context c, RemoteViews v, int body, List<JSONObject> list, int max, int muted) {
-        addTodos(c, v, body, list, max, muted, 0);
-    }
-
-    void addTodos(Context c, RemoteViews v, int body, List<JSONObject> list, int max, int muted, int fg) {
-        int shown = 0;
-        for (JSONObject t : list) {
-            if (shown >= max) break;
-            v.addView(body, todoRow(c, t, muted, fg));
-            shown++;
-        }
-        if (list.size() > shown) {
-            RemoteViews more = row(c, WidgetData.muted("+" + (list.size() - shown) + "개 더", muted));
-            v.addView(body, more);
-        }
-    }
-
-    static boolean noData(Context c, RemoteViews v, int body, JSONObject root, int muted) {
-        if (root != null) return false;
-        v.addView(body, row(c, WidgetData.muted("dayflow 앱을 한 번 열면 여기에 표시돼요", muted)));
-        return true;
+    /** 스크롤 목록 하나 연결 */
+    @SuppressWarnings("deprecation")
+    static void bindList(Context c, RemoteViews v, int listId, int widgetId, String kind, String quad, PendingIntent toggle) {
+        v.setRemoteAdapter(listId, WidgetListService.intent(c, widgetId, kind, quad));
+        v.setPendingIntentTemplate(listId, toggle);
     }
 }

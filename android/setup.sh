@@ -40,6 +40,9 @@ def rcv(cls, label, info):
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/{info}" />
         </receiver>'''
 add = rcv('TodayWidget', 'w_today_label', 'widget_today_info') + rcv('SlotsWidget', 'w_slots_label', 'widget_slots_info') + rcv('MatrixWidget', 'w_matrix_label', 'widget_matrix_info')
+# 위젯 안 스크롤 목록
+add += '''
+        <service android:name=".WidgetListService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />'''
 assert s.count('</application>') == 1
 s = s.replace('</application>', add + '\n    </application>')
 open(p, 'w', encoding='utf-8').write(s)

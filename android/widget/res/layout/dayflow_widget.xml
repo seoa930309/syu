@@ -7,10 +7,12 @@
     android:paddingLeft="14dp"
     android:paddingRight="14dp"
     android:paddingTop="12dp"
-    android:paddingBottom="10dp"
+    android:paddingBottom="8dp"
     android:background="@drawable/widget_bg">
 
+    <!-- 머리: 누르면 앱 열기 -->
     <LinearLayout
+        android:id="@+id/w_head"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -40,10 +42,16 @@
         android:layout_height="1dp"
         android:background="@color/w_line" />
 
-    <LinearLayout
-        android:id="@+id/w_body"
+    <!-- 할 일 전체: 스크롤 -->
+    <ListView
+        android:id="@+id/w_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="4dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="4dp"
+        android:clipToPadding="false"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="true" />
 </LinearLayout>

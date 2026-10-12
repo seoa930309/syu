@@ -52,7 +52,12 @@ jobs:
         working-directory: app-build/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          set -o pipefail
+          if ! ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/build.log"; then
+            # 실패 원인을 GitHub 알림으로 남겨요 (빌드 기록을 못 여는 곳에서도 보이게)
+            grep -E "error:|ERROR:|FAILURE|What went wrong|e: |AAPT|Execution failed|cannot find symbol|incompatible types" -A3 "$GITHUB_WORKSPACE/build.log" | head -40 | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          fi
           cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/dayflow.apk"
 
       - uses: actions/upload-artifact@v4
