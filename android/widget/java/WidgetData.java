@@ -16,7 +16,9 @@ import android.text.style.StyleSpan;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -190,6 +192,41 @@ final class WidgetData {
     }
 
     static int soft(int fg) { return (fg & 0x00FFFFFF) | 0xB0000000; }
+
+    /** 그날 할 일 (slot · quad가 null이 아니면 그 칸만) — 안 한 것 먼저, 한 것은 뒤로 */
+    static List<JSONObject> todos(JSONObject day, String slot, String quad) {
+        List<JSONObject> open = new ArrayList<>(), done = new ArrayList<>();
+        JSONArray a = day == null ? null : day.optJSONArray("td");
+        if (a == null) return open;
+        for (int i = 0; i < a.length(); i++) {
+            JSONObject t = a.optJSONObject(i);
+            if (t == null) continue;
+            if (slot != null && !slot.equals(t.optString("sl", ""))) continue;
+            if (quad != null && !quad.equals(t.optString("q", ""))) continue;
+            (t.optBoolean("d") ? done : open).add(t);
+        }
+        open.addAll(done);
+        return open;
+    }
+
+    static int openCount(List<JSONObject> list) {
+        int n = 0;
+        for (JSONObject t : list) if (!t.optBoolean("d")) n++;
+        return n;
+    }
+
+    /** 앱이 넘긴 이름 · 색 [키, 이름, 색] (없으면 기본값) */
+    static String[][] pairs(JSONObject root, String key, String[][] def) {
+        String[][] out = new String[def.length][];
+        JSONArray a = root == null ? null : root.optJSONArray(key);
+        for (int i = 0; i < def.length; i++) {
+            JSONArray p = a != null && a.length() == def.length ? a.optJSONArray(i) : null;
+            out[i] = p == null ? def[i].clone() : new String[]{p.optString(0, def[i][0]), p.optString(1, def[i][1]), p.optString(2, "")};
+        }
+        return out;
+    }
+    static final String[][] SLOTS = {{"morning", "오전", ""}, {"afternoon", "오후", ""}, {"night", "밤", ""}};
+    static final String[][] QUADS = {{"do", "일단 이것부터", ""}, {"schedule", "시간 빼두기", ""}, {"delegate", "얼른 처리하기", ""}, {"pass", "패스", ""}};
 
     /** 저장된 요약이 바뀌면 붙어 있는 위젯을 모두 다시 그려요 */
     static void updateAll(Context c) {
