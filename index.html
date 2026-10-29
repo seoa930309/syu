@@ -676,6 +676,11 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
 .rt-tip{margin:0;font-size:calc(11.5px * var(--fs));color:var(--muted)}
 .rt-map{height:240px;border-radius:var(--radius-md,12px);overflow:hidden;border:1px solid var(--border);z-index:0}
 .rt-map.pinning{cursor:crosshair}
+.rt-kakao summary{cursor:pointer;font-size:calc(11.5px * var(--fs));color:var(--muted);padding:2px 0}
+.rt-kakao[open] summary{color:var(--text)}
+.rt-kform{display:flex;gap:6px;margin:6px 0}
+.rt-kform input{flex:1;min-width:0;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);padding:0 10px;font:inherit;font-size:calc(12.5px * var(--fs))}
+.rt-src{font-size:10px;color:var(--faint);text-align:right;margin-top:-4px}
 .rt-mk{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent,#fff);border:2px solid var(--surface,#fff);display:grid;place-items:center;font:700 12px/1 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .leaflet-container{font:inherit;background:var(--soft,#eee)}
 
@@ -1114,6 +1119,12 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
           <button type="button" class="pill-btn rt-add" id="rtAdd">+ 타임블럭</button>
           <p class="rt-tip" id="rtTip" hidden></p>
           <div class="rt-map" id="rtMap" hidden></div>
+          <details class="rt-kakao" id="rtKakao">
+            <summary id="rtKakaoSum">지도: 카카오맵 연결하기</summary>
+            <p class="rt-tip">카카오 개발자 사이트에서 받은 <b>JavaScript 키</b>를 붙여넣으면 지도와 장소 검색이 카카오맵으로 바뀌어요. (한 번 넣으면 기기 연동으로 다른 기기에도 들어가요)</p>
+            <form class="rt-kform" id="rtKForm"><input id="rtKey" autocomplete="off" spellcheck="false" placeholder="JavaScript 키" aria-label="카카오 JavaScript 키"><button class="pill-btn primary" type="submit">저장</button><button class="pill-btn" type="button" id="rtKeyDel">지우기</button></form>
+            <p class="rt-tip" id="rtKMsg" aria-live="polite"></p>
+          </details>
         </section>
       </div>
     </section>
@@ -2257,8 +2268,8 @@ function load() {
 let savedTimer;
 function persist() {
   const changed = syncStamp();
-  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
+  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   if (changed) syncSchedule();
@@ -2293,7 +2304,7 @@ state.tomb.dump = state.tomb.dump || {};
 state.stops = Array.isArray(state.stops) ? state.stops : [];
 state.tomb.stops = state.tomb.stops || {};
 const SYNC_COLS = ['tasks', 'dump', 'stops'];
-const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null]);
+const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null, state.kakaoKey || null]);
 let syncSnap = null, syncTimer = null, syncBusy = false, syncAgain = false;
 function syncRebuildSnap() {
   syncSnap = { settings: settingsJSON(), planner: JSON.stringify(state.planner || null) };
@@ -2785,6 +2796,7 @@ function renderRoute() {
   const tip = $('#rtTip');
   tip.hidden = !(rtPinFor || (list.length && !n));
   tip.textContent = rtPinFor ? '지도에서 그 장소를 눌러 주세요. (다시 📍를 누르면 취소)' : '장소를 적으면 지도에 표시돼요.';
+  if ((state.kakaoKey || '').trim()) kakaoReady();
   drawRouteMap(list);
 }
 async function rtGeocode(s) {
@@ -2793,6 +2805,11 @@ async function rtGeocode(s) {
   rtGeo.set(s.id, 'busy'); renderRoute();
   try {
     let hit = null;
+    if (await kakaoReady()) {
+      hit = await kakaoFind(q);
+      if (hit) { s.lat = +hit.lat.toFixed(6); s.lng = +hit.lng.toFixed(6); rtGeo.delete(s.id); save(); renderRoute(); return; }
+      s.lat = s.lng = null; rtGeo.set(s.id, 'miss'); save(); renderRoute(); return;
+    }
     for (const cc of ['&countrycodes=kr', '']) {
       const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ko' + cc + '&q=' + encodeURIComponent(q));
       const j = await r.json();
@@ -2848,11 +2865,101 @@ function rtDark() {
   const t = document.documentElement.getAttribute('data-theme');
   return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
 }
+/* ---------- 카카오맵 (키가 있으면 지도 · 장소 검색을 카카오로) ---------- */
+let kakaoP = null, kakaoKeyLoaded = '', kmap = null, kObjs = [];
+function kakaoReady() {
+  const key = (state.kakaoKey || '').trim();
+  if (!key) return Promise.resolve(false);
+  if (kakaoP && kakaoKeyLoaded === key) return kakaoP;
+  kakaoKeyLoaded = key;
+  kakaoP = new Promise(ok => {
+    const done = v => { clearTimeout(t); ok(v); };
+    const t = setTimeout(() => done(false), 12000);
+    const go = () => { try { kakao.maps.load(() => done(!!(window.kakao && kakao.maps && kakao.maps.services))); } catch (e) { done(false); } };
+    if (window.kakao && window.kakao.maps) { go(); return; }
+    const sc = document.createElement('script');
+    sc.src = 'https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services&appkey=' + encodeURIComponent(key);
+    sc.onload = () => (window.kakao && kakao.maps && kakao.maps.load) ? go() : done(false);
+    sc.onerror = () => done(false);
+    document.head.append(sc);
+  }).then(v => { kakaoMsg(v); return v; });
+  return kakaoP;
+}
+function kakaoMsg(ok) {
+  const has = !!(state.kakaoKey || '').trim();
+  $('#rtKakaoSum').textContent = !has ? '지도: 카카오맵 연결하기' : ok ? '지도: 카카오맵 사용 중' : '지도: 카카오맵을 열지 못했어요 (기본 지도 사용 중)';
+  if (has && !ok) $('#rtKMsg').textContent = '키가 맞는지, 카카오 개발자 사이트에 이 앱 주소(' + location.origin + ')를 사이트 도메인으로 등록했는지, 카카오맵 사용 설정을 켰는지 확인해 주세요.';
+  else $('#rtKMsg').textContent = has && ok ? '카카오맵으로 지도와 장소 검색을 하고 있어요.' : '';
+}
+// 장소 이름(강남역, 순천향대병원) → 키워드 검색, 안 되면 주소 검색
+function kakaoFind(q) {
+  return new Promise(ok => {
+    const ps = new kakao.maps.services.Places();
+    ps.keywordSearch(q, (data, status) => {
+      if (status === kakao.maps.services.Status.OK && data && data[0]) { ok({ lat: +data[0].y, lng: +data[0].x }); return; }
+      new kakao.maps.services.Geocoder().addressSearch(q, (d2, st2) => {
+        ok(st2 === kakao.maps.services.Status.OK && d2 && d2[0] ? { lat: +d2[0].y, lng: +d2[0].x } : null);
+      });
+    });
+  });
+}
+// 지도 종류가 바뀌면 처음부터 다시 그려요
+function rtReset() {
+  try { if (rtMap) rtMap.remove(); } catch (e) {}
+  rtMap = null; rtLayer = null; kmap = null; kObjs = [];
+  const box = document.getElementById('rtMap'); if (box) { box.innerHTML = ''; box.className = 'rt-map'; }
+  if (typeof renderRoute === 'function' && document.getElementById('rtList')) renderRoute();
+}
+function rtPinAt(lat, lng) {
+  if (!rtPinFor) return;
+  const s = state.stops.find(x => x.id === rtPinFor); rtPinFor = null;
+  if (s) { s.lat = +lat.toFixed(6); s.lng = +lng.toFixed(6); rtGeo.delete(s.id); }
+  save(); renderRoute();
+}
+function rtLabel(s, i) { return `${i + 1}. ${[s.start && s.start + (s.end ? '~' + s.end : ''), s.place].filter(Boolean).join(' ')}${s.memo ? ' · ' + s.memo : ''}`; }
+function drawKakao(box, pts) {
+  if (!kmap) {
+    box.innerHTML = '';
+    kmap = new kakao.maps.Map(box, { center: new kakao.maps.LatLng(37.5665, 126.978), level: 8 });
+    kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+    kakao.maps.event.addListener(kmap, 'click', e => rtPinAt(e.latLng.getLat(), e.latLng.getLng()));
+  }
+  kObjs.forEach(o => o.setMap(null)); kObjs = [];
+  const path = pts.map(s => new kakao.maps.LatLng(s.lat, s.lng));
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1f2125';
+  if (path.length > 1) kObjs.push(new kakao.maps.Polyline({ map: kmap, path, strokeWeight: 3, strokeColor: accent, strokeOpacity: .85, strokeStyle: 'shortdash' }));
+  pts.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'rt-mk'; el.textContent = i + 1; el.title = rtLabel(s, i);
+    kObjs.push(new kakao.maps.CustomOverlay({ map: kmap, position: path[i], content: el, yAnchor: .5, xAnchor: .5 }));
+  });
+  setTimeout(() => {
+    kmap.relayout();
+    if (path.length === 1) { kmap.setLevel(4); kmap.setCenter(path[0]); }
+    else if (path.length > 1) { const b = new kakao.maps.LatLngBounds(); path.forEach(p => b.extend(p)); kmap.setBounds(b, 40, 40, 40, 40); }
+  }, 0);
+}
+$('#rtKForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#rtKey').value.trim();
+  if (!v) return;
+  state.kakaoKey = v; save(); kakaoP = null; $('#rtKMsg').textContent = '카카오맵을 여는 중…'; rtReset();
+});
+$('#rtKeyDel').onclick = () => { state.kakaoKey = ''; $('#rtKey').value = ''; save(); kakaoP = null; kakaoMsg(false); rtReset(); };
+$('#rtKakao').addEventListener('toggle', () => { if ($('#rtKakao').open) $('#rtKey').value = state.kakaoKey || ''; });
+
 function drawRouteMap(list) {
   const box = $('#rtMap'), pts = list.filter(s => s.lat != null && s.lng != null);
   box.classList.toggle('pinning', !!rtPinFor);
   if (!pts.length && !rtPinFor) { box.hidden = true; return; }
   box.hidden = false;
+  kakaoReady().then(useK => {
+    if (useK) { drawKakao(box, pts); return; }
+    if (kmap) { rtReset(); return; }
+    drawLeaflet(box, pts);
+  });
+}
+function drawLeaflet(box, pts) {
   loadLeaflet().then(() => {
     if (!rtMap) {
       rtMap = L.map(box, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
@@ -2861,12 +2968,7 @@ function drawRouteMap(list) {
       }).addTo(rtMap);
       rtLayer = L.layerGroup().addTo(rtMap);
       rtMap.setView([37.5665, 126.978], 11);   // 처음엔 서울
-      rtMap.on('click', e => {
-        if (!rtPinFor) return;
-        const s = state.stops.find(x => x.id === rtPinFor); rtPinFor = null;
-        if (s) { s.lat = +e.latlng.lat.toFixed(6); s.lng = +e.latlng.lng.toFixed(6); rtGeo.delete(s.id); }
-        save(); renderRoute();
-      });
+      rtMap.on('click', e => rtPinAt(e.latlng.lat, e.latlng.lng));
     }
     rtLayer.clearLayers();
     const ll = pts.map(s => [s.lat, s.lng]);
@@ -4979,7 +5081,7 @@ async function gh(method, path, body) {
 }
 function syncDoc() {
   return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, stops: state.stops, tomb: state.tomb, settingsU: state.settingsU || 0,
-    settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects, wq: state.wq },
+    settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects, wq: state.wq, kakaoKey: state.kakaoKey || '' },
     planner: state.planner || null, plannerU: state.plannerU || 0 };
 }
 // 다른 기기에서 받은 내용과 합치기: 항목마다 더 나중에 바뀐 쪽, 지운 기록이 더 나중이면 지움
@@ -4997,6 +5099,7 @@ function syncMerge(remote) {
   });
   if ((remote.settingsU || 0) > (state.settingsU || 0) && remote.settings) {
     ['kindColors', 'quadColors', 'subjects', 'wq'].forEach(key => { if (remote.settings[key]) state[key] = remote.settings[key]; });
+    if ('kakaoKey' in remote.settings && (remote.settings.kakaoKey || '') !== (state.kakaoKey || '')) { state.kakaoKey = remote.settings.kakaoKey || ''; rtReset(); }
     state.settingsU = remote.settingsU;
   }
   if ((remote.plannerU || 0) > (state.plannerU || 0) && remote.planner) {
@@ -5022,8 +5125,8 @@ async function syncNow(force) {
     syncRebuildSnap();
     const out = JSON.stringify(syncDoc());
     if (out !== text) await gh('PATCH', '/gists/' + syncCfg.gistId, { files: { [SYNC_FILE]: { content: out } } });
-    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
+    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
     if (JSON.stringify([state.tasks, state.dump, state.stops, settingsJSON()]) !== before) { render(); renderDump(); }
     if (JSON.stringify(state.planner || null) !== beforePl && planner) { planner.reload(); if (state.view === 'week') weekLabel(); }
     syncCfg.last = Date.now(); syncSaveCfg();
