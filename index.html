@@ -648,6 +648,36 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
 #view-week.on{display:block}
 #plannerHost{display:block;height:100%}
 @media (max-width:900px){ #view-week{padding:0;overflow:hidden} }
+/* Leaflet 1.9.4 (지도) */
+ .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; } .leaflet-container { overflow: hidden; } .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow { -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-user-drag: none; } .leaflet-tile::selection { background: transparent; } .leaflet-safari .leaflet-tile { image-rendering: -webkit-optimize-contrast; } .leaflet-safari .leaflet-tile-container { width: 1600px; height: 1600px; -webkit-transform-origin: 0 0; } .leaflet-marker-icon, .leaflet-marker-shadow { display: block; } .leaflet-container .leaflet-overlay-pane svg { max-width: none !important; max-height: none !important; } .leaflet-container .leaflet-marker-pane img, .leaflet-container .leaflet-shadow-pane img, .leaflet-container .leaflet-tile-pane img, .leaflet-container img.leaflet-image-layer, .leaflet-container .leaflet-tile { max-width: none !important; max-height: none !important; width: auto; padding: 0; } .leaflet-container img.leaflet-tile { mix-blend-mode: plus-lighter; } .leaflet-container.leaflet-touch-zoom { -ms-touch-action: pan-x pan-y; touch-action: pan-x pan-y; } .leaflet-container.leaflet-touch-drag { -ms-touch-action: pinch-zoom; touch-action: none; touch-action: pinch-zoom; } .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom { -ms-touch-action: none; touch-action: none; } .leaflet-container { -webkit-tap-highlight-color: transparent; } .leaflet-container a { -webkit-tap-highlight-color: rgba(51, 181, 229, 0.4); } .leaflet-tile { filter: inherit; visibility: hidden; } .leaflet-tile-loaded { visibility: inherit; } .leaflet-zoom-box { width: 0; height: 0; -moz-box-sizing: border-box; box-sizing: border-box; z-index: 800; } .leaflet-overlay-pane svg { -moz-user-select: none; } .leaflet-pane { z-index: 400; } .leaflet-tile-pane { z-index: 200; } .leaflet-overlay-pane { z-index: 400; } .leaflet-shadow-pane { z-index: 500; } .leaflet-marker-pane { z-index: 600; } .leaflet-tooltip-pane { z-index: 650; } .leaflet-popup-pane { z-index: 700; } .leaflet-map-pane canvas { z-index: 100; } .leaflet-map-pane svg { z-index: 200; } .leaflet-vml-shape { width: 1px; height: 1px; } .lvml { behavior: url(#default#VML); display: inline-block; position: absolute; } .leaflet-control { position: relative; z-index: 800; pointer-events: visiblePainted; pointer-events: auto; } .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; } .leaflet-top { top: 0; } .leaflet-right { right: 0; } .leaflet-bottom { bottom: 0; } .leaflet-left { left: 0; } .leaflet-control { float: left; clear: both; } .leaflet-right .leaflet-control { float: right; } .leaflet-top .leaflet-control { margin-top: 10px; } .leaflet-bottom .leaflet-control { margin-bottom: 10px; } .leaflet-left .leaflet-control { margin-left: 10px; } .leaflet-right .leaflet-control { margin-right: 10px; } .leaflet-fade-anim .leaflet-popup { opacity: 0; -webkit-transition: opacity 0.2s linear; -moz-transition: opacity 0.2s linear; transition: opacity 0.2s linear; } .leaflet-fade-anim .leaflet-map-pane .leaflet-popup { opacity: 1; } .leaflet-zoom-animated { -webkit-transform-origin: 0 0; -ms-transform-origin: 0 0; transform-origin: 0 0; } svg.leaflet-zoom-animated { will-change: transform; } .leaflet-zoom-anim .leaflet-zoom-animated { -webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1); -moz-transition: -moz-transform 0.25s cubic-bezier(0,0,0.25,1); transition: transform 0.25s cubic-bezier(0,0,0.25,1); } .leaflet-zoom-anim .leaflet-tile, .leaflet-pan-anim .leaflet-tile { -webkit-transition: none; -moz-transition: none; transition: none; } .leaflet-zoom-anim .leaflet-zoom-hide { visibility: hidden; } .leaflet-interactive { cursor: pointer; } .leaflet-grab { cursor: -webkit-grab; cursor: -moz-grab; cursor: grab; } .leaflet-crosshair, .leaflet-crosshair .leaflet-interactive { cursor: crosshair; } .leaflet-popup-pane, .leaflet-control { cursor: auto; } .leaflet-dragging .leaflet-grab, .leaflet-dragging .leaflet-grab .leaflet-interactive, .leaflet-dragging .leaflet-marker-draggable { cursor: move; cursor: -webkit-grabbing; cursor: -moz-grabbing; cursor: grabbing; } .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container { pointer-events: none; } .leaflet-marker-icon.leaflet-interactive, .leaflet-image-layer.leaflet-interactive, .leaflet-pane > svg path.leaflet-interactive, svg.leaflet-image-layer.leaflet-interactive path { pointer-events: visiblePainted; pointer-events: auto; } .leaflet-container { background: #ddd; outline-offset: 1px; } .leaflet-container a { color: #0078A8; } .leaflet-zoom-box { border: 2px dotted #38f; background: rgba(255,255,255,0.5); } .leaflet-container { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; font-size: 12px; font-size: 0.75rem; line-height: 1.5; } .leaflet-bar { box-shadow: 0 1px 5px rgba(0,0,0,0.65); border-radius: 4px; } .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; width: 26px; height: 26px; line-height: 26px; display: block; text-align: center; text-decoration: none; color: black; } .leaflet-bar a, .leaflet-control-layers-toggle { background-position: 50% 50%; background-repeat: no-repeat; display: block; } .leaflet-bar a:hover, .leaflet-bar a:focus { background-color: #f4f4f4; } .leaflet-bar a:first-child { border-top-left-radius: 4px; border-top-right-radius: 4px; } .leaflet-bar a:last-child { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-bottom: none; } .leaflet-bar a.leaflet-disabled { cursor: default; background-color: #f4f4f4; color: #bbb; } .leaflet-touch .leaflet-bar a { width: 30px; height: 30px; line-height: 30px; } .leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: 2px; border-top-right-radius: 2px; } .leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; } .leaflet-control-zoom-in, .leaflet-control-zoom-out { font: bold 18px 'Lucida Console', Monaco, monospace; text-indent: 1px; } .leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out { font-size: 22px; } .leaflet-control-layers { box-shadow: 0 1px 5px rgba(0,0,0,0.4); background: #fff; border-radius: 5px; } .leaflet-control-layers-toggle { background-image: url(images/layers.png); width: 36px; height: 36px; } .leaflet-retina .leaflet-control-layers-toggle { background-image: url(images/layers-2x.png); background-size: 26px 26px; } .leaflet-touch .leaflet-control-layers-toggle { width: 44px; height: 44px; } .leaflet-control-layers .leaflet-control-layers-list, .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none; } .leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: relative; } .leaflet-control-layers-expanded { padding: 6px 10px 6px 6px; color: #333; background: #fff; } .leaflet-control-layers-scrollbar { overflow-y: scroll; overflow-x: hidden; padding-right: 5px; } .leaflet-control-layers-selector { margin-top: 2px; position: relative; top: 1px; } .leaflet-control-layers label { display: block; font-size: 13px; font-size: 1.08333em; } .leaflet-control-layers-separator { height: 0; border-top: 1px solid #ddd; margin: 5px -10px 5px -6px; } .leaflet-default-icon-path { background-image: url(images/marker-icon.png); } .leaflet-container .leaflet-control-attribution { background: #fff; background: rgba(255, 255, 255, 0.8); margin: 0; } .leaflet-control-attribution, .leaflet-control-scale-line { padding: 0 5px; color: #333; line-height: 1.4; } .leaflet-control-attribution a { text-decoration: none; } .leaflet-control-attribution a:hover, .leaflet-control-attribution a:focus { text-decoration: underline; } .leaflet-attribution-flag { display: inline !important; vertical-align: baseline !important; width: 1em; height: 0.6669em; } .leaflet-left .leaflet-control-scale { margin-left: 5px; } .leaflet-bottom .leaflet-control-scale { margin-bottom: 5px; } .leaflet-control-scale-line { border: 2px solid #777; border-top: none; line-height: 1.1; padding: 2px 5px 1px; white-space: nowrap; -moz-box-sizing: border-box; box-sizing: border-box; background: rgba(255, 255, 255, 0.8); text-shadow: 1px 1px #fff; } .leaflet-control-scale-line:not(:first-child) { border-top: 2px solid #777; border-bottom: none; margin-top: -2px; } .leaflet-control-scale-line:not(:first-child):not(:last-child) { border-bottom: 2px solid #777; } .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { box-shadow: none; } .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { border: 2px solid rgba(0,0,0,0.2); background-clip: padding-box; } .leaflet-popup { position: absolute; text-align: center; margin-bottom: 20px; } .leaflet-popup-content-wrapper { padding: 1px; text-align: left; border-radius: 12px; } .leaflet-popup-content { margin: 13px 24px 13px 20px; line-height: 1.3; font-size: 13px; font-size: 1.08333em; min-height: 1px; } .leaflet-popup-content p { margin: 17px 0; margin: 1.3em 0; } .leaflet-popup-tip-container { width: 40px; height: 20px; position: absolute; left: 50%; margin-top: -1px; margin-left: -20px; overflow: hidden; pointer-events: none; } .leaflet-popup-tip { width: 17px; height: 17px; padding: 1px; margin: -10px auto 0; pointer-events: auto; -webkit-transform: rotate(45deg); -moz-transform: rotate(45deg); -ms-transform: rotate(45deg); transform: rotate(45deg); } .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: white; color: #333; box-shadow: 0 3px 14px rgba(0,0,0,0.4); } .leaflet-container a.leaflet-popup-close-button { position: absolute; top: 0; right: 0; border: none; text-align: center; width: 24px; height: 24px; font: 16px/24px Tahoma, Verdana, sans-serif; color: #757575; text-decoration: none; background: transparent; } .leaflet-container a.leaflet-popup-close-button:hover, .leaflet-container a.leaflet-popup-close-button:focus { color: #585858; } .leaflet-popup-scrolled { overflow: auto; } .leaflet-oldie .leaflet-popup-content-wrapper { -ms-zoom: 1; } .leaflet-oldie .leaflet-popup-tip { width: 24px; margin: 0 auto; -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)"; filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678); } .leaflet-oldie .leaflet-control-zoom, .leaflet-oldie .leaflet-control-layers, .leaflet-oldie .leaflet-popup-content-wrapper, .leaflet-oldie .leaflet-popup-tip { border: 1px solid #999; } .leaflet-div-icon { background: #fff; border: 1px solid #666; } .leaflet-tooltip { position: absolute; padding: 6px; background-color: #fff; border: 1px solid #fff; border-radius: 3px; color: #222; white-space: nowrap; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.4); } .leaflet-tooltip.leaflet-interactive { cursor: pointer; pointer-events: auto; } .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { position: absolute; pointer-events: none; border: 6px solid transparent; background: transparent; content: ""; } .leaflet-tooltip-bottom { margin-top: 6px; } .leaflet-tooltip-top { margin-top: -6px; } .leaflet-tooltip-bottom:before, .leaflet-tooltip-top:before { left: 50%; margin-left: -6px; } .leaflet-tooltip-top:before { bottom: 0; margin-bottom: -12px; border-top-color: #fff; } .leaflet-tooltip-bottom:before { top: 0; margin-top: -12px; margin-left: -6px; border-bottom-color: #fff; } .leaflet-tooltip-left { margin-left: -6px; } .leaflet-tooltip-right { margin-left: 6px; } .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { top: 50%; margin-top: -6px; } .leaflet-tooltip-left:before { right: 0; margin-right: -12px; border-left-color: #fff; } .leaflet-tooltip-right:before { left: 0; margin-left: -12px; border-right-color: #fff; } @media print { .leaflet-control { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } 
+/* 동선: 타임블럭 + 장소 → 지도 */
+.route{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.rt-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rt-head b{font-size:calc(14px * var(--fs));font-weight:700;color:var(--text)}
+.rt-sub{font-size:calc(11px * var(--fs));color:var(--faint)}
+.rt-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rt-row{display:grid;grid-template-columns:22px auto auto auto 1fr 28px 28px;grid-template-areas:'n s t e . p x' '. pl pl pl pl pl pl' '. m m m m m m' '. st st st st st st';align-items:center;gap:2px 4px;padding:6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card)}
+.rt-row.pinning{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.rt-n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent,#fff);font-size:11px;font-weight:700}
+.rt-n.off{background:var(--border);color:var(--muted)}
+.rt-row input{min-width:0;height:30px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text);font:inherit;font-size:calc(12.5px * var(--fs));padding:0 4px}
+.rt-row input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.rt-row .rt-time{width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.rt-row .rt-til{color:var(--faint);font-size:12px}
+.rt-n{grid-area:n}.rt-row [data-rf=start]{grid-area:s}.rt-row .rt-til{grid-area:t}.rt-row [data-rf=end]{grid-area:e}.rt-row [data-ra=pin]{grid-area:p}.rt-row [data-ra=del]{grid-area:x}
+.rt-row .rt-place{grid-area:pl;font-weight:600}
+.rt-row .rt-memo{grid-area:m;color:var(--muted)}
+.rt-row button{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.rt-row button:hover{background:var(--soft,rgba(0,0,0,.05));color:var(--text)}
+.rt-row button svg{width:16px;height:16px}
+.rt-row .rt-state{grid-area:st;font-size:calc(11px * var(--fs));color:var(--faint)}
+.rt-row .rt-state.warn{color:#c2410c}
+.rt-add{align-self:flex-start}
+.rt-tip{margin:0;font-size:calc(11.5px * var(--fs));color:var(--muted)}
+.rt-map{height:240px;border-radius:var(--radius-md,12px);overflow:hidden;border:1px solid var(--border);z-index:0}
+.rt-map.pinning{cursor:crosshair}
+.rt-mk{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent,#fff);border:2px solid var(--surface,#fff);display:grid;place-items:center;font:700 12px/1 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.leaflet-container{font:inherit;background:var(--soft,#eee)}
 
 /* ================================================================
    Quiet Focus — 디자인만 바꾸는 층 (기능·구조는 그대로)
@@ -1078,6 +1108,13 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
         <div class="dayev" id="cdEv"></div>
         <div class="drop-list" id="cdList"></div>
         <div class="cd-btns"><button class="pill-btn primary icon-only" id="cdAdd" aria-label="이 날에 추가" title="이 날에 추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="pill-btn icon-only" id="cdWipe" type="button" aria-label="이 날 지우기" title="이 날 지우기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5A1.5 1.5 0 008.5 21h7a1.5 1.5 0 001.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0110.5 3h3A1.5 1.5 0 0115 4.5V7"/></svg></button></div>
+        <section class="route" id="cdRoute" aria-label="동선">
+          <div class="rt-head"><b>동선</b><span class="rt-sub">시간 · 장소를 적으면 지도에 순서대로 이어져요</span></div>
+          <ol class="rt-list" id="rtList"></ol>
+          <button type="button" class="pill-btn rt-add" id="rtAdd">+ 타임블럭</button>
+          <p class="rt-tip" id="rtTip" hidden></p>
+          <div class="rt-map" id="rtMap" hidden></div>
+        </section>
       </div>
     </section>
 
@@ -2220,8 +2257,8 @@ function load() {
 let savedTimer;
 function persist() {
   const changed = syncStamp();
-  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
+  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+  const data = JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   if (changed) syncSchedule();
@@ -2252,7 +2289,10 @@ state.dump = Array.isArray(state.dump) ? state.dump : [];
 state.tomb = state.tomb && typeof state.tomb === 'object' ? state.tomb : {};
 state.tomb.tasks = state.tomb.tasks || {};
 state.tomb.dump = state.tomb.dump || {};
-const SYNC_COLS = ['tasks', 'dump'];
+// 동선(타임블럭 · 장소)도 할 일처럼 항목마다 연동해요
+state.stops = Array.isArray(state.stops) ? state.stops : [];
+state.tomb.stops = state.tomb.stops || {};
+const SYNC_COLS = ['tasks', 'dump', 'stops'];
 const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null]);
 let syncSnap = null, syncTimer = null, syncBusy = false, syncAgain = false;
 function syncRebuildSnap() {
@@ -2703,8 +2743,149 @@ function renderCalDay() {
   $('#cdCount').textContent = list.length;
   $('#cdList').replaceChildren(...list.map(t => card(t, { showQuad: true })));
   if (!list.length) $('#cdList').append(hint('할 일이 없어요'));
+  renderRoute();
 }
 const isPhone = () => matchMedia('(max-width:900px)').matches;
+
+/* ---------- 동선: 타임블럭과 장소를 적으면 지도에 순서대로 선으로 이어요 ----------
+   장소 이름은 OpenStreetMap(Nominatim)으로 찾고, 못 찾으면 📍를 눌러 지도에서 직접 찍어요. */
+const RT_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
+const RT_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const stopsOn = d => state.stops.filter(s => s.date === d)
+  .sort((a, b) => (a.start || '99:99').localeCompare(b.start || '99:99') || (a.order || 0) - (b.order || 0));
+// "9" "930" "9:30" "21시" → "09:00" "09:30" "09:30" "21:00"
+function rtTime(v) {
+  const m = String(v).replace(/[^\d:]/g, '').match(/^(\d{1,2})(?::?(\d{2}))?$/);
+  if (!m) return '';
+  const h = +m[1], mi = +(m[2] || 0);
+  return h < 24 && mi < 60 ? `${pad(h)}:${pad(mi)}` : '';
+}
+const rtGeo = new Map();          // 장소 찾는 중 / 못 찾음 (저장하지 않는 상태)
+let rtPinFor = null;              // 지도에서 위치를 찍을 타임블럭
+function renderRoute() {
+  const list = stopsOn(state.date);
+  let n = 0;
+  $('#rtList').innerHTML = list.map(s => {
+    const has = s.lat != null && s.lng != null, g = rtGeo.get(s.id);
+    if (has) n++;
+    const st = g === 'busy' ? '<small class="rt-state">위치 찾는 중…</small>'
+      : !has && s.place ? `<small class="rt-state warn">${g === 'err' ? '인터넷 연결을 확인해 주세요. ' : '위치를 찾지 못했어요. '}📍를 누르고 지도에서 찍어 주세요</small>` : '';
+    return `<li class="rt-row${rtPinFor === s.id ? ' pinning' : ''}" data-sid="${s.id}">
+      <span class="rt-n${has ? '' : ' off'}">${has ? n : '·'}</span>
+      <input class="rt-time" inputmode="numeric" maxlength="5" data-rf="start" value="${s.start || ''}" placeholder="시작" aria-label="시작 시간">
+      <span class="rt-til">~</span>
+      <input class="rt-time" inputmode="numeric" maxlength="5" data-rf="end" value="${s.end || ''}" placeholder="끝" aria-label="끝 시간">
+      <input class="rt-place" data-rf="place" value="${esc(s.place || '')}" placeholder="장소 (예: 강남역)" aria-label="장소">
+      <button type="button" data-ra="pin" title="지도에서 위치 찍기" aria-label="지도에서 위치 찍기">${RT_PIN}</button>
+      <button type="button" data-ra="del" title="지우기" aria-label="이 타임블럭 지우기">${RT_X}</button>
+      <input class="rt-memo" data-rf="memo" value="${esc(s.memo || '')}" placeholder="할 일 · 메모" aria-label="메모">
+      ${st}
+    </li>`;
+  }).join('');
+  const tip = $('#rtTip');
+  tip.hidden = !(rtPinFor || (list.length && !n));
+  tip.textContent = rtPinFor ? '지도에서 그 장소를 눌러 주세요. (다시 📍를 누르면 취소)' : '장소를 적으면 지도에 표시돼요.';
+  drawRouteMap(list);
+}
+async function rtGeocode(s) {
+  const q = (s.place || '').trim();
+  if (!q) { s.lat = s.lng = null; rtGeo.delete(s.id); return; }
+  rtGeo.set(s.id, 'busy'); renderRoute();
+  try {
+    let hit = null;
+    for (const cc of ['&countrycodes=kr', '']) {
+      const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ko' + cc + '&q=' + encodeURIComponent(q));
+      const j = await r.json();
+      if (j && j[0]) { hit = j[0]; break; }
+    }
+    if (hit) { s.lat = +(+hit.lat).toFixed(6); s.lng = +(+hit.lon).toFixed(6); rtGeo.delete(s.id); }
+    else { s.lat = s.lng = null; rtGeo.set(s.id, 'miss'); }
+  } catch (e) { rtGeo.set(s.id, 'err'); }
+  save(); renderRoute();
+}
+$('#rtAdd').onclick = () => {
+  const list = stopsOn(state.date), last = list[list.length - 1];
+  const plus1 = t => { const [h, m] = t.split(':').map(Number); return `${pad(Math.min(23, h + 1))}:${pad(m || 0)}`; };
+  const s = { id: uid(), date: state.date, start: last ? (last.end || (last.start ? plus1(last.start) : '09:00')) : '09:00', end: '', place: '', memo: '', lat: null, lng: null, order: Date.now() };
+  state.stops.push(s); save(); renderRoute();
+  const inp = document.querySelector(`#rtList [data-sid="${s.id}"] .rt-place`); if (inp) inp.focus();
+};
+$('#rtList').addEventListener('change', e => {
+  const f = e.target.dataset.rf; if (!f) return;
+  const s = state.stops.find(x => x.id === e.target.closest('[data-sid]').dataset.sid); if (!s) return;
+  let v = e.target.value.trim();
+  if (f === 'start' || f === 'end') { v = rtTime(v); e.target.value = v; }
+  if (s[f] === v) return;
+  s[f] = v;
+  if (f === 'place') { s.lat = s.lng = null; save(); rtGeocode(s); } else { save(); renderRoute(); }
+});
+$('#rtList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.rf) e.target.blur(); });
+$('#rtList').addEventListener('click', e => {
+  const b = e.target.closest('[data-ra]'); if (!b) return;
+  const id = b.closest('[data-sid]').dataset.sid;
+  if (b.dataset.ra === 'del') {
+    state.stops = state.stops.filter(x => x.id !== id); rtGeo.delete(id);
+    if (rtPinFor === id) rtPinFor = null;
+    save(); renderRoute();
+  } else {
+    rtPinFor = rtPinFor === id ? null : id;
+    $('#rtMap').hidden = false; renderRoute();
+  }
+});
+// 지도 (Leaflet, 필요할 때만 불러와요)
+let rtMap = null, rtLayer = null, leafletP = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (!leafletP) leafletP = new Promise((ok, no) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    sc.onload = ok; sc.onerror = () => { leafletP = null; no(); };
+    document.head.append(sc);
+  });
+  return leafletP;
+}
+function rtDark() {
+  const t = document.documentElement.getAttribute('data-theme');
+  return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function drawRouteMap(list) {
+  const box = $('#rtMap'), pts = list.filter(s => s.lat != null && s.lng != null);
+  box.classList.toggle('pinning', !!rtPinFor);
+  if (!pts.length && !rtPinFor) { box.hidden = true; return; }
+  box.hidden = false;
+  loadLeaflet().then(() => {
+    if (!rtMap) {
+      rtMap = L.map(box, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
+      L.tileLayer(`https://{s}.basemaps.cartocdn.com/${rtDark() ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`, {
+        maxZoom: 19, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }).addTo(rtMap);
+      rtLayer = L.layerGroup().addTo(rtMap);
+      rtMap.setView([37.5665, 126.978], 11);   // 처음엔 서울
+      rtMap.on('click', e => {
+        if (!rtPinFor) return;
+        const s = state.stops.find(x => x.id === rtPinFor); rtPinFor = null;
+        if (s) { s.lat = +e.latlng.lat.toFixed(6); s.lng = +e.latlng.lng.toFixed(6); rtGeo.delete(s.id); }
+        save(); renderRoute();
+      });
+    }
+    rtLayer.clearLayers();
+    const ll = pts.map(s => [s.lat, s.lng]);
+    if (ll.length > 1) L.polyline(ll, { color: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1f2125', weight: 3, opacity: .85, dashArray: '6 6' }).addTo(rtLayer);
+    pts.forEach((s, i) => {
+      L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', html: `<div class="rt-mk">${i + 1}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] }) })
+        .bindTooltip(`${i + 1}. ${esc([s.start && s.start + (s.end ? '~' + s.end : ''), s.place].filter(Boolean).join(' '))}${s.memo ? '<br>' + esc(s.memo) : ''}`, { direction: 'top', offset: [0, -10] })
+        .addTo(rtLayer);
+    });
+    setTimeout(() => {
+      rtMap.invalidateSize();
+      if (ll.length === 1) rtMap.setView(ll[0], 15);
+      else if (ll.length > 1) rtMap.fitBounds(ll, { padding: [24, 24], maxZoom: 16 });
+    }, 0);
+  }, () => {
+    box.hidden = true;
+    const tip = $('#rtTip'); tip.hidden = false; tip.textContent = '지도를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.';
+  });
+}
 
 /* ---------- WEEK 탭: 위클리 → 데일리 플래너 ----------
    원래 플래너의 디자인·기능을 그대로 쓰도록, dayflow 스타일과 섞이지 않는 그림자 DOM 안에 그려요.
@@ -4797,7 +4978,7 @@ async function gh(method, path, body) {
   return res.status === 204 ? null : res.json();
 }
 function syncDoc() {
-  return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, tomb: state.tomb, settingsU: state.settingsU || 0,
+  return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, stops: state.stops, tomb: state.tomb, settingsU: state.settingsU || 0,
     settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects, wq: state.wq },
     planner: state.planner || null, plannerU: state.plannerU || 0 };
 }
@@ -4834,16 +5015,16 @@ async function syncNow(force) {
     const f = g.files && g.files[SYNC_FILE];
     let text = f ? f.content : '';
     if (f && f.truncated) text = await (await fetch(f.raw_url, { cache: 'no-store' })).text();
-    const before = JSON.stringify([state.tasks, state.dump, settingsJSON()]), beforePl = JSON.stringify(state.planner || null);
+    const before = JSON.stringify([state.tasks, state.dump, state.stops, settingsJSON()]), beforePl = JSON.stringify(state.planner || null);
     let remote = null;
     try { remote = text ? JSON.parse(text) : null; } catch (e) { remote = null; }
     if (remote && remote.app === 'dayflow') syncMerge(remote);
     syncRebuildSnap();
     const out = JSON.stringify(syncDoc());
     if (out !== text) await gh('PATCH', '/gists/' + syncCfg.gistId, { files: { [SYNC_FILE]: { content: out } } });
-    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
-    if (JSON.stringify([state.tasks, state.dump, settingsJSON()]) !== before) { render(); renderDump(); }
+    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+    try { localStorage.setItem(KEY, JSON.stringify({ view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
+    if (JSON.stringify([state.tasks, state.dump, state.stops, settingsJSON()]) !== before) { render(); renderDump(); }
     if (JSON.stringify(state.planner || null) !== beforePl && planner) { planner.reload(); if (state.view === 'week') weekLabel(); }
     syncCfg.last = Date.now(); syncSaveCfg();
     setSyncUI('ok');
@@ -5019,6 +5200,7 @@ document.querySelectorAll('[data-yscript]').forEach(b => b.addEventListener('cli
 /* ---------- 모든 일정·할 일 지우기 ---------- */
 function wipeTasks() {
   state.tasks = [];
+  state.stops = [];
   state.lastBatch = null;
   commit();
 }
@@ -5039,11 +5221,12 @@ function dayWipeInfo(date) {
   const only = on.filter(t => t.date === date && endOf(t) === date);   // 그날 하루짜리만
   const p = (state.planner && state.planner.meta && state.planner.meta[date]) || null;
   const f = state.planner && state.planner.fixed && state.planner.fixed[date];
-  return { only, span: on.length - only.length, note: !!(p || f) };
+  return { only, span: on.length - only.length, note: !!(p || f) || state.stops.some(s => s.date === date) };
 }
 function wipeDay(date) {
   const ids = new Set(dayWipeInfo(date).only.map(t => t.id));
   state.tasks = state.tasks.filter(t => !ids.has(t.id));
+  state.stops = state.stops.filter(s => s.date !== date);
   if (planner && planner.clearDay) planner.clearDay(date);
   commit();
   return ids.size;
@@ -5055,7 +5238,7 @@ function askWipeDay(date) {
     return Promise.resolve(false);
   }
   const msg = `${dayName(date)}의 일정·할 일 ${only.length}개를 지울까요?`
-    + (note ? ' 위클리에 적은 그날의 약속·장소와 고정 일정도 함께 지워져요.' : '')
+    + (note ? ' 위클리에 적은 그날의 약속·장소, 고정 일정과 동선도 함께 지워져요.' : '')
     + (span ? ` 여러 날에 걸친 ${span}개는 그대로 남아요.` : '')
     + ' 지운 뒤에는 되돌릴 수 없어요.';
   return askConfirm(msg, '이 날 지우기').then(ok => { if (ok) wipeDay(date); return ok; });
