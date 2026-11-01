@@ -31,7 +31,7 @@ fi
 # 2) Capacitor로 안드로이드 프로젝트 만들기
 cd "$BUILD"
 npm init -y >/dev/null
-npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6
 npx cap init "$APP_NAME" "$APP_ID" --web-dir www
 npx cap add android
 
@@ -68,6 +68,18 @@ open(p, 'w', encoding='utf-8').write(s)
 print('위젯 등록 완료')
 PY
 fi
+
+# 3-2) 출발 알림: 앱을 닫아도 시간 맞춰 울리도록 (로컬 알림)
+python3 - "$BUILD/android/app/src/main/AndroidManifest.xml" <<'PY'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+for perm in ['android.permission.POST_NOTIFICATIONS', 'android.permission.SCHEDULE_EXACT_ALARM', 'android.permission.RECEIVE_BOOT_COMPLETED']:
+    if perm not in s:
+        s = s.replace('</manifest>', f'    <uses-permission android:name="{perm}" />\n</manifest>')
+open(p, 'w', encoding='utf-8').write(s)
+print('알림 권한 추가')
+PY
+npx cap sync android
 
 # 4) 서명(항상 같은 열쇠 → 새 버전을 덮어 설치해도 데이터 유지) + 버전 번호
 cp "$ROOT/android/dayflow.keystore" "$BUILD/android/app/dayflow.keystore"
