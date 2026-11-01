@@ -751,6 +751,14 @@ html.route-only .main-only{display:none!important}
 .lg-modes button{width:28px;height:24px;border:0;border-radius:6px;background:transparent;font-size:13px;cursor:pointer;opacity:.5;padding:0}
 .lg-modes button.on{background:var(--surface);opacity:1;box-shadow:0 0 0 1px var(--border)}
 .lg-main b{color:var(--text);font-size:calc(13px * var(--fs))}
+.lg-min{border:0;background:transparent;padding:0 2px;font:inherit;font-weight:700;color:var(--text);font-size:calc(13px * var(--fs));cursor:pointer;border-radius:4px}
+.lg-min i{font-style:normal;font-weight:400;color:var(--faint);margin-left:2px;font-size:11px}
+.lg-min:hover{background:var(--soft,rgba(0,0,0,.05))}
+.lg-edit{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.lg-edit[hidden]{display:none}
+.lg-edit input{width:64px;height:28px;border:1px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);font:inherit;padding:0 6px}
+.lg-edit small{color:var(--faint);flex-basis:100%}
+.lg-edit .pill-btn{height:26px;font-size:calc(11px * var(--fs))}
 .lg-main small{color:var(--faint)}
 .lg-main em{display:block;font-style:normal;color:var(--muted);font-size:calc(11px * var(--fs))}
 .lg-go{margin-left:auto;height:26px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font:inherit;font-size:calc(11.5px * var(--fs));cursor:pointer}
@@ -1289,7 +1297,6 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
             <label class="rs-row rs-chk"><input type="checkbox" id="rsAlert"><span>출발 10분 전에 알림 <small>(갤럭시 앱은 앱을 닫아도 울려요)</small></span></label>
             <p class="rt-tip" id="rsApi"></p>
             <form class="rt-kform rs-keys" id="rsKeys">
-              <label>ODsay 키 (대중교통)<input id="rsOdsay" autocomplete="off" spellcheck="false" placeholder="ODsay LAB API Key"></label>
               <label>카카오모빌리티 REST 키 (자동차 · 실시간 교통)<input id="rsKmob" autocomplete="off" spellcheck="false" placeholder="REST API 키"></label>
               <button class="pill-btn primary" type="submit">키 저장</button>
             </form>
@@ -2518,7 +2525,8 @@ state.places = Array.isArray(state.places) ? state.places : [];
 state.tomb.places = state.tomb.places || {};
 state.places.forEach(p => { if (!Array.isArray(p.keys)) p.keys = []; });
 // 이동 설정: 기본 수단 · 여유 시간 · 출발 알림 · 경로 API 키
-state.rset = Object.assign({ mode: 'transit', buffer: 10, alert: true, odsay: '', kmob: '' }, state.rset || {});
+state.rset = Object.assign({ mode: 'transit', buffer: 10, alert: true, kmob: '', learned: {} }, state.rset || {});
+delete state.rset.odsay;
 const SYNC_COLS = ['tasks', 'dump', 'stops', 'places'];
 const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null, state.kakaoKey || null, state.rset || null]);
 let syncSnap = null, syncTimer = null, syncBusy = false, syncAgain = false;
@@ -3133,19 +3141,33 @@ function travelEstimate(a, b, m) {
 const legMode = s => s.mode || rset().mode;
 let rtLegs = [];
 const legErr = new Map(), legBusy = new Set();
+// 직접 적은 실제 시간: 두 장소(자주 가는 곳이면 그 이름) 사이로 기억해요
+const ptKey = s => { const f = rtFav(s.place); return f ? 'f:' + f.id : (+s.lat).toFixed(3) + ',' + (+s.lng).toFixed(3); };
+const learnKey = (a, b, m) => `${m}|${ptKey(a)}>${ptKey(b)}`;
+const learned = () => (state.rset.learned = state.rset.learned || {});
+function learnedMin(a, b, m) { const L = learned(); return L[learnKey(a, b, m)] ?? L[learnKey(b, a, m)] ?? null; }
 function legOf(a, b) {
-  const m = legMode(b), k = legKey(a, b, m), c = travelCache[k];
+  const m = legMode(b), k = legKey(a, b, m), ck = legKey(a, b, 'car'), car = travelCache[ck];
   const today = b.date === todayStr();
-  const fresh = c && (m !== 'car' || !today || Date.now() - c.t < 10 * 60e3);   // 자동차는 오늘이면 10분마다 실시간 다시
-  const api = (m === 'transit' && rset().odsay) || (m === 'car' && rset().kmob);
-  const info = c || travelEstimate(a, b, m);
-  return { a, b, m, k, info, need: api && !fresh && !legErr.has(k) };
+  const mine = learnedMin(a, b, m);
+  let info;
+  if (mine != null) info = { min: mine, km: car ? car.km : +(rtKm(a, b) * 1.3).toFixed(1), src: 'mine' };
+  else if (car) {
+    // 카카오 자동차 경로의 실제 도로 거리로 어림 (대중교통: 걷기 · 기다리기 · 갈아타기 포함)
+    info = m === 'car' ? car
+      : m === 'walk' ? { min: Math.max(1, Math.round(car.km * 0.95 / 4.5 * 60)), km: +(car.km * 0.95).toFixed(1), src: 'road' }
+      : { min: Math.max(5, Math.round(car.km < 1 ? car.km / 4.5 * 60 : 8 + car.km / 21 * 60)), km: car.km, src: 'road' };
+  } else info = travelEstimate(a, b, m);
+  // 자동차는 오늘이면 10분마다 실시간 교통을 다시 받아요. 다른 수단은 도로 거리만 한 번 받으면 돼요
+  const fresh = car && (m !== 'car' || !today || Date.now() - car.t < 10 * 60e3);
+  const need = !!rset().kmob && mine == null && !fresh && !legErr.has(ck);
+  return { a, b, m, k: ck, info, need };
 }
 async function legFetch(L) {
   if (legBusy.has(L.k)) return;
   legBusy.add(L.k);
   try {
-    const r = L.m === 'transit' ? await odsayTime(L.a, L.b) : await kmobTime(L.a, L.b);
+    const r = await kmobTime(L.a, L.b);
     if (r) { travelCache[L.k] = { ...r, t: Date.now() }; saveTravel(); }
     else legErr.set(L.k, '경로를 찾지 못했어요');
   } catch (e) { legErr.set(L.k, e.message || '연결 오류'); }
@@ -3154,24 +3176,6 @@ async function legFetch(L) {
 }
 let rtRT = null;
 function rtRerender() { clearTimeout(rtRT); rtRT = setTimeout(() => { if (document.getElementById('rtList')) renderRoute(); }, 60); }
-// 대중교통: ODsay
-async function odsayTime(a, b) {
-  const u = `https://api.odsay.com/v1/api/searchPubTransPathT?lang=0&SX=${a.lng}&SY=${a.lat}&EX=${b.lng}&EY=${b.lat}&apiKey=${encodeURIComponent(rset().odsay)}`;
-  const j = await (await fetch(u)).json();
-  if (j.error) {
-    const er = Array.isArray(j.error) ? j.error[0] : j.error;
-    if (String(er.code) === '-98') { const w = travelEstimate(a, b, 'walk'); return { ...w, src: 'odsay', via: '가까워서 걸어가요' }; }   // 700m 이내
-    throw new Error('ODsay: ' + (er.msg || er.message || er.code));
-  }
-  const ps = j.result && j.result.path;
-  if (!ps || !ps.length) return null;
-  const best = ps.reduce((x, y) => y.info.totalTime < x.info.totalTime ? y : x);
-  const via = (best.subPath || []).filter(p => p.trafficType !== 3).map(p => {
-    const ln = p.lane && p.lane[0] || {};
-    return p.trafficType === 1 ? (ln.name || '지하철').replace(/^수도권\s*/, '') : (ln.busNo ? ln.busNo + '번' : '버스');
-  }).join(' → ');
-  return { min: best.info.totalTime, km: +((best.info.totalDistance || 0) / 1000).toFixed(1), src: 'odsay', via, fare: best.info.payment || 0 };
-}
 // 자동차: 카카오모빌리티 (실시간 교통 반영)
 async function kmobTime(a, b) {
   const r = await fetch(`https://apis-navi.kakaomobility.com/v1/directions?origin=${a.lng},${a.lat}&destination=${b.lng},${b.lat}&priority=RECOMMEND&summary=true`, { headers: { Authorization: 'KakaoAK ' + rset().kmob } });
@@ -3190,7 +3194,7 @@ function legPlan(L) {
 const TRAVEL_IDEAS = { transit: ['🎧 팟캐스트 듣기', '📰 뉴스 읽기', '📖 단어 외우기', '✉️ 메시지 답장'], walk: ['🎧 팟캐스트 듣기', '📞 전화하기'], car: ['🎧 오디오북 듣기', '📞 핸즈프리 통화'] };
 function legHTML(L) {
   const p = legPlan(L), i = L.info, err = legErr.get(L.k);
-  const src = L.need ? '계산 중…' : i.src === 'est' ? (err ? `예상 · ${err}` : '예상') : i.src === 'kakao' ? '실시간 교통' : '대중교통 경로';
+  const src = L.need ? '계산 중…' : i.src === 'mine' ? '내가 적은 시간' : i.src === 'kakao' ? '실시간 교통' : i.src === 'road' ? '도로 거리로 예상' : (err ? `예상 · ${err}` : '예상');
   const modes = Object.entries(RT_MODES).map(([k, [ic, nm]]) => `<button type="button" data-lm="${k}" class="${L.m === k ? 'on' : ''}" title="${nm}" aria-label="${nm}" aria-pressed="${L.m === k}">${ic}</button>`).join('');
   const dep = !p ? '<span class="lg-dep">다음 타임블럭 시작 시간을 적으면 출발 시각을 알려 드려요</span>'
     : p.late ? `<span class="lg-dep warn">⚠ ${durTxt(p.late)} 부족해요 · ${toHM(p.dep)}에 출발해야 하는데 앞 일정이 ${toHM(p.free)}에 끝나요</span>`
@@ -3198,7 +3202,8 @@ function legHTML(L) {
   const ideas = i.min >= 15 ? `<div class="lg-do"><span>이동 중에</span>${(L.b.tmemo ? [] : TRAVEL_IDEAS[L.m]).map(t => `<button type="button" class="rt-chip" data-idea="${esc(t)}">${esc(t)}</button>`).join('')}<input data-tm value="${esc(L.b.tmemo || '')}" placeholder="이동 중 할 일" aria-label="이동 중 할 일"></div>` : '';
   return `<li class="rt-leg${p && p.late ? ' late' : ''}" data-leg="${L.b.id}">
     <span class="lg-modes">${modes}</span>
-    <span class="lg-main"><b>${durTxt(i.min)}</b> <small>${i.km}km · ${src}</small>${i.via ? `<em>${esc(i.via)}</em>` : ''}</span>
+    <span class="lg-main"><button type="button" class="lg-min" data-lmin="${L.b.id}" title="실제 걸리는 시간 적기">${durTxt(i.min)}<i>✎</i></button> <small>${i.km}km · ${src}</small>${i.via ? `<em>${esc(i.via)}</em>` : ''}</span>
+    <span class="lg-edit" hidden><input type="number" inputmode="numeric" min="1" max="600" data-lminv value="${i.src === 'mine' ? i.min : ''}" placeholder="${i.min}" aria-label="실제 걸리는 시간(분)">분 <small>카카오맵에서 본 실제 시간을 적으면 이 두 곳 사이 시간으로 기억해요</small>${i.src === 'mine' ? '<button type="button" class="pill-btn" data-lminx>예상으로 되돌리기</button>' : ''}</span>
     <button type="button" class="lg-go" data-nav="${L.b.id}" title="길안내 앱 열기">길안내</button>
     ${dep}
     <span class="lg-nav" hidden></span>
@@ -3480,7 +3485,19 @@ $('#rtAdd').onclick = () => {
   state.stops.push(s); save(); renderRoute();
   const inp = document.querySelector(`#rtList [data-sid="${s.id}"] .rt-place`); if (inp) inp.focus();
 };
+function setLearned(L, min) {
+  const k = learnKey(L.a, L.b, L.m), rk = learnKey(L.b, L.a, L.m), m = learned();
+  if (min == null) { delete m[k]; delete m[rk]; } else m[k] = min;
+  state.settingsU = Date.now(); save(); renderRoute();
+  if (min != null) toast(`기억했어요. ${L.a.place || '앞 장소'} → ${L.b.place || '다음 장소'} ${RT_MODES[L.m][1]} ${durTxt(min)}`);
+}
 $('#rtList').addEventListener('change', e => {
+  if (e.target.dataset.lminv != null) {
+    const L = rtLegs.find(x => x.b.id === e.target.closest('[data-leg]').dataset.leg); if (!L) return;
+    const v = Math.round(+e.target.value);
+    if (v >= 1 && v <= 600) setLearned(L, v); else if (!e.target.value) setLearned(L, null);
+    return;
+  }
   if (e.target.dataset.tm != null) {
     const s = state.stops.find(x => x.id === e.target.closest('[data-leg]').dataset.leg); if (!s) return;
     s.tmemo = e.target.value.trim(); save(); renderRoute(); return;
@@ -3493,9 +3510,12 @@ $('#rtList').addEventListener('change', e => {
   s[f] = v;
   if (f === 'place') { s.lat = s.lng = null; save(); rtGeocode(s); } else { save(); renderRoute(); }
 });
-$('#rtList').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.target.dataset.rf || e.target.dataset.tm != null)) e.target.blur(); });
+$('#rtList').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.target.dataset.rf || e.target.dataset.tm != null || e.target.dataset.lminv != null)) e.target.blur(); });
 $('#rtList').addEventListener('click', e => {
   const lm = e.target.closest('[data-lm]'), idea = e.target.closest('[data-idea]'), nav = e.target.closest('[data-nav]');
+  const lmin = e.target.closest('[data-lmin]'), lminx = e.target.closest('[data-lminx]');
+  if (lmin) { const ed = lmin.closest('.rt-leg').querySelector('.lg-edit'); ed.hidden = !ed.hidden; if (!ed.hidden) ed.querySelector('input').focus(); return; }
+  if (lminx) { const L = rtLegs.find(x => x.b.id === lminx.closest('[data-leg]').dataset.leg); if (L) setLearned(L, null); return; }
   if (lm || idea) {
     const s = state.stops.find(x => x.id === e.target.closest('[data-leg]').dataset.leg); if (!s) return;
     if (lm) s.mode = lm.dataset.lm === rset().mode ? null : lm.dataset.lm;
@@ -3523,8 +3543,10 @@ function renderRSet() {
   document.querySelectorAll('#rsMode [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === r.mode));
   document.querySelectorAll('#rsBuf [data-v]').forEach(b => b.classList.toggle('on', +b.dataset.v === +r.buffer));
   $('#rsAlert').checked = !!r.alert;
-  $('#rsOdsay').value = r.odsay || ''; $('#rsKmob').value = r.kmob || '';
-  $('#rsApi').textContent = `대중교통: ${r.odsay ? 'ODsay 경로' : '거리로 예상'} · 자동차: ${r.kmob ? '카카오모빌리티 실시간' : '거리로 예상'} · 도보: 거리로 계산`;
+  $('#rsKmob').value = r.kmob || '';
+  const n = Object.keys(r.learned || {}).length;
+  $('#rsApi').textContent = (r.kmob ? '자동차는 카카오 실시간 교통, 대중교통 · 도보는 카카오 도로 거리로 예상해요.' : '카카오모빌리티 키를 넣으면 자동차는 실시간 교통, 대중교통 · 도보는 실제 도로 거리로 계산해요.')
+    + ' 이동 시간(✎)을 누르고 실제 시간을 적으면 그 구간은 그 시간으로 기억해요.' + (n ? ` (기억한 구간 ${n}개)` : '');
 }
 function setRSet(patch) { Object.assign(state.rset, patch); state.settingsU = Date.now(); legErr.clear(); save(); renderRSet(); renderRoute(); }
 $('#rsMode').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) setRSet({ mode: b.dataset.v }); });
@@ -3533,7 +3555,7 @@ $('#rsAlert').addEventListener('change', async e => {
   if (e.target.checked && !(await rtAlertPerm())) toast('알림이 꺼져 있어요. 휴대폰 설정에서 알림을 허용하면 출발 시각에 알려 드려요. (앱 안에서는 계속 보여요)');
   setRSet({ alert: e.target.checked });
 });
-$('#rsKeys').addEventListener('submit', e => { e.preventDefault(); setRSet({ odsay: $('#rsOdsay').value.trim(), kmob: $('#rsKmob').value.trim() }); toast('저장했어요. 이동 시간을 다시 계산할게요.'); });
+$('#rsKeys').addEventListener('submit', e => { e.preventDefault(); setRSet({ kmob: $('#rsKmob').value.trim() }); toast('저장했어요. 이동 시간을 다시 계산할게요.'); });
 $('#rtSet').addEventListener('toggle', () => { if ($('#rtSet').open) renderRSet(); });
 // 지도 (Leaflet, 필요할 때만 불러와요)
 let rtMap = null, rtLayer = null, leafletP = null;
