@@ -1121,7 +1121,7 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
           <div class="rt-map" id="rtMap" hidden></div>
           <details class="rt-kakao" id="rtKakao">
             <summary id="rtKakaoSum">지도: 카카오맵 연결하기</summary>
-            <p class="rt-tip">카카오 개발자 사이트에서 받은 <b>JavaScript 키</b>를 붙여넣으면 지도와 장소 검색이 카카오맵으로 바뀌어요. (한 번 넣으면 기기 연동으로 다른 기기에도 들어가요)</p>
+            <p class="rt-tip">dayflow 앱(seoa930309.github.io · 갤럭시 앱)에서는 카카오맵이 자동으로 켜져요. 다른 키를 쓰고 싶을 때만 <b>JavaScript 키</b>를 넣어 주세요.</p>
             <form class="rt-kform" id="rtKForm"><input id="rtKey" autocomplete="off" spellcheck="false" placeholder="JavaScript 키" aria-label="카카오 JavaScript 키"><button class="pill-btn primary" type="submit">저장</button><button class="pill-btn" type="button" id="rtKeyDel">지우기</button></form>
             <p class="rt-tip" id="rtKMsg" aria-live="polite"></p>
           </details>
@@ -2796,7 +2796,7 @@ function renderRoute() {
   const tip = $('#rtTip');
   tip.hidden = !(rtPinFor || (list.length && !n));
   tip.textContent = rtPinFor ? '지도에서 그 장소를 눌러 주세요. (다시 📍를 누르면 취소)' : '장소를 적으면 지도에 표시돼요.';
-  if ((state.kakaoKey || '').trim()) kakaoReady();
+  kakaoReady();
   drawRouteMap(list);
 }
 async function rtGeocode(s) {
@@ -2867,8 +2867,11 @@ function rtDark() {
 }
 /* ---------- 카카오맵 (키가 있으면 지도 · 장소 검색을 카카오로) ---------- */
 let kakaoP = null, kakaoKeyLoaded = '', kmap = null, kObjs = [];
+// 기본 카카오 키 (seoa930309.github.io · 갤럭시 앱에 등록됨). 직접 넣은 키가 있으면 그걸 써요
+const KAKAO_KEY = '0977af9d96f7f9f39e8a714eb187ea7e';
+const kakaoKey = () => (state.kakaoKey || '').trim() || KAKAO_KEY;
 function kakaoReady() {
-  const key = (state.kakaoKey || '').trim();
+  const key = kakaoKey();
   if (!key) return Promise.resolve(false);
   if (kakaoP && kakaoKeyLoaded === key) return kakaoP;
   kakaoKeyLoaded = key;
@@ -2887,7 +2890,7 @@ function kakaoReady() {
 }
 function kakaoMsg(ok) {
   const has = !!(state.kakaoKey || '').trim();
-  $('#rtKakaoSum').textContent = !has ? '지도: 카카오맵 연결하기' : ok ? '지도: 카카오맵 사용 중' : '지도: 카카오맵을 열지 못했어요 (기본 지도 사용 중)';
+  $('#rtKakaoSum').textContent = ok ? '지도: 카카오맵 사용 중' : !has ? '지도: 카카오맵 연결하기' : '지도: 카카오맵을 열지 못했어요 (기본 지도 사용 중)';
   if (has && !ok) $('#rtKMsg').textContent = '키가 맞는지, 카카오 개발자 사이트에 이 앱 주소(' + location.origin + ')를 사이트 도메인으로 등록했는지, 카카오맵 사용 설정을 켰는지 확인해 주세요.';
   else $('#rtKMsg').textContent = has && ok ? '카카오맵으로 지도와 장소 검색을 하고 있어요.' : '';
 }
