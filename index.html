@@ -683,9 +683,9 @@ html.route-only .rt-big{display:none}
 .rp-top h2{margin:0;font-size:calc(20px * var(--fs));font-weight:700;letter-spacing:-.01em}
 .rp-top .pill-btn{margin-left:auto}
 #routeSlot{flex:1;min-height:0}
-.route.big{margin:0;padding:0;border:0;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;column-gap:18px;row-gap:8px;align-content:start}
+.route.big{margin:0;padding:0;border:0;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);grid-template-rows:repeat(6,auto) 1fr;column-gap:18px;row-gap:8px;align-content:start}
 .route.big .rt-head{grid-column:1}
-.route.big .rt-list,.route.big .rt-add,.route.big .rt-tip,.route.big .rt-kakao{grid-column:1}
+.route.big .rt-list,.route.big .rt-adds,.route.big .rt-tip,.route.big .rt-kakao{grid-column:1}
 .route.big .rt-list{padding-right:2px}
 .route.big .rt-map{grid-column:2;grid-row:1 / -1;align-self:start;position:sticky;top:0;height:calc(100vh - 190px);min-height:360px;display:block!important}
 .route.big .rt-map[hidden]{display:block!important}
@@ -718,7 +718,19 @@ html.route-only .rt-big{display:none}
 .rt-row button svg{width:16px;height:16px}
 .rt-row .rt-state{grid-area:st;font-size:calc(11px * var(--fs));color:var(--faint)}
 .rt-row .rt-state.warn{color:#c2410c}
-.rt-add{align-self:flex-start}
+.rt-add{align-self:flex-start;flex:none}
+.rt-adds{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rt-chips{display:contents}
+.rt-chip{height:30px;padding:0 10px;border:1px dashed var(--border);border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:calc(12px * var(--fs));cursor:pointer}
+.rt-chip:hover{color:var(--text);border-color:var(--accent)}
+.rt-favs{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rt-favs li{display:grid;grid-template-columns:auto 1fr 28px 28px;align-items:center;gap:8px;padding:4px 4px 4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:calc(12.5px * var(--fs))}
+.rt-favs li span{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt-favs li em{color:#c2410c;font-style:normal}
+.rt-favs button{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0;font-size:14px}
+.rt-favs button:hover{background:var(--soft,rgba(0,0,0,.05));color:var(--text)}
+.rt-favs button svg{width:14px;height:14px}
+.rt-fform #rtFavName{flex:0 0 96px}
 .rt-tip{margin:0;font-size:calc(11.5px * var(--fs));color:var(--muted)}
 .rt-map{height:240px;border-radius:var(--radius-md,12px);overflow:hidden;border:1px solid var(--border);z-index:0}
 .rt-map.pinning{cursor:crosshair}
@@ -1163,9 +1175,17 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
         <section class="route" id="cdRoute" aria-label="동선">
           <div class="rt-head"><button type="button" class="rt-fold" id="rtFold" aria-expanded="true" aria-controls="cdRoute" title="동선 접기 · 펼치기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><b>동선</b></button><span class="rt-sub">시간 · 장소를 적으면 지도에 순서대로 이어져요</span><button type="button" class="rt-big" id="rtBig" title="동선 화면에서 크게 보기">크게 보기</button></div>
           <ol class="rt-list" id="rtList"></ol>
-          <button type="button" class="pill-btn rt-add" id="rtAdd">+ 타임블럭</button>
+          <div class="rt-adds"><button type="button" class="pill-btn rt-add" id="rtAdd">+ 타임블럭</button><span class="rt-chips" id="rtChips"></span></div>
+          <datalist id="rtPlaceList"></datalist>
           <p class="rt-tip" id="rtTip" hidden></p>
           <div class="rt-map" id="rtMap" hidden></div>
+          <details class="rt-kakao rt-fav" id="rtFav">
+            <summary id="rtFavSum">자주 가는 곳</summary>
+            <p class="rt-tip">이름(예: 집)과 주소를 저장해 두면, 타임블럭 장소에 이름만 적어도 그 주소로 지도에 표시돼요.</p>
+            <ul class="rt-favs" id="rtFavs"></ul>
+            <form class="rt-kform rt-fform" id="rtFavForm"><input id="rtFavName" maxlength="20" autocomplete="off" placeholder="이름 (예: 집)" aria-label="이름"><input id="rtFavAddr" autocomplete="off" placeholder="주소 또는 장소" aria-label="주소"><button class="pill-btn primary" type="submit">저장</button></form>
+            <p class="rt-tip" id="rtFavMsg" aria-live="polite"></p>
+          </details>
           <details class="rt-kakao" id="rtKakao">
             <summary id="rtKakaoSum">지도: 카카오맵 연결하기</summary>
             <p class="rt-tip">dayflow 앱(seoa930309.github.io · 갤럭시 앱)에서는 카카오맵이 자동으로 켜져요. 다른 키를 쓰고 싶을 때만 <b>JavaScript 키</b>를 넣어 주세요.</p>
@@ -2318,8 +2338,8 @@ function load() {
 let savedTimer;
 function persist() {
   const changed = syncStamp();
-  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-  const data = JSON.stringify({ view: ROUTE_ONLY ? SAVED_VIEW : view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
+  const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, places, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+  const data = JSON.stringify({ view: ROUTE_ONLY ? SAVED_VIEW : view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, places, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU });
   memCopy = JSON.parse(data);
   try { localStorage.setItem(KEY, data); } catch (e) {}
   if (changed) syncSchedule();
@@ -2356,7 +2376,10 @@ state.tomb.dump = state.tomb.dump || {};
 // 동선(타임블럭 · 장소)도 할 일처럼 항목마다 연동해요
 state.stops = Array.isArray(state.stops) ? state.stops : [];
 state.tomb.stops = state.tomb.stops || {};
-const SYNC_COLS = ['tasks', 'dump', 'stops'];
+// 자주 가는 곳 (집 · 회사 …): 이름만 적어도 저장한 주소로 찾아요
+state.places = Array.isArray(state.places) ? state.places : [];
+state.tomb.places = state.tomb.places || {};
+const SYNC_COLS = ['tasks', 'dump', 'stops', 'places'];
 const settingsJSON = () => JSON.stringify([state.kindColors || null, state.quadColors || null, state.subjects || null, state.wq || null, state.kakaoKey || null]);
 let syncSnap = null, syncTimer = null, syncBusy = false, syncAgain = false;
 function syncRebuildSnap() {
@@ -2835,13 +2858,14 @@ function renderRoute() {
     const has = s.lat != null && s.lng != null, g = rtGeo.get(s.id);
     if (has) n++;
     const st = g === 'busy' ? '<small class="rt-state">위치 찾는 중…</small>'
+      : has && rtFav(s.place) ? `<small class="rt-state">📌 ${esc(rtFav(s.place).addr)}</small>`
       : !has && s.place ? `<small class="rt-state warn">${g === 'err' ? '인터넷 연결을 확인해 주세요. ' : '위치를 찾지 못했어요. '}📍를 누르고 지도에서 찍어 주세요</small>` : '';
     return `<li class="rt-row${rtPinFor === s.id ? ' pinning' : ''}" data-sid="${s.id}">
       <span class="rt-n${has ? '' : ' off'}">${has ? n : '·'}</span>
       <input class="rt-time" inputmode="numeric" maxlength="5" data-rf="start" value="${s.start || ''}" placeholder="시작" aria-label="시작 시간">
       <span class="rt-til">~</span>
       <input class="rt-time" inputmode="numeric" maxlength="5" data-rf="end" value="${s.end || ''}" placeholder="끝" aria-label="끝 시간">
-      <input class="rt-place" data-rf="place" value="${esc(s.place || '')}" placeholder="장소 (예: 강남역)" aria-label="장소">
+      <input class="rt-place" data-rf="place" list="rtPlaceList" value="${esc(s.place || '')}" placeholder="장소 (예: 강남역, 집)" aria-label="장소">
       <button type="button" data-ra="pin" title="지도에서 위치 찍기" aria-label="지도에서 위치 찍기">${RT_PIN}</button>
       <button type="button" data-ra="del" title="지우기" aria-label="이 타임블럭 지우기">${RT_X}</button>
       <input class="rt-memo" data-rf="memo" value="${esc(s.memo || '')}" placeholder="할 일 · 메모" aria-label="메모">
@@ -2851,9 +2875,50 @@ function renderRoute() {
   const tip = $('#rtTip');
   tip.hidden = !(rtPinFor || (list.length && !n));
   tip.textContent = rtPinFor ? '지도에서 그 장소를 눌러 주세요. (다시 📍를 누르면 취소)' : '장소를 적으면 지도에 표시돼요.';
+  renderFavs();
   kakaoReady();
   drawRouteMap(list);
 }
+/* ---------- 자주 가는 곳 ---------- */
+const rtKey = v => (v || '').trim().replace(/\s+/g, '').toLowerCase();
+const rtFav = name => { const k = rtKey(name); return k ? state.places.find(p => rtKey(p.name) === k) : null; };
+function renderFavs() {
+  const ps = [...state.places].sort((a, b) => (a.order || 0) - (b.order || 0));
+  $('#rtFavSum').textContent = ps.length ? `자주 가는 곳 (${ps.length})` : '자주 가는 곳';
+  $('#rtFavs').innerHTML = ps.map(p => `<li data-pid="${p.id}"><b>${esc(p.name)}</b><span>${esc(p.addr)}${p.lat == null ? ' · <em>위치를 못 찾았어요</em>' : ''}</span><button type="button" data-fa="edit" title="고치기" aria-label="${esc(p.name)} 고치기">✎</button><button type="button" data-fa="del" title="지우기" aria-label="${esc(p.name)} 지우기">${RT_X}</button></li>`).join('');
+  $('#rtChips').innerHTML = ps.map(p => `<button type="button" class="rt-chip" data-chip="${p.id}" title="${esc(p.addr)}">+ ${esc(p.name)}</button>`).join('');
+  $('#rtPlaceList').innerHTML = ps.map(p => `<option value="${esc(p.name)}">${esc(p.addr)}</option>`).join('');
+}
+$('#rtFavForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('#rtFavName').value.trim(), addr = $('#rtFavAddr').value.trim(), msg = $('#rtFavMsg');
+  if (!name || !addr) { msg.textContent = '이름과 주소를 모두 적어 주세요.'; return; }
+  msg.textContent = '주소를 찾는 중…';
+  let hit = null, err = false;
+  try { hit = await rtFindLL(addr); } catch (x) { err = true; }
+  let p = rtFav(name);
+  if (!p) { p = { id: uid(), name, addr: '', lat: null, lng: null, order: Date.now() }; state.places.push(p); }
+  p.name = name; p.addr = addr; p.lat = hit ? hit.lat : null; p.lng = hit ? hit.lng : null;
+  // 이 이름을 쓰는 타임블럭도 새 주소로
+  if (hit) state.stops.forEach(s => { if (rtKey(s.place) === rtKey(name)) { s.lat = hit.lat; s.lng = hit.lng; rtGeo.delete(s.id); } });
+  save();
+  msg.textContent = hit ? `저장했어요. 장소에 "${name}"만 적으면 돼요.` : err ? '인터넷 연결을 확인해 주세요. (저장은 했어요)' : '주소를 찾지 못했어요. 도로명 주소로 다시 적어 주세요.';
+  if (hit) { $('#rtFavName').value = ''; $('#rtFavAddr').value = ''; }
+  renderRoute();
+});
+$('#rtFavs').addEventListener('click', e => {
+  const b = e.target.closest('[data-fa]'); if (!b) return;
+  const p = state.places.find(x => x.id === b.closest('[data-pid]').dataset.pid); if (!p) return;
+  if (b.dataset.fa === 'del') { state.places = state.places.filter(x => x !== p); save(); renderRoute(); }
+  else { $('#rtFavName').value = p.name; $('#rtFavAddr').value = p.addr; $('#rtFavAddr').focus(); }
+});
+$('#rtChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-chip]'); if (!b) return;
+  const p = state.places.find(x => x.id === b.dataset.chip); if (!p) return;
+  const s = rtNewStop(); s.place = p.name;
+  state.stops.push(s); save();
+  if (p.lat != null) { s.lat = p.lat; s.lng = p.lng; save(); renderRoute(); } else rtGeocode(s);
+});
 // 동선 칸: 캘린더 할 일 창 ↔ 동선 화면(ROUTE)으로 옮겨 다녀요
 function placeRoute() {
   const sec = $('#cdRoute'), big = state.view === 'route';
@@ -2877,31 +2942,42 @@ $('#rtFold').onclick = () => {
 };
 $('#rtBig').onclick = () => { state.view = 'route'; save(); render(); };
 $('#rpToday').onclick = () => { state.date = todayStr(); state.month = state.date.slice(0, 7); render(); };
-async function rtGeocode(s) {
-  const q = (s.place || '').trim();
-  if (!q) { s.lat = s.lng = null; rtGeo.delete(s.id); return; }
-  rtGeo.set(s.id, 'busy'); renderRoute();
-  try {
-    let hit = null;
-    if (await kakaoReady()) {
-      hit = await kakaoFind(q);
-      if (hit) { s.lat = +hit.lat.toFixed(6); s.lng = +hit.lng.toFixed(6); rtGeo.delete(s.id); save(); renderRoute(); return; }
-      s.lat = s.lng = null; rtGeo.set(s.id, 'miss'); save(); renderRoute(); return;
-    }
+// 장소 · 주소 → {lat, lng} (못 찾으면 null, 인터넷 오류면 throw)
+async function rtFindLL(q) {
+  let hit = null;
+  if (await kakaoReady()) hit = await kakaoFind(q);
+  else {
     for (const cc of ['&countrycodes=kr', '']) {
       const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ko' + cc + '&q=' + encodeURIComponent(q));
       const j = await r.json();
-      if (j && j[0]) { hit = j[0]; break; }
+      if (j && j[0]) { hit = { lat: +j[0].lat, lng: +j[0].lon }; break; }
     }
-    if (hit) { s.lat = +(+hit.lat).toFixed(6); s.lng = +(+hit.lon).toFixed(6); rtGeo.delete(s.id); }
-    else { s.lat = s.lng = null; rtGeo.set(s.id, 'miss'); }
+  }
+  return hit ? { lat: +hit.lat.toFixed(6), lng: +hit.lng.toFixed(6) } : null;
+}
+async function rtGeocode(s) {
+  const q = (s.place || '').trim();
+  if (!q) { s.lat = s.lng = null; rtGeo.delete(s.id); return; }
+  // 자주 가는 곳 이름이면 저장한 위치를 바로 써요
+  const fav = rtFav(q);
+  if (fav && fav.lat != null) { s.lat = fav.lat; s.lng = fav.lng; rtGeo.delete(s.id); save(); renderRoute(); return; }
+  rtGeo.set(s.id, 'busy'); renderRoute();
+  try {
+    const hit = await rtFindLL(fav ? fav.addr : q);
+    if (hit) {
+      s.lat = hit.lat; s.lng = hit.lng; rtGeo.delete(s.id);
+      if (fav) { fav.lat = hit.lat; fav.lng = hit.lng; }
+    } else { s.lat = s.lng = null; rtGeo.set(s.id, 'miss'); }
   } catch (e) { rtGeo.set(s.id, 'err'); }
   save(); renderRoute();
 }
-$('#rtAdd').onclick = () => {
+function rtNewStop() {
   const list = stopsOn(state.date), last = list[list.length - 1];
   const plus1 = t => { const [h, m] = t.split(':').map(Number); return `${pad(Math.min(23, h + 1))}:${pad(m || 0)}`; };
-  const s = { id: uid(), date: state.date, start: last ? (last.end || (last.start ? plus1(last.start) : '09:00')) : '09:00', end: '', place: '', memo: '', lat: null, lng: null, order: Date.now() };
+  return { id: uid(), date: state.date, start: last ? (last.end || (last.start ? plus1(last.start) : '09:00')) : '09:00', end: '', place: '', memo: '', lat: null, lng: null, order: Date.now() };
+}
+$('#rtAdd').onclick = () => {
+  const s = rtNewStop();
   state.stops.push(s); save(); renderRoute();
   const inp = document.querySelector(`#rtList [data-sid="${s.id}"] .rt-place`); if (inp) inp.focus();
 };
@@ -5161,7 +5237,7 @@ async function gh(method, path, body) {
   return res.status === 204 ? null : res.json();
 }
 function syncDoc() {
-  return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, stops: state.stops, tomb: state.tomb, settingsU: state.settingsU || 0,
+  return { app: 'dayflow', v: 1, tasks: state.tasks, dump: state.dump, stops: state.stops, places: state.places, tomb: state.tomb, settingsU: state.settingsU || 0,
     settings: { kindColors: state.kindColors, quadColors: state.quadColors, subjects: state.subjects, wq: state.wq, kakaoKey: state.kakaoKey || '' },
     planner: state.planner || null, plannerU: state.plannerU || 0 };
 }
@@ -5206,8 +5282,8 @@ async function syncNow(force) {
     syncRebuildSnap();
     const out = JSON.stringify(syncDoc());
     if (out !== text) await gh('PATCH', '/gists/' + syncCfg.gistId, { files: { [SYNC_FILE]: { content: out } } });
-    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
-    try { localStorage.setItem(KEY, JSON.stringify({ view: ROUTE_ONLY ? SAVED_VIEW : view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
+    const { view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, places, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU } = state;
+    try { localStorage.setItem(KEY, JSON.stringify({ view: ROUTE_ONLY ? SAVED_VIEW : view, planner, plannerU, tasks, imported, calFilter, lastBatch, kindColors, quadColors, wq, stops, places, kakaoKey, subjects, timerWin, dump, dumpWin, fontScale, resetAsked, tomb, settingsU })); } catch (e) {}
     if (JSON.stringify([state.tasks, state.dump, state.stops, settingsJSON()]) !== before) { render(); renderDump(); }
     if (JSON.stringify(state.planner || null) !== beforePl && planner) { planner.reload(); if (state.view === 'week') weekLabel(); }
     syncCfg.last = Date.now(); syncSaveCfg();
