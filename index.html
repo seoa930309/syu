@@ -652,7 +652,37 @@ body{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-ar
  .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; } .leaflet-container { overflow: hidden; } .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow { -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-user-drag: none; } .leaflet-tile::selection { background: transparent; } .leaflet-safari .leaflet-tile { image-rendering: -webkit-optimize-contrast; } .leaflet-safari .leaflet-tile-container { width: 1600px; height: 1600px; -webkit-transform-origin: 0 0; } .leaflet-marker-icon, .leaflet-marker-shadow { display: block; } .leaflet-container .leaflet-overlay-pane svg { max-width: none !important; max-height: none !important; } .leaflet-container .leaflet-marker-pane img, .leaflet-container .leaflet-shadow-pane img, .leaflet-container .leaflet-tile-pane img, .leaflet-container img.leaflet-image-layer, .leaflet-container .leaflet-tile { max-width: none !important; max-height: none !important; width: auto; padding: 0; } .leaflet-container img.leaflet-tile { mix-blend-mode: plus-lighter; } .leaflet-container.leaflet-touch-zoom { -ms-touch-action: pan-x pan-y; touch-action: pan-x pan-y; } .leaflet-container.leaflet-touch-drag { -ms-touch-action: pinch-zoom; touch-action: none; touch-action: pinch-zoom; } .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom { -ms-touch-action: none; touch-action: none; } .leaflet-container { -webkit-tap-highlight-color: transparent; } .leaflet-container a { -webkit-tap-highlight-color: rgba(51, 181, 229, 0.4); } .leaflet-tile { filter: inherit; visibility: hidden; } .leaflet-tile-loaded { visibility: inherit; } .leaflet-zoom-box { width: 0; height: 0; -moz-box-sizing: border-box; box-sizing: border-box; z-index: 800; } .leaflet-overlay-pane svg { -moz-user-select: none; } .leaflet-pane { z-index: 400; } .leaflet-tile-pane { z-index: 200; } .leaflet-overlay-pane { z-index: 400; } .leaflet-shadow-pane { z-index: 500; } .leaflet-marker-pane { z-index: 600; } .leaflet-tooltip-pane { z-index: 650; } .leaflet-popup-pane { z-index: 700; } .leaflet-map-pane canvas { z-index: 100; } .leaflet-map-pane svg { z-index: 200; } .leaflet-vml-shape { width: 1px; height: 1px; } .lvml { behavior: url(#default#VML); display: inline-block; position: absolute; } .leaflet-control { position: relative; z-index: 800; pointer-events: visiblePainted; pointer-events: auto; } .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; } .leaflet-top { top: 0; } .leaflet-right { right: 0; } .leaflet-bottom { bottom: 0; } .leaflet-left { left: 0; } .leaflet-control { float: left; clear: both; } .leaflet-right .leaflet-control { float: right; } .leaflet-top .leaflet-control { margin-top: 10px; } .leaflet-bottom .leaflet-control { margin-bottom: 10px; } .leaflet-left .leaflet-control { margin-left: 10px; } .leaflet-right .leaflet-control { margin-right: 10px; } .leaflet-fade-anim .leaflet-popup { opacity: 0; -webkit-transition: opacity 0.2s linear; -moz-transition: opacity 0.2s linear; transition: opacity 0.2s linear; } .leaflet-fade-anim .leaflet-map-pane .leaflet-popup { opacity: 1; } .leaflet-zoom-animated { -webkit-transform-origin: 0 0; -ms-transform-origin: 0 0; transform-origin: 0 0; } svg.leaflet-zoom-animated { will-change: transform; } .leaflet-zoom-anim .leaflet-zoom-animated { -webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1); -moz-transition: -moz-transform 0.25s cubic-bezier(0,0,0.25,1); transition: transform 0.25s cubic-bezier(0,0,0.25,1); } .leaflet-zoom-anim .leaflet-tile, .leaflet-pan-anim .leaflet-tile { -webkit-transition: none; -moz-transition: none; transition: none; } .leaflet-zoom-anim .leaflet-zoom-hide { visibility: hidden; } .leaflet-interactive { cursor: pointer; } .leaflet-grab { cursor: -webkit-grab; cursor: -moz-grab; cursor: grab; } .leaflet-crosshair, .leaflet-crosshair .leaflet-interactive { cursor: crosshair; } .leaflet-popup-pane, .leaflet-control { cursor: auto; } .leaflet-dragging .leaflet-grab, .leaflet-dragging .leaflet-grab .leaflet-interactive, .leaflet-dragging .leaflet-marker-draggable { cursor: move; cursor: -webkit-grabbing; cursor: -moz-grabbing; cursor: grabbing; } .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container { pointer-events: none; } .leaflet-marker-icon.leaflet-interactive, .leaflet-image-layer.leaflet-interactive, .leaflet-pane > svg path.leaflet-interactive, svg.leaflet-image-layer.leaflet-interactive path { pointer-events: visiblePainted; pointer-events: auto; } .leaflet-container { background: #ddd; outline-offset: 1px; } .leaflet-container a { color: #0078A8; } .leaflet-zoom-box { border: 2px dotted #38f; background: rgba(255,255,255,0.5); } .leaflet-container { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; font-size: 12px; font-size: 0.75rem; line-height: 1.5; } .leaflet-bar { box-shadow: 0 1px 5px rgba(0,0,0,0.65); border-radius: 4px; } .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; width: 26px; height: 26px; line-height: 26px; display: block; text-align: center; text-decoration: none; color: black; } .leaflet-bar a, .leaflet-control-layers-toggle { background-position: 50% 50%; background-repeat: no-repeat; display: block; } .leaflet-bar a:hover, .leaflet-bar a:focus { background-color: #f4f4f4; } .leaflet-bar a:first-child { border-top-left-radius: 4px; border-top-right-radius: 4px; } .leaflet-bar a:last-child { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-bottom: none; } .leaflet-bar a.leaflet-disabled { cursor: default; background-color: #f4f4f4; color: #bbb; } .leaflet-touch .leaflet-bar a { width: 30px; height: 30px; line-height: 30px; } .leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: 2px; border-top-right-radius: 2px; } .leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; } .leaflet-control-zoom-in, .leaflet-control-zoom-out { font: bold 18px 'Lucida Console', Monaco, monospace; text-indent: 1px; } .leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out { font-size: 22px; } .leaflet-control-layers { box-shadow: 0 1px 5px rgba(0,0,0,0.4); background: #fff; border-radius: 5px; } .leaflet-control-layers-toggle { background-image: url(images/layers.png); width: 36px; height: 36px; } .leaflet-retina .leaflet-control-layers-toggle { background-image: url(images/layers-2x.png); background-size: 26px 26px; } .leaflet-touch .leaflet-control-layers-toggle { width: 44px; height: 44px; } .leaflet-control-layers .leaflet-control-layers-list, .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none; } .leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: relative; } .leaflet-control-layers-expanded { padding: 6px 10px 6px 6px; color: #333; background: #fff; } .leaflet-control-layers-scrollbar { overflow-y: scroll; overflow-x: hidden; padding-right: 5px; } .leaflet-control-layers-selector { margin-top: 2px; position: relative; top: 1px; } .leaflet-control-layers label { display: block; font-size: 13px; font-size: 1.08333em; } .leaflet-control-layers-separator { height: 0; border-top: 1px solid #ddd; margin: 5px -10px 5px -6px; } .leaflet-default-icon-path { background-image: url(images/marker-icon.png); } .leaflet-container .leaflet-control-attribution { background: #fff; background: rgba(255, 255, 255, 0.8); margin: 0; } .leaflet-control-attribution, .leaflet-control-scale-line { padding: 0 5px; color: #333; line-height: 1.4; } .leaflet-control-attribution a { text-decoration: none; } .leaflet-control-attribution a:hover, .leaflet-control-attribution a:focus { text-decoration: underline; } .leaflet-attribution-flag { display: inline !important; vertical-align: baseline !important; width: 1em; height: 0.6669em; } .leaflet-left .leaflet-control-scale { margin-left: 5px; } .leaflet-bottom .leaflet-control-scale { margin-bottom: 5px; } .leaflet-control-scale-line { border: 2px solid #777; border-top: none; line-height: 1.1; padding: 2px 5px 1px; white-space: nowrap; -moz-box-sizing: border-box; box-sizing: border-box; background: rgba(255, 255, 255, 0.8); text-shadow: 1px 1px #fff; } .leaflet-control-scale-line:not(:first-child) { border-top: 2px solid #777; border-bottom: none; margin-top: -2px; } .leaflet-control-scale-line:not(:first-child):not(:last-child) { border-bottom: 2px solid #777; } .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { box-shadow: none; } .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { border: 2px solid rgba(0,0,0,0.2); background-clip: padding-box; } .leaflet-popup { position: absolute; text-align: center; margin-bottom: 20px; } .leaflet-popup-content-wrapper { padding: 1px; text-align: left; border-radius: 12px; } .leaflet-popup-content { margin: 13px 24px 13px 20px; line-height: 1.3; font-size: 13px; font-size: 1.08333em; min-height: 1px; } .leaflet-popup-content p { margin: 17px 0; margin: 1.3em 0; } .leaflet-popup-tip-container { width: 40px; height: 20px; position: absolute; left: 50%; margin-top: -1px; margin-left: -20px; overflow: hidden; pointer-events: none; } .leaflet-popup-tip { width: 17px; height: 17px; padding: 1px; margin: -10px auto 0; pointer-events: auto; -webkit-transform: rotate(45deg); -moz-transform: rotate(45deg); -ms-transform: rotate(45deg); transform: rotate(45deg); } .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: white; color: #333; box-shadow: 0 3px 14px rgba(0,0,0,0.4); } .leaflet-container a.leaflet-popup-close-button { position: absolute; top: 0; right: 0; border: none; text-align: center; width: 24px; height: 24px; font: 16px/24px Tahoma, Verdana, sans-serif; color: #757575; text-decoration: none; background: transparent; } .leaflet-container a.leaflet-popup-close-button:hover, .leaflet-container a.leaflet-popup-close-button:focus { color: #585858; } .leaflet-popup-scrolled { overflow: auto; } .leaflet-oldie .leaflet-popup-content-wrapper { -ms-zoom: 1; } .leaflet-oldie .leaflet-popup-tip { width: 24px; margin: 0 auto; -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)"; filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678); } .leaflet-oldie .leaflet-control-zoom, .leaflet-oldie .leaflet-control-layers, .leaflet-oldie .leaflet-popup-content-wrapper, .leaflet-oldie .leaflet-popup-tip { border: 1px solid #999; } .leaflet-div-icon { background: #fff; border: 1px solid #666; } .leaflet-tooltip { position: absolute; padding: 6px; background-color: #fff; border: 1px solid #fff; border-radius: 3px; color: #222; white-space: nowrap; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.4); } .leaflet-tooltip.leaflet-interactive { cursor: pointer; pointer-events: auto; } .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { position: absolute; pointer-events: none; border: 6px solid transparent; background: transparent; content: ""; } .leaflet-tooltip-bottom { margin-top: 6px; } .leaflet-tooltip-top { margin-top: -6px; } .leaflet-tooltip-bottom:before, .leaflet-tooltip-top:before { left: 50%; margin-left: -6px; } .leaflet-tooltip-top:before { bottom: 0; margin-bottom: -12px; border-top-color: #fff; } .leaflet-tooltip-bottom:before { top: 0; margin-top: -12px; margin-left: -6px; border-bottom-color: #fff; } .leaflet-tooltip-left { margin-left: -6px; } .leaflet-tooltip-right { margin-left: 6px; } .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { top: 50%; margin-top: -6px; } .leaflet-tooltip-left:before { right: 0; margin-right: -12px; border-left-color: #fff; } .leaflet-tooltip-right:before { left: 0; margin-left: -12px; border-right-color: #fff; } @media print { .leaflet-control { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } 
 /* 동선: 타임블럭 + 장소 → 지도 */
 .route{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
-.rt-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rt-fold{display:inline-flex;align-items:center;gap:4px;border:0;background:none;padding:2px 4px 2px 0;cursor:pointer;color:var(--text)}
+.rt-fold svg{width:16px;height:16px;color:var(--muted);transition:transform .15s}
+.route.folded .rt-fold svg{transform:rotate(-90deg)}
+.route.folded > :not(.rt-head){display:none!important}
+.route.folded .rt-sub{display:none}
+.rt-big{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:var(--radius-sm);font:inherit;font-size:calc(11px * var(--fs));font-weight:600;padding:3px 8px;cursor:pointer}
+.rt-big:hover{color:var(--text)}
+/* 동선 화면(ROUTE) */
+#view-route.on{display:block;overflow-y:auto}
+.rp-wrap{max-width:1200px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.rp-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rp-top h2{margin:0;font-size:calc(20px * var(--fs));font-weight:700;letter-spacing:-.01em}
+.rp-top .pill-btn{margin-left:auto}
+#routeSlot{flex:1;min-height:0}
+.route.big{margin:0;padding:0;border:0;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;column-gap:18px;row-gap:8px;align-content:start}
+.route.big .rt-head{grid-column:1}
+.route.big .rt-list,.route.big .rt-add,.route.big .rt-tip,.route.big .rt-kakao{grid-column:1}
+.route.big .rt-list{padding-right:2px}
+.route.big .rt-map{grid-column:2;grid-row:1 / -1;align-self:start;position:sticky;top:0;height:calc(100vh - 190px);min-height:360px;display:block!important}
+.route.big .rt-map[hidden]{display:block!important}
+.route.big .rt-fold{pointer-events:none}
+.route.big .rt-fold svg,.route.big .rt-big{display:none}
+/* 탭이 6개라 아이패드 폭에서는 아이콘만 (위쪽 버튼이 잘리지 않게) */
+@media (min-width:901px) and (max-width:1320px){ .vseg .tab span{display:none} .vseg .tab{padding:0 12px} }
+@media (max-width:900px){
+  .route.big{display:flex;flex-direction:column;height:auto}
+  .route.big .rt-map{order:-1;height:52vh;min-height:280px;align-self:stretch;position:static;width:auto}
+  .route.big .rt-list{max-height:none}
+  #view-route.on{padding-bottom:24px}
+}
 .rt-head b{font-size:calc(14px * var(--fs));font-weight:700;color:var(--text)}
 .rt-sub{font-size:calc(11px * var(--fs));color:var(--faint)}
 .rt-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
@@ -1077,6 +1107,7 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
       <button class="tab" data-view="matrix" role="tab" title="매트릭스"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg><span>MATRIX</span></button>
       <button class="tab" data-view="flow" role="tab" title="플로우"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M4 12h16M4 18h7"/><path d="M17 3l3 3-3 3" stroke-linejoin="round"/></svg><span>FLOW</span></button>
       <button class="tab" data-view="timer" role="tab" title="타이머"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l3 2M10 2.5h4"/></svg><span>TIMER</span></button>
+      <button class="tab" data-view="route" role="tab" title="동선"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8 17h6.5a3.5 3.5 0 000-7h-5a3.5 3.5 0 010-7H16"/></svg><span>ROUTE</span></button>
     </nav>
     <div class="grow"></div>
     <button class="pastebtn icbtn" id="moreBtn" aria-label="도구 더보기" aria-expanded="false" aria-controls="tools"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg></button>
@@ -1114,7 +1145,7 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
         <div class="drop-list" id="cdList"></div>
         <div class="cd-btns"><button class="pill-btn primary icon-only" id="cdAdd" aria-label="이 날에 추가" title="이 날에 추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="pill-btn icon-only" id="cdWipe" type="button" aria-label="이 날 지우기" title="이 날 지우기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.5A1.5 1.5 0 008.5 21h7a1.5 1.5 0 001.5-1.5L18 7M9 7V4.5A1.5 1.5 0 0110.5 3h3A1.5 1.5 0 0115 4.5V7"/></svg></button></div>
         <section class="route" id="cdRoute" aria-label="동선">
-          <div class="rt-head"><b>동선</b><span class="rt-sub">시간 · 장소를 적으면 지도에 순서대로 이어져요</span></div>
+          <div class="rt-head"><button type="button" class="rt-fold" id="rtFold" aria-expanded="true" aria-controls="cdRoute" title="동선 접기 · 펼치기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><b>동선</b></button><span class="rt-sub">시간 · 장소를 적으면 지도에 순서대로 이어져요</span><button type="button" class="rt-big" id="rtBig" title="동선 화면에서 크게 보기">크게 보기</button></div>
           <ol class="rt-list" id="rtList"></ol>
           <button type="button" class="pill-btn rt-add" id="rtAdd">+ 타임블럭</button>
           <p class="rt-tip" id="rtTip" hidden></p>
@@ -1147,6 +1178,9 @@ body{padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-ar
     </section>
 
     <!-- TIMER -->
+    <!-- ROUTE: 동선만 크게 (캘린더의 동선 칸을 이리로 옮겨 와요) -->
+    <section class="view" id="view-route"><div class="rp-wrap"><div class="rp-top"><h2 id="rpTitle"></h2><button class="pill-btn" type="button" id="rpToday">오늘</button></div><div id="routeSlot"></div></div></section>
+
     <section class="view" id="view-timer">
       <button class="pill-btn solo-btn icon-only" id="soloOn" title="타이머만 보기" aria-label="타이머만 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <div class="tnote" id="timerNote" hidden>타이머가 팝업으로 떠 있어요.<button class="pill-btn primary" id="twDockHere">여기로 가져오기</button></div>
@@ -2291,7 +2325,7 @@ function seed() {
 let state = load() || seed();
 state.date = todayStr();
 state.month = state.date.slice(0, 7);
-if (!['calendar', 'week', 'matrix', 'flow', 'timer'].includes(state.view)) state.view = 'matrix';
+if (!['calendar', 'week', 'matrix', 'flow', 'timer', 'route'].includes(state.view)) state.view = 'matrix';
 if (!['all', 'event', 'todo'].includes(state.calFilter)) state.calFilter = 'all';
 /* ---------- 기기 연동: 무엇이 언제 바뀌었는지 기록 ----------
    할 일·메모마다 마지막으로 바뀐 시각(u)을, 지운 것은 지운 시각(tomb)을 남겨요.
@@ -2479,7 +2513,9 @@ function render() {
     const d = parse(state.date);
     $('#dateLabel').innerHTML = `<span class="lg">${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})</span><span class="sm">${d.getMonth() + 1}/${d.getDate()} ${DOW[d.getDay()]}</span>`;
     if (state.view === 'matrix') renderMatrix(); else if (state.view === 'flow') renderFlow();
+    else if (state.view === 'route') { $('#rpTitle').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]}) 동선`; }
   }
+  placeRoute();
   placeTimer();
 }
 
@@ -2799,6 +2835,29 @@ function renderRoute() {
   kakaoReady();
   drawRouteMap(list);
 }
+// 동선 칸: 캘린더 할 일 창 ↔ 동선 화면(ROUTE)으로 옮겨 다녀요
+function placeRoute() {
+  const sec = $('#cdRoute'), big = state.view === 'route';
+  const target = big ? $('#routeSlot') : $('#calDay');
+  if (sec.parentElement !== target) target.append(sec);
+  sec.classList.toggle('big', big);
+  if (big) renderRoute();
+}
+const RT_FOLD_KEY = 'dayflow-route-fold';
+function rtFolded() { try { return localStorage.getItem(RT_FOLD_KEY) === '1'; } catch (e) { return false; } }
+function rtApplyFold() {
+  const f = rtFolded(), sec = $('#cdRoute');
+  sec.classList.toggle('folded', f);
+  $('#rtFold').setAttribute('aria-expanded', String(!f));
+}
+$('#rtFold').onclick = () => {
+  if (state.view === 'route') return;
+  try { localStorage.setItem(RT_FOLD_KEY, rtFolded() ? '0' : '1'); } catch (e) {}
+  rtApplyFold();
+  if (!rtFolded()) renderRoute();
+};
+$('#rtBig').onclick = () => { state.view = 'route'; save(); render(); };
+$('#rpToday').onclick = () => { state.date = todayStr(); state.month = state.date.slice(0, 7); render(); };
 async function rtGeocode(s) {
   const q = (s.place || '').trim();
   if (!q) { s.lat = s.lng = null; rtGeo.delete(s.id); return; }
@@ -2954,7 +3013,7 @@ $('#rtKakao').addEventListener('toggle', () => { if ($('#rtKakao').open) $('#rtK
 function drawRouteMap(list) {
   const box = $('#rtMap'), pts = list.filter(s => s.lat != null && s.lng != null);
   box.classList.toggle('pinning', !!rtPinFor);
-  if (!pts.length && !rtPinFor) { box.hidden = true; return; }
+  if (!pts.length && !rtPinFor && state.view !== 'route') { box.hidden = true; return; }
   box.hidden = false;
   kakaoReady().then(useK => {
     if (useK) { drawKakao(box, pts); return; }
@@ -5203,7 +5262,7 @@ mountWeek();
 render();
 renderDump();
 syncNow();
-widgetPush(true); widgetOpenView();
+widgetPush(true); widgetOpenView(); rtApplyFold();
 /* ---------- 갤럭시 홈 화면 위젯 ----------
    안드로이드 앱 안에서만: 할 일이 바뀌면 어제~7일 뒤 요약을 위젯으로 넘겨요.
    위젯을 누르면 앱이 그 위젯의 화면(캘린더 · 플로우 · 매트릭스)으로 열려요. */
@@ -5296,7 +5355,7 @@ document.querySelectorAll('[data-yscript]').forEach(b => b.addEventListener('cli
 (() => {
   let v = null;
   try { v = new URLSearchParams(location.search).get('view'); } catch (e) {}
-  if (!['calendar', 'week', 'matrix', 'flow', 'timer'].includes(v)) return;
+  if (!['calendar', 'week', 'matrix', 'flow', 'timer', 'route'].includes(v)) return;
   state.view = v; state.date = todayStr();
   if (v === 'calendar') state.month = state.date.slice(0, 7);
   save(); render();
