@@ -8,6 +8,7 @@ on:
       - 'fonts/**'
       - 'icons/**'
       - 'manifest.webmanifest'
+      - 'route.webmanifest'
       - 'android/**'
       - '.github/workflows/android.yml'
   # PR에서는 APK가 만들어지는지만 확인해요 (다운로드 페이지에는 올리지 않아요)
@@ -45,25 +46,33 @@ jobs:
           echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
-      - name: 안드로이드 프로젝트 준비
-        run: bash android/setup.sh ${{ github.run_number }}
+      - name: 안드로이드 프로젝트 준비 (dayflow · dayflow 동선)
+        run: |
+          bash android/setup.sh ${{ github.run_number }}
+          bash android/setup.sh ${{ github.run_number }} route
 
       - name: APK 만들기
-        working-directory: app-build/android
         run: |
-          chmod +x gradlew
           set -o pipefail
-          if ! ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/build.log"; then
-            # 실패 원인을 GitHub 알림으로 남겨요 (빌드 기록을 못 여는 곳에서도 보이게)
-            grep -E "error:|ERROR:|FAILURE|What went wrong|e: |AAPT|Execution failed|cannot find symbol|incompatible types" -A3 "$GITHUB_WORKSPACE/build.log" | head -40 | while IFS= read -r line; do echo "::error::$line"; done
-            exit 1
-          fi
-          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/dayflow.apk"
+          build () {  # $1 = 프로젝트 폴더, $2 = 결과 파일 이름
+            cd "$GITHUB_WORKSPACE/$1/android"
+            chmod +x gradlew
+            if ! ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/build-$2.log"; then
+              # 실패 원인을 GitHub 알림으로 남겨요 (빌드 기록을 못 여는 곳에서도 보이게)
+              grep -E "error:|ERROR:|FAILURE|What went wrong|e: |AAPT|Execution failed|cannot find symbol|incompatible types" -A3 "$GITHUB_WORKSPACE/build-$2.log" | head -40 | while IFS= read -r line; do echo "::error::[$2] $line"; done
+              exit 1
+            fi
+            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/$2"
+          }
+          build app-build dayflow.apk
+          build app-build-route dayflow-route.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: dayflow-apk
-          path: dayflow.apk
+          path: |
+            dayflow.apk
+            dayflow-route.apk
 
       - name: 다운로드 페이지(릴리스)에 올리기
         if: github.event_name != 'pull_request'
@@ -73,6 +82,9 @@ jobs:
           name: dayflow 안드로이드 앱 1.${{ github.run_number }}
           body: |
             갤럭시 등 안드로이드 폰에서 **dayflow.apk**를 눌러 내려받아 설치하세요.
+            동선만 따로 쓰려면 **dayflow-route.apk**(dayflow 동선)도 설치하세요. 두 앱은 설정 → 기기 연동을 켜면 같은 동선을 함께 봐요.
             처음이라면 "출처를 알 수 없는 앱 설치"를 허용해야 해요. 새 버전은 덮어 설치하면 되고, 데이터는 그대로 남아요.
-          files: dayflow.apk
+          files: |
+            dayflow.apk
+            dayflow-route.apk
           make_latest: true
